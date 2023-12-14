@@ -283,7 +283,7 @@ func TestLicenseListPolicyCdx14InvalidLicenseName(t *testing.T) {
 func TestLicenseListSummaryTextCdx13WhereUsageNeedsReview(t *testing.T) {
 	lti := NewLicenseTestInfo(TEST_LICENSE_LIST_CDX_1_3, FORMAT_TEXT, true)
 	lti.WhereClause = "usage-policy=needs-review"
-	lti.ResultExpectedLineCount = 8 // title and data rows
+	lti.ResultExpectedLineCount = 5 // title and data rows
 	innerTestLicenseList(t, lti)
 }
 
@@ -402,13 +402,13 @@ func TestLicenseExpressionSingleCompoundInvalidOR(t *testing.T) {
 
 func TestLicenseExpressionSingleCompoundInvalidAND2(t *testing.T) {
 	EXP := "AND GPL-2.0-only"
-	EXPECTED_POLICY := schema.POLICY_UNDEFINED
+	EXPECTED_POLICY := schema.POLICY_DENY
 	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 }
 
 func TestLicenseExpressionSingleCompoundInvalidOR2(t *testing.T) {
 	EXP := "OR GPL-2.0-only"
-	EXPECTED_POLICY := schema.POLICY_NEEDS_REVIEW
+	EXPECTED_POLICY := schema.POLICY_DENY
 	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 }
 

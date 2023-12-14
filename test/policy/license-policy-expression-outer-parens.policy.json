@@ -10,6 +10,9 @@
                   ],
                   "notes": [
                         ""
+                  ],
+                  "urls": [
+                      "https://creativecommons.org/publicdomain/zero/1.0/legalcode"
                   ]
             },
             {
@@ -24,7 +27,13 @@
                         ""
                   ],
                   "urls": [
-                        "https://spdx.org/licenses/MIT.html"
+                      "https://opensource.org/licenses/MIT",
+                      "http://www.opensource.org/licenses/mit-license.php",
+                      "https://jsoup.org/license",
+                      "https://www.bouncycastle.org/licence.html"
+                  ],
+                  "aliases": [
+                      "MIT license"
                   ]
             }
       ]

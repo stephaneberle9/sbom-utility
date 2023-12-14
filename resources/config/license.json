@@ -245,7 +245,7 @@
         },
         {
             "id": "Apache-1.0",
-            "name": "Apache v1.0",
+            "name": "Apache License Version 1.0",
             "family": "Apache",
             "reference": "https://spdx.org/licenses/Apache-1.0.html",
             "osi": false,
@@ -255,12 +255,12 @@
                 "APPROVED"
             ],
             "urls": [
-              "http://www.apache.org/licenses/LICENSE-1.0"
+              "https://www.apache.org/licenses/LICENSE-1.0"
             ]
         },
         {
             "id": "Apache-1.1",
-            "name": "Apache v1.1",
+            "name": "Apache License Version 1.1",
             "family": "Apache",
             "reference": "https://spdx.org/licenses/Apache-1.1.html",
             "osi": true,
@@ -270,7 +270,7 @@
                 "APPROVED"
             ],
             "urls": [
-                "http://apache.org/licenses/LICENSE-1.1",
+                "https://www.apache.org/licenses/LICENSE-1.1",
                 "https://opensource.org/licenses/Apache-1.1"
             ],
             "notes": [
@@ -279,7 +279,7 @@
         },
         {
             "id": "Apache-2.0",
-            "name": "Apache License 2.0",
+            "name": "Apache License Version 2.0",
             "family": "Apache",
             "reference": "https://spdx.org/licenses/Apache-2.0.html",
             "osi": true,
@@ -290,13 +290,23 @@
             ],
             "urls": [
                 "https://www.apache.org/licenses/LICENSE-2.0",
-                "https://opensource.org/licenses/Apache-2.0"
+                "http://www.apache.org/licenses/LICENSE-2.0",
+                "https://www.apache.org/licenses/LICENSE-2.0.txt",
+                "http://www.apache.org/licenses/LICENSE-2.0.txt",
+                "http://www.apache.org/licenses/LICENSE-2.0.html",
+                "https://opensource.org/licenses/Apache-2.0",
+                "https://www.opensource.org/licenses/apache2.0.php",
+                "http://www.opensource.org/licenses/apache2.0.php"
             ],
             "aliases": [
+                "Apache 2.0",
                 "Apache License, Version 2.0",
                 "Apache License v. 2.0",
                 "Apache License Version 2.0",
-                "Apache Software License v2.0"
+                "Apache Software License v2.0",
+                "The Apache License, Version 2.0",
+                "The Apache Software License, Version 2.0",
+                "ASF 2.0"
             ]
         },
         {
@@ -457,6 +467,21 @@
             ]
         },
         {
+            "id": "Bouncy-Castle",
+            "name": "Bouncy Castle Licence",
+            "family": "Bouncy-Castle",
+            "reference": "https://spdx.org/licenses/MIT.html",
+            "osi": true,
+            "fsf": true,
+            "usagePolicy": "allow",
+            "annotationRefs": [
+                "APPROVED"
+            ],
+            "urls": [
+                "https://www.bouncycastle.org/licence.html"
+            ]
+        },
+        {
             "id": "BSD-1-Clause",
             "name": "BSD 1-Clause License",
             "family": "BSD",
@@ -483,7 +508,9 @@
                 "APPROVED"
             ],
             "urls": [
-                "https://opensource.org/licenses/BSD-2-Clause"
+                "https://opensource.org/licenses/BSD-2-Clause",
+                "http://www.opensource.org/licenses/bsd-license.php",
+                "https://raw.githubusercontent.com/jaxen-xpath/jaxen/master/LICENSE.txt"
             ],
             "aliases": [
                 "2-clause BSDL"
@@ -568,12 +595,19 @@
             ],
             "urls": [
                 "https://opensource.org/licenses/BSD-3-Clause",
-                "https://www.eclipse.org/org/documents/edl-v10.php"
+                "http://opensource.org/licenses/BSD-3-Clause",
+                "https://www.eclipse.org/org/documents/edl-v10.php",
+                "http://www.debian.org/misc/bsd.license",
+                "http://x-stream.github.io/license.html",
+                "http://www.jcraft.com/jsch/LICENSE.txt"
             ],
             "aliases": [
                 "BSD 3-clause \"New\" License",
                 "New BSD License",
-                "Modified BSD License"
+                "Modified BSD License",
+                "Revised BSD",
+                "BSD License",
+                "The BSD License"
             ]
         },
         {
@@ -992,8 +1026,7 @@
                 "CC-BY-NC-2.0",
                 "CC-BY-NC-2.5",
                 "CC-BY-NC-3.0",
-                "CC-BY-NC-3.0-DE",
-                "CC-BY-NC-4.0"
+                "CC-BY-NC-3.0-DE"
             ],
             "urls": [
                 "https://spdx.org/licenses/CC-BY-NC-1.0.html",
@@ -1005,8 +1038,24 @@
                 "https://spdx.org/licenses/CC-BY-NC-3.0.html",
                 "https://creativecommons.org/licenses/by-nc/3.0/legalcode",
                 "https://spdx.org/licenses/CC-BY-NC-3.0-DE.html",
-                "https://creativecommons.org/licenses/by-nc/3.0/de/legalcode",
-                "https://spdx.org/licenses/CC-BY-NC-4.0.html",
+                "https://creativecommons.org/licenses/by-nc/3.0/de/legalcode"
+            ],
+            "notes": [
+                "Needs IP legal determination for language-specific variants"
+            ]
+        },
+        {
+            "id": "CC-BY-NC-4.0",
+            "name": "Creative Commons Attribution Non Commercial 4.0 International",
+            "family": "CC-BY-NC-4.0",
+            "reference": "https://spdx.org/licenses/CC-BY-NC-4.0.html",
+            "osi": true,
+            "fsf": false,
+            "usagePolicy": "deny",
+            "annotationRefs": [
+                "PROHIBITED"
+            ],
+            "urls": [
                 "https://creativecommons.org/licenses/by-nc/4.0/legalcode"
             ],
             "notes": [
@@ -1015,7 +1064,7 @@
         },
         {
             "id": "",
-            "name": "Creative Commons Attribution Non Commercial",
+            "name": "Creative Commons Attribution Non Commercial No Derivatives",
             "family": "CC-BY-NC-ND",
             "reference": "",
             "osi": false,
@@ -1030,8 +1079,7 @@
                 "CC-BY-NC-ND-2.5",
                 "CC-BY-NC-ND-3.0",
                 "CC-BY-NC-ND-3.0-DE",
-                "CC-BY-NC-ND-3.0-IGO",
-                "CC-BY-NC-ND-4.0"
+                "CC-BY-NC-ND-3.0-IGO"
             ],
             "urls": [
                 "https://spdx.org/licenses/CC-BY-NC-ND-1.0.html",
@@ -1045,8 +1093,24 @@
                 "https://spdx.org/licenses/CC-BY-NC-ND-3.0-DE.html",
                 "https://creativecommons.org/licenses/by-nc-nd/3.0/de/legalcode",
                 "https://spdx.org/licenses/CC-BY-NC-ND-3.0-IGO.html",
-                "https://creativecommons.org/licenses/by-nc-nd/3.0/igo/legalcode",
-                "https://spdx.org/licenses/CC-BY-NC-ND-4.0.html",
+                "https://creativecommons.org/licenses/by-nc-nd/3.0/igo/legalcode"
+            ],
+            "notes": [
+                "Needs IP legal determination for language-specific variants"
+            ]
+        },
+        {
+            "id": "CC-BY-NC-ND-4.0",
+            "name": "Creative Commons Attribution Non Commercial No Derivatives 4.0 International",
+            "family": "CC-BY-NC-ND-4.0",
+            "reference": "https://spdx.org/licenses/CC-BY-NC-ND-4.0.html",
+            "osi": true,
+            "fsf": false,
+            "usagePolicy": "deny",
+            "annotationRefs": [
+                "PROHIBITED"
+            ],
+            "urls": [
                 "https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode"
             ],
             "notes": [
@@ -1055,7 +1119,7 @@
         },
         {
             "id": "",
-            "name": "Creative Commons Attribution Non Commercial",
+            "name": "Creative Commons Attribution Non Commercial Share Alike",
             "family": "CC-BY-NC-SA",
             "reference": "",
             "osi": false,
@@ -1073,8 +1137,7 @@
                 "CC-BY-NC-SA-2.5",
                 "CC-BY-NC-SA-3.0",
                 "CC-BY-NC-SA-3.0-DE",
-                "CC-BY-NC-SA-3.0-IGO",
-                "CC-BY-NC-SA-4.0"
+                "CC-BY-NC-SA-3.0-IGO"
             ],
             "urls": [
                 "https://spdx.org/licenses/CC-BY-NC-SA-1.0.html",
@@ -1094,8 +1157,24 @@
                 "https://spdx.org/licenses/CC-BY-NC-SA-3.0-DE.html",
                 "https://creativecommons.org/licenses/by-nc-sa/3.0/de/legalcode",
                 "https://spdx.org/licenses/CC-BY-NC-SA-3.0-IGO.html",
-                "https://creativecommons.org/licenses/by-nc-sa/3.0/igo/legalcode",
-                "https://spdx.org/licenses/CC-BY-NC-SA-4.0.html",
+                "https://creativecommons.org/licenses/by-nc-sa/3.0/igo/legalcode"
+            ],
+            "notes": [
+                "Needs IP legal determination for language-specific variants"
+            ]
+        },
+        {
+            "id": "CC-BY-NC-SA-4.0",
+            "name": "Creative Commons Attribution Non Commercial Share Alike 4.0 International",
+            "family": "CC-BY-NC-SA-4.0",
+            "reference": "https://spdx.org/licenses/CC-BY-NC-SA-4.0.html",
+            "osi": true,
+            "fsf": false,
+            "usagePolicy": "deny",
+            "annotationRefs": [
+                "PROHIBITED"
+            ],
+            "urls": [
                 "https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode"
             ],
             "notes": [
@@ -1118,8 +1197,7 @@
                 "CC-BY-ND-2.0",
                 "CC-BY-ND-2.5",
                 "CC-BY-ND-3.0",
-                "CC-BY-ND-3.0-DE",
-                "CC-BY-ND-4.0"
+                "CC-BY-ND-3.0-DE"
             ],
             "urls": [
                 "https://spdx.org/licenses/CC-BY-ND-1.0.html",
@@ -1131,8 +1209,24 @@
                 "https://spdx.org/licenses/CC-BY-ND-3.0.html",
                 "https://creativecommons.org/licenses/by-nd/3.0/legalcode",
                 "https://spdx.org/licenses/CC-BY-ND-3.0-DE.html",
-                "https://creativecommons.org/licenses/by-nd/3.0/de/legalcode",
-                "https://spdx.org/licenses/CC-BY-ND-4.0.html",
+                "https://creativecommons.org/licenses/by-nd/3.0/de/legalcode"
+            ],
+            "notes": [
+                "Needs IP legal determination for language-specific variants"
+            ]
+        },
+        {
+            "id": "CC-BY-ND-4.0",
+            "name": "Creative Commons Attribution No Derivatives 4.0 International",
+            "family": "CC-BY-ND-4.0",
+            "reference": "https://spdx.org/licenses/CC-BY-ND-4.0.html",
+            "osi": true,
+            "fsf": false,
+            "usagePolicy": "needs-review",
+            "annotationRefs": [
+                "NEEDS-APPROVAL"
+            ],
+            "urls": [
                 "https://creativecommons.org/licenses/by-nd/4.0/legalcode"
             ],
             "notes": [
@@ -1216,10 +1310,14 @@
                 "NEEDS-APPROVAL"
             ],
             "urls": [
-                "https://creativecommons.org/licenses/publicdomain/"
+                "https://creativecommons.org/public-domain/pdm",
+                "https://creativecommons.org/licenses/publicdomain"
             ],
             "notes": [
                 "The \"CC-PDDC\" family assures this license is not confused with other \"CC-\" licenses"
+            ],
+            "aliases": [
+                "Public Domain"
             ]
         },
         {
@@ -1234,7 +1332,8 @@
                 "APPROVED"
             ],
             "urls": [
-                "https://opensource.org/licenses/cddl1"
+                "https://opensource.org/licenses/cddl1",
+                "http://www.eclipse.org/org/documents/edl-v10.php"
             ]
         },
         {
@@ -1249,8 +1348,16 @@
                 "APPROVED"
             ],
             "urls": [
+                "https://javaee.github.io/glassfish/LICENSE",
+                "https://glassfish.dev.java.net/public/CDDL+GPL_1_1.html",
+                "https://glassfish.java.net/public/CDDL+GPL_1_1.html",
                 "http://glassfish.java.net/public/CDDL+GPL_1_1.html",
-                "https://javaee.github.io/glassfish/LICENSE"
+                "https://oss.oracle.com/licenses/CDDL+GPL-1.1",
+                "https://github.com/javaee/activation/blob/master/LICENSE.txt",
+                "https://github.com/javaee/javax.annotation/blob/master/LICENSE"
+            ],
+            "aliases": [
+                "CDDL+GPL License"
             ]
         },
         {
@@ -1351,6 +1458,7 @@
                 "APPROVED"
             ],
             "urls": [
+                "https://opensource.org/license/cpl1-0-txt",
                 "https://opensource.org/licenses/CPL-1.0"
             ]
         },
@@ -1480,8 +1588,12 @@
                 "APPROVED"
             ],
             "urls": [
+                "https://www.eclipse.org/legal/epl-v10.html",
                 "http://www.eclipse.org/legal/epl-v10.html",
                 "https://opensource.org/licenses/EPL-1.0"
+            ],
+            "aliases": [
+                "The Eclipse Public License Version 1.0"
             ]
         },
         {
@@ -1513,7 +1625,12 @@
             ],
             "urls": [
                 "https://www.eclipse.org/legal/epl-2.0",
+                "https://www.eclipse.org/legal/epl-v20.html",
                 "https://www.opensource.org/licenses/EPL-2.0"
+            ],
+            "aliases": [
+                "The Eclipse Public License Version 2.0",
+                "Eclipse Public License - v 2.0"
             ]
         },
         {
@@ -1959,7 +2076,7 @@
             "osi": false,
             "fsf": false,
             "deprecated": true,
-            "usagePolicy": "needs-review",
+            "usagePolicy": "deny",
             "annotationRefs": [
                 "NEEDS-APPROVAL",
                 "GPL-LINK-WARNING",
@@ -1976,7 +2093,7 @@
             "reference": "https://spdx.org/licenses/GPL-1.0-only.html",
             "osi": false,
             "fsf": false,
-            "usagePolicy": "needs-review",
+            "usagePolicy": "deny",
             "annotationRefs": [
                 "NEEDS-APPROVAL",
                 "GPL-LINK-WARNING",
@@ -1993,7 +2110,7 @@
             "reference": "https://spdx.org/licenses/GPL-1.0-or-later.html",
             "osi": false,
             "fsf": false,
-            "usagePolicy": "needs-review",
+            "usagePolicy": "deny",
             "annotationRefs": [
                 "NEEDS-APPROVAL",
                 "GPL-LINK-WARNING",
@@ -2011,7 +2128,7 @@
             "osi": true,
             "fsf": true,
             "deprecated": true,
-            "usagePolicy": "needs-review",
+            "usagePolicy": "deny",
             "annotationRefs": [
                 "NEEDS-APPROVAL",
                 "GPL-LINK-WARNING",
@@ -2029,7 +2146,7 @@
             "reference": "https://spdx.org/licenses/GPL-2.0-only.html",
             "osi": true,
             "fsf": true,
-            "usagePolicy": "needs-review",
+            "usagePolicy": "deny",
             "annotationRefs": [
                 "NEEDS-APPROVAL",
                 "GPL-LINK-WARNING",
@@ -2047,7 +2164,7 @@
             "reference": "https://spdx.org/licenses/GPL-2.0-or-later.html",
             "osi": true,
             "fsf": true,
-            "usagePolicy": "needs-review",
+            "usagePolicy": "deny",
             "annotationRefs": [
                 "NEEDS-APPROVAL",
                 "GPL-LINK-WARNING",
@@ -2059,6 +2176,24 @@
             ]
         },
         {
+            "id": "GPL-2.0-with-classpath-exception",
+            "name": "GNU General Public License v2.0 w/Classpath exception",
+            "family": "GPL-3.0",
+            "reference": "https://spdx.org/licenses/GPL-2.0-with-classpath-exception.html",
+            "osi": true,
+            "fsf": false,
+            "deprecated": true,
+            "usagePolicy": "allow",
+            "annotationRefs": [
+                "NEEDS-APPROVAL",
+                "GPL-LINK-WARNING",
+                "NEEDS-LEGAL-REVIEW-GPL"
+            ],
+            "urls": [
+                "https://www.gnu.org/software/classpath/license.html"
+            ]
+        },
+        {
             "id": "GPL-3.0",
             "name": "GNU General Public License v3.0 only",
             "family": "GPL-3.0",
@@ -2066,7 +2201,7 @@
             "osi": true,
             "fsf": true,
             "deprecated": true,
-            "usagePolicy": "needs-review",
+            "usagePolicy": "deny",
             "annotationRefs": [
                 "NEEDS-APPROVAL",
                 "GPL-LINK-WARNING",
@@ -2074,6 +2209,7 @@
             ],
             "urls": [
                 "https://www.gnu.org/licenses/gpl-3.0-standalone.html",
+                "https://www.gnu.org/licenses/gpl-3.0.en.html",
                 "https://opensource.org/licenses/GPL-3.0"
             ]
         },
@@ -2084,7 +2220,7 @@
             "reference": "https://spdx.org/licenses/GPL-3.0-only.html",
             "osi": true,
             "fsf": true,
-            "usagePolicy": "needs-review",
+            "usagePolicy": "deny",
             "annotationRefs": [
                 "NEEDS-APPROVAL",
                 "GPL-LINK-WARNING",
@@ -2092,6 +2228,7 @@
             ],
             "urls": [
                 "https://www.gnu.org/licenses/gpl-3.0-standalone.html",
+                "https://www.gnu.org/licenses/gpl-3.0.en.html",
                 "https://opensource.org/licenses/GPL-3.0"
             ]
         },
@@ -2102,7 +2239,7 @@
             "reference": "https://spdx.org/licenses/GPL-3.0-or-later.html",
             "osi": true,
             "fsf": true,
-            "usagePolicy": "needs-review",
+            "usagePolicy": "deny",
             "annotationRefs": [
                 "NEEDS-APPROVAL",
                 "GPL-LINK-WARNING",
@@ -2110,12 +2247,13 @@
             ],
             "urls": [
                 "https://www.gnu.org/licenses/gpl-3.0-standalone.html",
+                "https://www.gnu.org/licenses/gpl-3.0.en.html",
                 "https://opensource.org/licenses/GPL-3.0"
             ]
         },
         {
             "id": "GPL-3.0-with-GCC-exception",
-            "name": "GNU General Public License (GPL) w/GCC Runtime Library exception",
+            "name": "GNU General Public License v3.0 w/GCC Runtime Library exception",
             "family": "GPL-3.0",
             "reference": "https://spdx.org/licenses/GPL-3.0-with-GCC-exception.html",
             "osi": true,
@@ -2129,6 +2267,43 @@
             ],
             "urls": [
                 "https://www.gnu.org/licenses/gcc-exception-3.1.html"
+            ]
+        },
+        {
+            "id": "Classpath-exception-2.0",
+            "name": "Classpath exception 2.0",
+            "family": "GPL-2.0",
+            "reference": "https://spdx.org/licenses/Classpath-exception-2.0.html",
+            "osi": true,
+            "fsf": false,
+            "deprecated": false,
+            "usagePolicy": "allow",
+            "annotationRefs": [
+                "NEEDS-APPROVAL",
+                "GPL-LINK-WARNING",
+                "NEEDS-LEGAL-REVIEW-GPL"
+            ],
+            "urls": [
+                "https://www.gnu.org/software/classpath/license.html",
+                "https://fedoraproject.org/wiki/Licensing/GPL_Classpath_Exception"
+            ]
+        },
+        {
+            "id": "OpenJDK-assembly-exception-1.0",
+            "name": "OpenJDK Assembly exception 1.0",
+            "family": "GPL-2.0",
+            "reference": "https://spdx.org/licenses/OpenJDK-assembly-exception-1.0.html",
+            "osi": true,
+            "fsf": false,
+            "deprecated": false,
+            "usagePolicy": "needs-review",
+            "annotationRefs": [
+                "NEEDS-APPROVAL",
+                "GPL-LINK-WARNING",
+                "NEEDS-LEGAL-REVIEW-GPL"
+            ],
+            "urls": [
+                "http://openjdk.java.net/legal/assembly-exception.html"
             ]
         },
         {
@@ -2164,6 +2339,24 @@
             "urls": [
                 "https://firstdonoharm.dev/version/2/1/license.html",
                 "https://github.com/EthicalSource/hippocratic-license/blob/58c0e646d64ff6fbee275bfe2b9492f914e3ab2a/LICENSE.txt"
+            ]
+        },
+        {
+            "id": "ICU",
+            "name": "ICU License",
+            "family": "Unicode",
+            "reference": "https://spdx.org/licenses/ICU.html",
+            "osi": false,
+            "fsf": false,
+            "usagePolicy": "allow",
+            "annotationRefs": [
+                "APPROVED"
+            ],
+            "urls": [
+                "https://raw.githubusercontent.com/unicode-org/icu/main/LICENSE"
+            ],
+            "aliases": [
+                "Unicode/ICU License"
             ]
         },
         {
@@ -2417,7 +2610,13 @@
                 "APPROVED"
             ],
             "urls": [
-                "https://opensource.org/licenses/MIT"
+                "https://opensource.org/licenses/MIT",
+                "http://www.opensource.org/licenses/mit-license.php",
+                "https://jsoup.org/license",
+                "https://www.bouncycastle.org/licence.html"
+            ],
+            "aliases": [
+                "MIT license"
             ]
         },
         {

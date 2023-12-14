@@ -510,7 +510,7 @@ func TestLicensePolicyMatchByFamilyNameBadExpression(t *testing.T) {
 
 func TestLicensePolicyListWrapFalse(t *testing.T) {
 	lti := NewLicensePolicyTestInfoBasic(FORMAT_TEXT, false)
-	lti.ResultExpectedLineCount = 249 // title and data rows
+	lti.ResultExpectedLineCount = 254 // title and data rows
 	// Verify first data row has expected values
 	// sanity (spot) check row values
 	lti.ResultLineContainsValuesAtLineNum = 2
@@ -523,7 +523,7 @@ func TestLicensePolicyListWrapFalse(t *testing.T) {
 
 func TestLicensePolicyListWrapTrue(t *testing.T) {
 	lti := NewLicensePolicyTestInfoBasic(FORMAT_TEXT, true)
-	lti.ResultExpectedLineCount = 376 // title and data rows
+	lti.ResultExpectedLineCount = 395 // title and data rows
 	// sanity (spot) check row values
 	lti.ResultLineContainsValuesAtLineNum = 2
 	lti.ResultLineContainsValues = []string{"0BSD", schema.POLICY_ALLOW}
@@ -615,7 +615,7 @@ func TestLicensePolicyListTextWhereId0BSD(t *testing.T) {
 func TestLicensePolicyListWhereUsagePolicyDeny(t *testing.T) {
 	lti := NewLicensePolicyTestInfoBasic(FORMAT_TEXT, false)
 	lti.WhereClause = "usage-policy=deny"
-	lti.ResultExpectedLineCount = 5
+	lti.ResultExpectedLineCount = 17
 	_, err := innerTestLicensePolicyList(t, lti)
 	if err != nil {
 		t.Error(err)
@@ -656,7 +656,7 @@ func TestLicensePolicyListWhereFamilyApache(t *testing.T) {
 	lti.ResultExpectedLineCount = 5
 	// sanity (spot) check row values
 	lti.ResultLineContainsValuesAtLineNum = 2
-	lti.ResultLineContainsValues = []string{"Apache v1.0", schema.POLICY_ALLOW}
+	lti.ResultLineContainsValues = []string{"Apache License Version 1.0", schema.POLICY_ALLOW}
 	_, err := innerTestLicensePolicyList(t, lti)
 	if err != nil {
 		t.Error(err)
@@ -676,7 +676,7 @@ func TestLicensePolicyListWhereAliases(t *testing.T) {
 func TestLicensePolicyListWhereDeprecatedTrue(t *testing.T) {
 	lti := NewLicensePolicyTestInfoBasic(FORMAT_TEXT, false)
 	lti.WhereClause = "deprecated=true"
-	lti.ResultExpectedLineCount = 17 // 15 matches + 2 title rows
+	lti.ResultExpectedLineCount = 18 // 16 matches + 2 title rows
 	_, err := innerTestLicensePolicyList(t, lti)
 	if err != nil {
 		t.Error(err)
