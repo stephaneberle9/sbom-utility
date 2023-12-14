@@ -20,10 +20,12 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/CycloneDX/sbom-utility/common"
 	"github.com/CycloneDX/sbom-utility/schema"
 	"github.com/spf13/cobra"
+
 )
 
 const (
@@ -233,7 +235,56 @@ func hashComponentLicense(bom *schema.BOM, policyConfig *schema.LicensePolicyCon
 	defer getLogger().Exit(err)
 	var licenseInfo schema.LicenseInfo
 
+	// Extract group from name if the latter appears to be a composed name
+	// (e.g. "name": "org.apache.commons/commons-lang3" -> "group": "org.apache.commons", "name": "commons-lang3")
+	if cdxComponent.Group == "" && strings.Contains(cdxComponent.Name, "/") {
+		compositeName := strings.Split(cdxComponent.Name, "/")
+		if len(compositeName) == 2 {
+			cdxComponent.Group = compositeName[0]
+			cdxComponent.Name = compositeName[1]
+		}
+	}
+
 	pLicenses := cdxComponent.Licenses
+	if pLicenses == nil || len(*pLicenses) == 0 {
+		licenseUrl := LookupLicenseUrlForWellknownComponents(cdxComponent)
+		if licenseUrl != "" {
+			var licenseChoices []schema.CDXLicenseChoice
+			licenseChoices = append(licenseChoices, schema.CDXLicenseChoice{
+				License: &schema.CDXLicense{
+					Url: licenseUrl,
+				},
+			})
+			pLicenses = &licenseChoices
+		}
+	}
+
+	if pLicenses == nil || len(*pLicenses) == 0 {
+		// Fully qualified Maven component?
+		yes, e := IsFullyQualifiedMavenComponent(cdxComponent)
+		if err != nil {
+			err = e
+			return
+		}
+		if yes {
+			pomLicenses, err := FindLicensesInPom(cdxComponent)
+			if err == nil && len(pomLicenses) > 0{
+				var licenseChoices []schema.CDXLicenseChoice
+				for i := 0; i < len(pomLicenses); i += 2 {
+					licenseChoices = append(licenseChoices, schema.CDXLicenseChoice{
+						License: &schema.CDXLicense{
+							Name: pomLicenses[i],
+							Url: pomLicenses[i+1],
+						},
+					})
+				}
+				pLicenses = &licenseChoices
+			} else {
+				getLogger().Warningf("Unable to detect licenses for: %s", cdxComponent.Purl)
+			}
+		}
+	}
+
 	if pLicenses != nil && len(*pLicenses) > 0 {
 		for _, licenseChoice := range *pLicenses {
 			getLogger().Debugf("licenseChoice: %s", getLogger().FormatStruct(licenseChoice))
@@ -363,7 +414,7 @@ func hashLicenseInfoByLicenseType(bom *schema.BOM, policyConfig *schema.LicenseP
 	if pLicense != nil && pLicense.Id != "" {
 		licenseInfo.LicenseChoiceTypeValue = schema.LC_TYPE_ID
 		_, err = bom.HashLicenseInfo(policyConfig, pLicense.Id, licenseInfo, whereFilters)
-	} else if pLicense != nil && pLicense.Name != "" {
+	} else if pLicense != nil && (pLicense.Name != "" || pLicense.Url != "") {
 		licenseInfo.LicenseChoiceTypeValue = schema.LC_TYPE_NAME
 		_, err = bom.HashLicenseInfo(policyConfig, pLicense.Name, licenseInfo, whereFilters)
 	} else if licenseChoice.Expression != "" {
