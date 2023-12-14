@@ -72,9 +72,10 @@ func whereFilterMatch(mapObject map[string]interface{}, whereFilters []common.Wh
 			return
 		}
 
-		// Test that the field value matches the regex supplied in the current filter
+		// Test that the field value matches/not matches the regex supplied in the current filter
 		// Note: the regex compilation is performed during command param. processing
-		if match = filter.ValueRegEx.Match(buf.Bytes()); !match {
+		match = filter.ValueRegEx.Match(buf.Bytes())
+		if (filter.Operand == common.QUERY_WHERE_OPERAND_EQUALS) != match {
 			break
 		}
 	}

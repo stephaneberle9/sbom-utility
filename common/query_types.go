@@ -23,17 +23,38 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/CycloneDX/sbom-utility/log"
 	"github.com/CycloneDX/sbom-utility/utils"
+
 )
+
+// Globals
+var ProjectLogger *log.MiniLogger
 
 // Named tokens
 const (
-	QUERY_TOKEN_WILDCARD       = "*"
-	QUERY_FROM_CLAUSE_SEP      = "."
-	QUERY_SELECT_CLAUSE_SEP    = ","
-	QUERY_WHERE_EXPRESSION_SEP = ","
-	QUERY_WHERE_OPERAND_EQUALS = "="
+	QUERY_TOKEN_WILDCARD       =     "*"
+	QUERY_FROM_CLAUSE_SEP      =     "."
+	QUERY_SELECT_CLAUSE_SEP    =     ","
+	QUERY_WHERE_EXPRESSION_SEP =     ","
+	QUERY_WHERE_OPERAND_EQUALS =     "="
+	QUERY_WHERE_OPERAND_NOT_EQUALS = "!="
 )
+
+func getLogger() *log.MiniLogger {
+	if ProjectLogger == nil {
+		// TODO: use LDFLAGS to turn on "TRACE" (and require creation of a Logger)
+		// ONLY if needed to debug init() methods in the "cmd" package
+		ProjectLogger = log.NewLogger(log.ERROR)
+
+		// Attempt to read in `--args` values such as `--trace`
+		// Note: if they exist, quiet mode will be overridden
+		// Default to ERROR level and, turn on "Quiet mode" for tests
+		// This simplifies the test output to simply RUN/PASS|FAIL messages.
+		ProjectLogger.InitLogLevelAndModeFromFlags()
+	}
+	return ProjectLogger
+}
 
 // ==================================================================
 // QueryRequest
@@ -150,7 +171,7 @@ func (qr *QueryRequest) GetFromKeys() []string {
 // WHERE
 // ------------
 
-// parse out `key=<regex>` predicates from the raw `--where` flag's value
+// parse out key=<regex> or key!=<regex> predicates from the raw `--where` flag's value
 func ParseWherePredicates(rawWherePredicates string) (wherePredicates []string) {
 	if rawWherePredicates != "" {
 		wherePredicates = strings.Split(rawWherePredicates, QUERY_WHERE_EXPRESSION_SEP)
@@ -187,14 +208,22 @@ func ParseWhereFilter(rawExpression string) (pWhereSelector *WhereFilter) {
 		return // nil
 	}
 
-	tokens := strings.Split(rawExpression, QUERY_WHERE_OPERAND_EQUALS)
-
+	var tokens []string
+	var operand string
+	if !strings.Contains(rawExpression, QUERY_WHERE_OPERAND_NOT_EQUALS) {
+		tokens = strings.Split(rawExpression, QUERY_WHERE_OPERAND_EQUALS)
+		operand = QUERY_WHERE_OPERAND_EQUALS
+	} else {
+		tokens = strings.Split(rawExpression, QUERY_WHERE_OPERAND_NOT_EQUALS)
+		operand = QUERY_WHERE_OPERAND_NOT_EQUALS
+	}
+	
 	if len(tokens) != 2 {
 		return // nil
 	}
 
 	var whereFilter = WhereFilter{}
-	whereFilter.Operand = QUERY_WHERE_OPERAND_EQUALS
+	whereFilter.Operand = operand
 	whereFilter.Key = tokens[0]
 	whereFilter.Value = tokens[1]
 
@@ -204,11 +233,11 @@ func ParseWhereFilter(rawExpression string) (pWhereSelector *WhereFilter) {
 
 	var errCompile error
 	whereFilter.ValueRegEx, errCompile = utils.CompileRegex(whereFilter.Value)
-	//getLogger().Debugf(">> Regular expression: `%v`...", whereFilter.ValueRegEx)
-
 	if errCompile != nil {
+		getLogger().Errorf(errCompile.Error())
 		return // nil
 	}
+	getLogger().Infof(">> Regular expression: `%v`...", whereFilter.ValueRegEx)
 
 	return &whereFilter
 }
@@ -248,7 +277,7 @@ func (qr *QueryRequest) parseQueryClauses() (err error) {
 	return
 }
 
-// Parse/validate each key=<regex> expression found on WHERE clause
+// Parse/validate each key=<regex> or key!=<regex> expression found on WHERE clause
 func (qr *QueryRequest) parseWhereFilterClauses() (err error) {
 	if len(qr.wherePredicates) == 0 {
 		return NewQueryWhereClauseError(qr, qr.wherePredicatesRaw)

@@ -48,7 +48,7 @@ const (
 		"\n- the wildcard character `*` can be used to denote inclusion of all found key-values"
 	FLAG_QUERY_FROM_HELP = "dot-separated list of JSON key names used to dereference into the JSON document" +
 		"\n - if not present, the query assumes document \"root\" as the `--from` object"
-	FLAG_QUERY_WHERE_HELP    = "comma-separated list of key=<regex> of clauses used to filter the SELECT result set"
+	FLAG_QUERY_WHERE_HELP    = "comma-separated list of `key=<regex> or key!=<regex>` of clauses used to filter the SELECT result set"
 	FLAG_QUERY_ORDER_BY_HELP = "key name that appears in the SELECT result set used to order the result records"
 )
 
@@ -455,9 +455,10 @@ func whereFilterMatch(mapObject map[string]interface{}, whereFilters []common.Wh
 			return
 		}
 
-		// Test that the field value matches the regex supplied in the current filter
+		// Test that the field value matches/not matches the regex supplied in the current filter
 		// Note: the regex compilation is performed during command param. processing
-		if match = filter.ValueRegEx.Match(buf.Bytes()); !match {
+		match = filter.ValueRegEx.Match(buf.Bytes())
+		if (filter.Operand == common.QUERY_WHERE_OPERAND_EQUALS) != match {
 			break
 		}
 	}

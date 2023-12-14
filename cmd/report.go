@@ -31,7 +31,7 @@ import (
 // Common/reusable Flags used across multiple report commands
 const (
 	FLAG_REPORT_WHERE      = "where"
-	FLAG_REPORT_WHERE_HELP = "comma-separated list of `key=<regex>` clauses used to filter the result set"
+	FLAG_REPORT_WHERE_HELP = "comma-separated list of `key=<regex> or <key!=<regex>` clauses used to filter the result set"
 )
 
 const (
