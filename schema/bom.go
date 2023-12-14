@@ -83,6 +83,16 @@ const (
 // compiled regexp. to save time
 var spdxIdRegexp *regexp.Regexp
 
+const (
+	REGEX_LICENSE_VERSION        = "\\d{1,2}\\.\\d{1,2}"
+	REGEX_LICENSE_VERSION_SUFFIX = "([-,\\s]*)?((Version|v)\\s*)?\\d{1,2}\\.\\d{1,2}"
+	REGEX_LIST_SEPARATOR         = ",?\\s"
+)
+
+var licenseVersionRegexp *regexp.Regexp
+var licenseVersionSuffixRegexp *regexp.Regexp
+var listSeparatorRegexp *regexp.Regexp
+
 func (bom *BOM) GetRawBytes() []byte {
 	return bom.rawBytes
 }

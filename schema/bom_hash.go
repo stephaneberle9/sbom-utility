@@ -26,6 +26,7 @@ import (
 
 	"github.com/CycloneDX/sbom-utility/common"
 	"github.com/CycloneDX/sbom-utility/utils"
+
 )
 
 // -------------------
@@ -262,9 +263,15 @@ func (bom *BOM) HashLicenseInfo(policyConfig *LicensePolicyConfig, key string, l
 			return
 		}
 		// Note: FindPolicy(), at worst, will return an empty LicensePolicy object
+		licenseInfo.License = licenseInfo.Policy.Name
+		if len(licenseInfo.Policy.Urls) > 0 {
+			licenseInfo.LicenseUrl = licenseInfo.Policy.Urls[0]
+		}
 		licenseInfo.UsagePolicy = licenseInfo.Policy.UsagePolicy
 	}
-	licenseInfo.License = key
+	if licenseInfo.License == "" {
+		licenseInfo.License = key
+	}
 	// Derive values for report filtering
 	licenseInfo.LicenseChoiceType = GetLicenseChoiceTypeName(licenseInfo.LicenseChoiceTypeValue)
 	licenseInfo.BOMLocation = GetLicenseChoiceLocationName(licenseInfo.BOMLocationValue)
