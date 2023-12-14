@@ -31,6 +31,7 @@ import (
 	"github.com/CycloneDX/sbom-utility/schema"
 	"github.com/CycloneDX/sbom-utility/utils"
 	"github.com/spf13/cobra"
+
 )
 
 // Subcommand flags
@@ -57,36 +58,20 @@ const (
 	LICENSE_FILTER_KEY_USAGE_POLICY  = "usage-policy"
 	LICENSE_FILTER_KEY_LICENSE_TYPE  = "license-type"
 	LICENSE_FILTER_KEY_LICENSE       = "license"
+	LICENSE_FILTER_KEY_LICENSE_URL   = "license-url"
 	LICENSE_FILTER_KEY_RESOURCE_NAME = "resource-name"
 	LICENSE_FILTER_KEY_BOM_REF       = "bom-ref"
 	LICENSE_FILTER_KEY_BOM_LOCATION  = "bom-location"
 )
 
-var LICENSE_LIST_ROW_DATA = []ColumnFormatData{
-	{LICENSE_FILTER_KEY_USAGE_POLICY, DEFAULT_COLUMN_TRUNCATE_LENGTH, REPORT_SUMMARY_DATA_TRUE, false},
-	{LICENSE_FILTER_KEY_LICENSE_TYPE, DEFAULT_COLUMN_TRUNCATE_LENGTH, REPORT_SUMMARY_DATA_TRUE, false},
-	{LICENSE_FILTER_KEY_LICENSE, DEFAULT_COLUMN_TRUNCATE_LENGTH, REPORT_SUMMARY_DATA_TRUE, false},
-	{LICENSE_FILTER_KEY_RESOURCE_NAME, DEFAULT_COLUMN_TRUNCATE_LENGTH, REPORT_SUMMARY_DATA_TRUE, false},
-	{LICENSE_FILTER_KEY_BOM_REF, DEFAULT_COLUMN_TRUNCATE_LENGTH, REPORT_SUMMARY_DATA_TRUE, false},
-	{LICENSE_FILTER_KEY_BOM_LOCATION, DEFAULT_COLUMN_TRUNCATE_LENGTH, REPORT_SUMMARY_DATA_TRUE, false},
-}
-
 var LICENSE_SUMMARY_TITLES = []string{
-	LICENSE_FILTER_KEY_USAGE_POLICY,
-	LICENSE_FILTER_KEY_LICENSE_TYPE,
-	LICENSE_FILTER_KEY_LICENSE,
-	LICENSE_FILTER_KEY_RESOURCE_NAME,
-	LICENSE_FILTER_KEY_BOM_REF,
-	LICENSE_FILTER_KEY_BOM_LOCATION,
-}
-
-var VALID_LICENSE_FILTER_KEYS = []string{
-	LICENSE_FILTER_KEY_USAGE_POLICY,
-	LICENSE_FILTER_KEY_LICENSE_TYPE,
-	LICENSE_FILTER_KEY_LICENSE,
-	LICENSE_FILTER_KEY_RESOURCE_NAME,
-	LICENSE_FILTER_KEY_BOM_REF,
-	LICENSE_FILTER_KEY_BOM_LOCATION,
+	"Component group",
+	"Component name",
+	"Component version",
+	"Component URL",
+	"License usage policy",
+	"License name",
+	"License URL",
 }
 
 // Command help formatting
@@ -441,13 +426,14 @@ func DisplayLicenseListSummaryText(bom *schema.BOM, writer io.Writer) {
 			licenseInfo = iInfo.(schema.LicenseInfo)
 
 			// Format line and write to output
-			fmt.Fprintf(w, "%s\t%v\t%s\t%s\t%s\t%s\n",
+			fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%v\t%s\t%s\n",
+				licenseInfo.Component.Group,
+				licenseInfo.Component.Name,
+				licenseInfo.Component.Version,
+				licenseInfo.Component.Purl,
 				licenseInfo.UsagePolicy,
-				licenseInfo.LicenseChoiceType,
-				licenseName,
-				licenseInfo.ResourceName,
-				licenseInfo.BOMRef,
-				licenseInfo.BOMLocation,
+				licenseInfo.License,
+				licenseInfo.LicenseUrl,
 			)
 		}
 	}
@@ -504,12 +490,13 @@ func DisplayLicenseListSummaryCSV(bom *schema.BOM, writer io.Writer) (err error)
 			// Note: For CSV files each row should be terminated by a newline
 			// which is automatically done by the CSV writer
 			currentRow = append(currentRow,
-				licenseInfo.Policy.UsagePolicy,
-				licenseInfo.LicenseChoiceType,
-				licenseName.(string),
-				licenseInfo.ResourceName,
-				licenseInfo.BOMRef.String(),
-				licenseInfo.BOMLocation,
+				licenseInfo.Component.Group,
+				licenseInfo.Component.Name,
+				licenseInfo.Component.Version,
+				licenseInfo.Component.Purl,
+				licenseInfo.UsagePolicy,
+				licenseInfo.License,
+				licenseInfo.LicenseUrl,
 			)
 
 			if errWrite := w.Write(currentRow); errWrite != nil {
@@ -562,12 +549,13 @@ func DisplayLicenseListSummaryMarkdown(bom *schema.BOM, writer io.Writer) {
 
 			// Format line and write to output
 			line = append(line,
-				licenseInfo.Policy.UsagePolicy,
-				licenseInfo.LicenseChoiceType,
-				licenseName.(string),
-				licenseInfo.ResourceName,
-				licenseInfo.BOMRef.String(),
-				licenseInfo.BOMLocation,
+				licenseInfo.Component.Group,
+				licenseInfo.Component.Name,
+				licenseInfo.Component.Version,
+				licenseInfo.Component.Purl,
+				licenseInfo.UsagePolicy,
+				licenseInfo.License,
+				licenseInfo.LicenseUrl,
 			)
 
 			lineRow = createMarkdownRow(line)
