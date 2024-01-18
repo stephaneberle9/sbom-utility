@@ -20,23 +20,22 @@ package schema
 
 import (
 	"strings"
+
 )
 
-type CompoundExpression struct {
-	SimpleLeft          string
-	SimpleLeftHasPlus   bool
-	LeftPolicy          LicensePolicy
-	LeftUsagePolicy     string
-	SimpleRight         string
-	SimpleRightHasPlus  bool
-	RightPolicy         LicensePolicy
-	RightUsagePolicy    string
-	Conjunction         string
-	PrepRight           string
-	PrepLeft            string
-	CompoundLeft        *CompoundExpression
-	CompoundRight       *CompoundExpression
-	CompoundUsagePolicy string
+type CompoundExpression   struct {
+	SimpleLeft            string
+	LeftPolicy            LicensePolicy
+	LeftUsagePolicy       string
+	SimpleRight           string
+	SimpleRightHasPlus    bool
+	RightPolicy           LicensePolicy
+	RightUsagePolicy      string
+	Conjunction           string
+	SubsequentConjunction string
+	CompoundLeft          *CompoundExpression
+	CompoundRight         *CompoundExpression
+	CompoundUsagePolicy   string
 }
 
 // Tokens
@@ -63,6 +62,22 @@ func NewCompoundExpression() *CompoundExpression {
 	return ce
 }
 
+func CopyCompoundExpression(expression *CompoundExpression) *CompoundExpression {
+	ce := new(CompoundExpression)
+	ce.SimpleLeft = expression.SimpleLeft
+	ce.LeftPolicy = expression.LeftPolicy
+	ce.CompoundLeft = expression.CompoundLeft
+	ce.LeftUsagePolicy = expression.LeftUsagePolicy
+	ce.Conjunction = expression.Conjunction
+	ce.SimpleRight = expression.SimpleRight
+	ce.RightPolicy = expression.RightPolicy
+	ce.CompoundRight = expression.CompoundRight
+	ce.RightUsagePolicy = expression.RightUsagePolicy
+	ce.CompoundUsagePolicy = expression.CompoundUsagePolicy
+	return ce
+}
+
+
 func tokenizeExpression(expression string) (tokens []string) {
 	// Add spaces to assure proper tokenization with whitespace bw/ tokens
 	expression = strings.ReplaceAll(expression, LEFT_PARENS, LEFT_PARENS_WITH_SEPARATOR)
@@ -87,10 +102,6 @@ func ParseExpression(policyConfig *LicensePolicyConfig, rawExpression string) (c
 	return ce, err
 }
 
-// NOTE: This expression parser MAY NOT account for multiple (>1) conjunctions
-// within a compound expression (e.g., Foo OR Bar AND Bqu) as this has not been endorsed
-// by the specification or any known examples.  However, we have put in place some
-// tests that shows the parser still works in these cases.
 func parseCompoundExpression(policyConfig *LicensePolicyConfig, expression *CompoundExpression, tokens []string, index int) (i int, err error) {
 	getLogger().Enter("expression:", expression)
 	defer getLogger().Exit()
@@ -112,7 +123,7 @@ func parseCompoundExpression(policyConfig *LicensePolicyConfig, expression *Comp
 			getLogger().Debugf("[%v] LEFT_PARENS: `%v`", index, token)
 			childExpression := NewCompoundExpression()
 
-			// if we have no conjunction, this compound expression represents the "left" operand
+			// if we have no conjunction, this token represents the "left" operand
 			if expression.Conjunction == "" {
 				expression.CompoundLeft = childExpression
 			} else {
@@ -140,58 +151,139 @@ func parseCompoundExpression(policyConfig *LicensePolicyConfig, expression *Comp
 			return index, err // Do NOT Increment, parent caller will do that
 		case AND:
 			getLogger().Debugf("[%v] AND (Conjunction): `%v`", index, token)
-			expression.Conjunction = token
+			if expression.Conjunction == "" {
+				expression.Conjunction = token
+			} else {
+				expression.SubsequentConjunction = token
+			}
 		case OR:
 			getLogger().Debugf("[%v] OR (Conjunction): `%v`", index, token)
-			expression.Conjunction = token
-		case WITH:
-			getLogger().Debugf("[%v] WITH (Preposition): `%v`", index, token)
 			if expression.Conjunction == "" {
-				expression.PrepLeft = token
+				expression.Conjunction = token
 			} else {
-				// otherwise it is the "right" operand
-				expression.PrepRight = token
+				expression.SubsequentConjunction = token
+			}
+		case WITH:
+			getLogger().Debugf("[%v] WITH (Conjunction): `%v`", index, token)
+			if expression.Conjunction == "" {
+				expression.Conjunction = token
+			} else {
+				expression.SubsequentConjunction = token
 			}
 		default:
 			getLogger().Debugf("[%v] Simple Expression: `%v`", index, token)
-			// if we have no conjunction, this compound expression represents the "left" operand
+			// if we have no conjunction, this token represents the "left" operand
 			if expression.Conjunction == CONJUNCTION_UNDEFINED {
-				if expression.PrepLeft == "" {
-					expression.SimpleLeft = token
-					// Also, check for the unary "plus" operator
-					expression.SimpleLeftHasPlus = hasUnaryPlusOperator(token)
-					// Lookup policy in hashmap
-					expression.LeftUsagePolicy, expression.LeftPolicy, err = policyConfig.FindPolicyBySpdxId(token)
-					if err != nil {
-						return
-					}
-				} else {
-					// this token is a preposition, for now overload its value
-					expression.PrepLeft = token
+				expression.SimpleLeft = token
+				// Lookup policy in hashmap
+				expression.LeftUsagePolicy, expression.LeftPolicy, err = policyConfig.FindPolicyBySpdxId(token)
+				if err != nil {
+					return
 				}
 			} else {
-				// otherwise it is the "right" operand
-				if expression.PrepRight == "" {
+				// if we have a single conjunction, this token represents the "right" operand
+				if expression.SubsequentConjunction == "" {
 					expression.SimpleRight = token
-					// Also, check for the unary "plus" operator
-					expression.SimpleRightHasPlus = hasUnaryPlusOperator(token)
 					// Lookup policy in hashmap
 					expression.RightUsagePolicy, expression.RightPolicy, err = policyConfig.FindPolicyBySpdxId(token)
 					if err != nil {
 						return
 					}
 				} else {
-					// this token is a preposition, for now overload its value
-					expression.PrepRight = token
+					// if we have a subsequent conjunction, we must fold the expression taking into account the natural operator precedence;
+					// depending on the case, this token represents the "right" operand of either the expression itself or its right-side child expression
+					if expression.Conjunction == AND && expression.SubsequentConjunction == AND {
+						// left AND right AND another-> (left AND right) AND another
+						LeftFoldCompoundExpression(policyConfig, expression, AND, token)
+					} else if expression.Conjunction == AND && expression.SubsequentConjunction == OR {
+						// left AND right OR another-> (left AND right) OR another
+						LeftFoldCompoundExpression(policyConfig, expression, OR, token)
+					} else if expression.Conjunction == AND && expression.SubsequentConjunction == WITH {
+						// left AND right WITH another-> left AND (right WITH another)
+						RightFoldCompoundExpression(policyConfig, expression, WITH, token)
+					} else if expression.Conjunction == OR && expression.SubsequentConjunction == AND {
+						// left OR right AND another-> left OR (right AND another)
+						RightFoldCompoundExpression(policyConfig, expression, AND, token)
+					} else if expression.Conjunction == OR && expression.SubsequentConjunction == OR {
+						// left OR right OR another-> left OR (right OR another)
+						RightFoldCompoundExpression(policyConfig, expression, OR, token)
+					} else if expression.Conjunction == OR && expression.SubsequentConjunction == WITH {
+						// left OR right WITH another-> left OR (right WITH another)
+						RightFoldCompoundExpression(policyConfig, expression, WITH, token)
+					} else if expression.Conjunction == WITH && expression.SubsequentConjunction == AND {
+						// left WITH right AND another -> (left WITH right) AND another
+						LeftFoldCompoundExpression(policyConfig, expression, AND, token)
+					} else if expression.Conjunction == WITH && expression.SubsequentConjunction == OR {
+						// left WITH right OR another -> (left WITH right) OR another
+						LeftFoldCompoundExpression(policyConfig, expression, OR, token)
+					} else if expression.Conjunction == WITH && expression.SubsequentConjunction == WITH {
+						// left WITH right WITH another -> left WITH (right OR another)
+						RightFoldCompoundExpression(policyConfig, expression, OR, token)
+					}
 				}
 			}
 		}
-
+		
 		index = index + 1
 	}
-
+	
 	err = FinalizeCompoundPolicy(expression)
 	return index, err
+}
+
+func LeftFoldCompoundExpression(policyConfig *LicensePolicyConfig, expression *CompoundExpression, conjunction string, token string) (err error) {
+	childExpression := CopyCompoundExpression(expression)
+	err = FinalizeCompoundPolicy(childExpression)
+	if err != nil {
+		return
+	}
+
+	expression.SimpleLeft = ""
+	expression.LeftPolicy = LicensePolicy{}
+	expression.CompoundLeft = childExpression
+	expression.LeftUsagePolicy = childExpression.CompoundUsagePolicy
+
+	expression.Conjunction = conjunction
+	expression.SubsequentConjunction = ""
+
+	expression.SimpleRight = token
+	expression.RightUsagePolicy, expression.RightPolicy, err = policyConfig.FindPolicyBySpdxId(token)
+		if err != nil {
+		return
+	}
+	
+	return nil
+}
+
+func RightFoldCompoundExpression(policyConfig *LicensePolicyConfig, expression *CompoundExpression, conjunction string, token string) (err error) {
+	childExpression := NewCompoundExpression()
+
+	childExpression.SimpleLeft = expression.SimpleRight
+	childExpression.LeftPolicy = expression.RightPolicy
+	childExpression.CompoundLeft = expression.CompoundRight
+	childExpression.LeftUsagePolicy = expression.RightUsagePolicy
+
+	childExpression.Conjunction = conjunction
+
+	childExpression.SimpleRight = token
+	childExpression.RightUsagePolicy, childExpression.RightPolicy, err = policyConfig.FindPolicyBySpdxId(token)
+	if err != nil {
+		return
+	}
+
+	err = FinalizeCompoundPolicy(childExpression)
+	if err != nil {
+		return
+	}
+
+	expression.SubsequentConjunction = ""
+
+	expression.SimpleRight = ""
+	expression.RightPolicy = LicensePolicy{}
+	expression.CompoundRight = childExpression
+	expression.RightUsagePolicy = childExpression.CompoundUsagePolicy
+
+	return nil
 }
 
 func FinalizeCompoundPolicy(expression *CompoundExpression) (err error) {
@@ -289,8 +381,43 @@ func FinalizeCompoundPolicy(expression *CompoundExpression) (err error) {
 			// 6. POLICY_DENY OR POLICY_DENY
 			expression.CompoundUsagePolicy = POLICY_DENY
 		}
+	case WITH:
+		// Undefined Short-circuit:
+		// If either left or right policy is UNDEFINED with the WITH conjunction,
+		// take the result offered by the other term (which could also be UNDEFINED)
+		if expression.LeftUsagePolicy == POLICY_UNDEFINED {
+			// default to right policy (regardless of value)
+			expression.CompoundUsagePolicy = expression.RightUsagePolicy
+			getLogger().Debugf("Left usage policy is UNDEFINED")
+			return nil
+		} else if expression.RightUsagePolicy == POLICY_UNDEFINED {
+			// default to left policy (regardless of value)
+			expression.CompoundUsagePolicy = expression.LeftUsagePolicy
+			getLogger().Debugf("Right usage policy is UNDEFINED")
+			return nil
+		}
+
+		// This "allow" comparator block covers 3 of the 9 combinations:
+		// 1. POLICY_ALLOW WITH POLICY_ALLOW
+		// 2. POLICY_NEEDS_REVIEW WITH POLICY_ALLOW
+		// 3. POLICY_DENY WITH POLICY_ALLOW
+		if expression.RightUsagePolicy == POLICY_ALLOW {
+			expression.CompoundUsagePolicy = POLICY_ALLOW
+		} else if expression.RightUsagePolicy == POLICY_NEEDS_REVIEW {
+			// This "needs-review" comparator covers 2 of the 6 combinations:
+			// 4. POLICY_ALLOW WITH POLICY_NEEDS_REVIEW
+			// 5. POLICY_NEEDS_REVIEW WITH POLICY_NEEDS_REVIEW
+			// 6. POLICY_DENY WITH POLICY_NEEDS_REVIEW
+			expression.CompoundUsagePolicy = POLICY_NEEDS_REVIEW
+		} else {
+			// This leaves the only remaining combination:
+			// 7. POLICY_ALLOW WITH POLICY_DENY
+			// 8. POLICY_NEEDS_REVIEW WITH POLICY_DENY
+			// 9. POLICY_DENY WITH POLICY_DENY
+			expression.CompoundUsagePolicy = POLICY_DENY
+		}
 	case CONJUNCTION_UNDEFINED:
-		// Test for single compound expression (i.e., "(" compound-expression ")" )
+		// Test for simple expression (i.e., "(" compound-expression ")" )
 		// which is the only valid one that does not have an AND, OR or WITH conjunction
 		if expression.LeftUsagePolicy != POLICY_UNDEFINED &&
 			expression.RightUsagePolicy == POLICY_UNDEFINED {
@@ -313,10 +440,4 @@ func FinalizeCompoundPolicy(expression *CompoundExpression) (err error) {
 		expression.CompoundUsagePolicy)
 
 	return nil
-}
-
-func hasUnaryPlusOperator(simpleExpression string) bool {
-	getLogger().Enter()
-	defer getLogger().Exit()
-	return strings.HasSuffix(simpleExpression, PLUS_OPERATOR)
 }

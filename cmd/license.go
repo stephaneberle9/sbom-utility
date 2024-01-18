@@ -25,7 +25,6 @@ import (
 	"github.com/CycloneDX/sbom-utility/common"
 	"github.com/CycloneDX/sbom-utility/schema"
 	"github.com/spf13/cobra"
-
 )
 
 const (
@@ -247,14 +246,29 @@ func hashComponentLicense(bom *schema.BOM, policyConfig *schema.LicensePolicyCon
 
 	pLicenses := cdxComponent.Licenses
 	if pLicenses == nil || len(*pLicenses) == 0 {
-		licenseUrl := LookupLicenseUrlForWellknownComponents(cdxComponent)
-		if licenseUrl != "" {
+		wellknownLicenseChoiceTypeValue, wellknownLicenseCharacteristic := LookupLicenseForWellknownComponents(cdxComponent)
+		if wellknownLicenseChoiceTypeValue != schema.LC_TYPE_INVALID {
 			var licenseChoices []schema.CDXLicenseChoice
-			licenseChoices = append(licenseChoices, schema.CDXLicenseChoice{
-				License: &schema.CDXLicense{
-					Url: licenseUrl,
-				},
-			})
+			switch wellknownLicenseChoiceTypeValue {
+			case schema.LC_TYPE_ID:
+				licenseChoices = append(licenseChoices, schema.CDXLicenseChoice{
+					License: &schema.CDXLicense{
+						Id: wellknownLicenseCharacteristic,
+					},
+				})
+			case schema.LC_TYPE_NAME:
+				licenseChoices = append(licenseChoices, schema.CDXLicenseChoice{
+					License: &schema.CDXLicense{
+						Name: wellknownLicenseCharacteristic,
+					},
+				})
+			case schema.LC_TYPE_EXPRESSION:
+				licenseChoices = append(licenseChoices, schema.CDXLicenseChoice{
+					CDXLicenseExpression: schema.CDXLicenseExpression{
+						Expression: wellknownLicenseCharacteristic,
+					},
+				})
+			}
 			pLicenses = &licenseChoices
 		}
 	}
@@ -268,13 +282,13 @@ func hashComponentLicense(bom *schema.BOM, policyConfig *schema.LicensePolicyCon
 		}
 		if yes {
 			pomLicenses, err := FindLicensesInPom(cdxComponent)
-			if err == nil && len(pomLicenses) > 0{
+			if err == nil && len(pomLicenses) > 0 {
 				var licenseChoices []schema.CDXLicenseChoice
 				for i := 0; i < len(pomLicenses); i += 2 {
 					licenseChoices = append(licenseChoices, schema.CDXLicenseChoice{
 						License: &schema.CDXLicense{
 							Name: pomLicenses[i],
-							Url: pomLicenses[i+1],
+							Url:  pomLicenses[i+1],
 						},
 					})
 				}

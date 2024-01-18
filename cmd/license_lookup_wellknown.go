@@ -20,44 +20,43 @@ package cmd
 
 import (
 	"github.com/CycloneDX/sbom-utility/schema"
-
 )
 
-func LookupLicenseUrlForWellknownComponents(cdxComponent schema.CDXComponent) string {	
+func LookupLicenseForWellknownComponents(cdxComponent schema.CDXComponent) (int, string) {
 	if cdxComponent.Group == "com.dslfoundry.javafx" {
 		if cdxComponent.Name == "plugin" {
-			return "https://www.apache.org/licenses/LICENSE-2.0"
+			return schema.LC_TYPE_ID, "Apache-2.0"
 		}
 	}
 	if cdxComponent.Group == "com.jetbrains.jdk" {
 		if cdxComponent.Name == "jbr_jcef" {
-			return "https://opensource.org/licenses/GPL-2.0"
+			return schema.LC_TYPE_EXPRESSION, "GPL-2.0-only WITH Classpath-exception-2.0 WITH OpenJDK-assembly-exception-1.0"
 		}
 	}
 	if cdxComponent.Group == "com.jetbrains" {
 		if cdxComponent.Name == "mps" {
-			return "https://www.apache.org/licenses/LICENSE-2.0"
+			return schema.LC_TYPE_ID, "Apache-2.0"
 		}
 	}
 	if cdxComponent.Group == "com.mbeddr" {
 		if cdxComponent.Name == "platform" {
-			return "http://www.eclipse.org/legal/epl-v10.html"
+			return schema.LC_TYPE_ID, "EPL-1.0"
 		}
 	}
 	if cdxComponent.Group == "de.itemis.mps.rapidfx" {
 		if cdxComponent.Name == "core" || cdxComponent.Name == "xdiagram" {
-			return "https://www.apache.org/licenses/LICENSE-2.0"
+			return schema.LC_TYPE_ID, "Apache-2.0"
 		}
 	}
 	if cdxComponent.Group == "de.itemis.mps" {
 		if cdxComponent.Name == "extensions" {
-			return "https://www.apache.org/licenses/LICENSE-2.0"
+			return schema.LC_TYPE_ID, "Apache-2.0"
 		}
 	}
 	if cdxComponent.Group == "org.graphviz" {
 		if cdxComponent.Name == "graphviz" {
-			return "https://opensource.org/license/cpl1-0-txt"
+			return schema.LC_TYPE_ID, "CPL-1.0"
 		}
 	}
-	return ""
+	return schema.LC_TYPE_INVALID, ""
 }
