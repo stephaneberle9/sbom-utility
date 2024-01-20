@@ -31,7 +31,6 @@ import (
 	"github.com/CycloneDX/sbom-utility/schema"
 	"github.com/CycloneDX/sbom-utility/utils"
 	"github.com/spf13/cobra"
-
 )
 
 // Subcommand flags
@@ -282,6 +281,7 @@ func DisplayLicenseListCSV(bom *schema.BOM, writer io.Writer) (err error) {
 	var currentRow []string
 
 	w := csv.NewWriter(writer)
+	w.Comma = ';'
 	defer w.Flush()
 
 	// Emit title row
@@ -449,6 +449,7 @@ func DisplayLicenseListSummaryCSV(bom *schema.BOM, writer io.Writer) (err error)
 
 	// initialize writer and prepare the list of entries (i.e., the "rows")
 	w := csv.NewWriter(writer)
+	w.Comma = ';'
 	defer w.Flush()
 
 	var currentRow []string

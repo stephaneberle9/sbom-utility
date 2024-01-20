@@ -318,6 +318,7 @@ func DisplayResourceListCSV(bom *schema.BOM, writer io.Writer) (err error) {
 
 	// initialize writer and prepare the list of entries (i.e., the "rows")
 	w := csv.NewWriter(writer)
+	w.Comma = ';'
 	defer w.Flush()
 
 	if err = w.Write(RESOURCE_LIST_TITLES); err != nil {

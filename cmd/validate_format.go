@@ -344,6 +344,7 @@ func DisplaySchemaErrorsCsv(writer io.Writer, errs []gojsonschema.ResultError, f
 	var currentRow []string
 
 	w := csv.NewWriter(writer)
+	w.Comma = ';'
 	defer w.Flush()
 
 	// Emit title row

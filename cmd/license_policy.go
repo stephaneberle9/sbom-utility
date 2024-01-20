@@ -336,6 +336,7 @@ func DisplayLicensePoliciesCSV(writer io.Writer, filteredPolicyMap *slicemultima
 
 	// initialize writer and prepare the list of entries (i.e., the "rows")
 	w := csv.NewWriter(writer)
+	w.Comma = ';'
 	defer w.Flush()
 
 	// Create title row data as []string

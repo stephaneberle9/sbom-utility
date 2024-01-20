@@ -327,6 +327,7 @@ func DisplaySchemasCSV(writer io.Writer, filteredSchemas []schema.FormatSchemaIn
 
 	// initialize writer and prepare the list of entries (i.e., the "rows")
 	w := csv.NewWriter(writer)
+	w.Comma = ';'
 	defer w.Flush()
 
 	// create title row from slices of optional and compulsory titles
