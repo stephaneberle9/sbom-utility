@@ -41,6 +41,10 @@ const (
 	POLICY_CONFLICT     = "CONFLICT"
 )
 
+const (
+	NOTES_COMPOUND_LICENSE = "Compound license"
+)
+
 var VALID_USAGE_POLICIES = []string{POLICY_ALLOW, POLICY_DENY, POLICY_NEEDS_REVIEW}
 var ALL_USAGE_POLICIES = []string{POLICY_ALLOW, POLICY_DENY, POLICY_NEEDS_REVIEW, POLICY_UNDEFINED, POLICY_CONFLICT}
 
@@ -112,6 +116,15 @@ func (config *LicensePolicyConfig) GetLicenseIdMap() (hashmap *slicemultimap.Mul
 		err = config.hashLicensePolicies()
 	}
 	return config.licenseIdMap, err
+}
+
+func LicensePolicyNotesContainValue(licensePolicy LicensePolicy, value string) bool {
+	for _, note := range licensePolicy.Notes {
+		if strings.Contains(note, value) {
+			return true
+		}
+	}
+	return false
 }
 
 func (config *LicensePolicyConfig) GetFilteredFamilyNameMap(whereFilters []common.WhereFilter) (hashmap *slicemultimap.MultiMap, err error) {
@@ -368,23 +381,18 @@ func (config *LicensePolicyConfig) FindPolicy(licenseInfo LicenseInfo) (matchedP
 
 	switch licenseInfo.LicenseChoiceTypeValue {
 	case LC_TYPE_ID:
-		var usagePolicy string
-		usagePolicy, matchedPolicy, err = config.FindPolicyBySpdxId(licenseInfo.LicenseChoice.License.Id)
-		matchedPolicy.UsagePolicy = usagePolicy
+		matchedPolicy, err = config.FindPolicyBySpdxId(licenseInfo.LicenseChoice.License.Id)
 		if err != nil {
 			return
 		}
 	case LC_TYPE_NAME:
-		matchedPolicy, err = config.FindPolicyByFamilyName(licenseInfo.LicenseChoice)
+		matchedPolicy, err = config.FindPolicyByNameOrUrlInFamily(licenseInfo.LicenseChoice)
 		if err != nil {
 			return
 		}
 
 		if matchedPolicy.UsagePolicy == POLICY_UNDEFINED {
-			matchedPolicy, err = config.FindPolicyByLicenseUrl(licenseInfo.LicenseChoice)
-			if err != nil {
-				return
-			}
+			matchedPolicy = config.FindPolicyByUrl(licenseInfo.LicenseChoice.License.Url, config.PolicyList)
 		}
 	case LC_TYPE_EXPRESSION:
 		// Parse expression according to SPDX spec.
@@ -395,17 +403,18 @@ func (config *LicensePolicyConfig) FindPolicy(licenseInfo LicenseInfo) (matchedP
 		}
 		getLogger().Debugf("Parsed expression:\n%v", expressionTree)
 
+		matchedPolicy.Name = expressionTree.CompoundName
+		matchedPolicy.Notes = append(matchedPolicy.Notes, NOTES_COMPOUND_LICENSE)
+		matchedPolicy.Urls = expressionTree.Urls
 		matchedPolicy.UsagePolicy = expressionTree.CompoundUsagePolicy
-
-		if matchedPolicy.UsagePolicy == "" {
-			matchedPolicy.UsagePolicy = POLICY_UNDEFINED
-		}
+	default:
+		matchedPolicy.UsagePolicy = POLICY_UNDEFINED
 	}
 
 	return
 }
 
-func (config *LicensePolicyConfig) FindPolicyBySpdxId(id string) (policyValue string, matchedPolicy LicensePolicy, err error) {
+func (config *LicensePolicyConfig) FindPolicyBySpdxId(id string) (matchedPolicy LicensePolicy, err error) {
 	getLogger().Enter("id:", id)
 	defer getLogger().Exit()
 
@@ -431,39 +440,30 @@ func (config *LicensePolicyConfig) FindPolicyBySpdxId(id string) (policyValue st
 	if matched {
 		// retrieve the usage policy from the single (first) entry
 		matchedPolicy = arrPolicies[0].(LicensePolicy)
-		policyValue = matchedPolicy.UsagePolicy
 	} else {
 		getLogger().Tracef("No policy match found for SPDX ID=`%s` ", id)
-		policyValue = POLICY_UNDEFINED
+		matchedPolicy.UsagePolicy = POLICY_UNDEFINED
 	}
 
 	return
 }
 
-// NOTE: for now, we will look for the "family" name encoded in the License.Name field
-// (until) we can get additional fields/properties added to the CDX LicenseChoice schema
-func (config *LicensePolicyConfig) FindPolicyByFamilyName(licenseChoice CDXLicenseChoice) (matchedPolicy LicensePolicy, err error) {
+// NOTE: we will look for the "family" name encoded in the License.Name field
+// and then search for a policy matching the license name or URL within that family
+func (config *LicensePolicyConfig) FindPolicyByNameOrUrlInFamily(licenseChoice CDXLicenseChoice) (matchedPolicy LicensePolicy, err error) {
 	licenseName := licenseChoice.License.Name
-	getLogger().Enter("name:", licenseName)
+	licenseUrl := licenseChoice.License.Url
+	getLogger().Enter("name, url:", licenseName, licenseUrl)
 	defer getLogger().Exit()
 
 	var matched bool
 	var key string
 	var arrPolicies []interface{}
 
-	if licenseName == "" || strings.HasPrefix(licenseName, "http") {
+	if licenseName == "" {
 		matchedPolicy.UsagePolicy = POLICY_UNDEFINED
 		return
-	}
-
-	// NOTE: we have found some SBOM authors have placed license expressions
-	// within the "name" field.  This prevents us from assigning policy
-	// return
-	if hasLogicalConjunctionOrPreposition(licenseName) {
-		getLogger().Warningf("policy name contains logical conjunctions or preposition: `%s`", licenseName)
-		matchedPolicy.UsagePolicy = POLICY_UNDEFINED
-		return
-	}
+	}	
 
 	// Note: this will cause all policy hashmaps to be initialized (created), if it has not been
 	familyNameMap, _ := config.GetFamilyNameMap()
@@ -476,41 +476,33 @@ func (config *LicensePolicyConfig) FindPolicyByFamilyName(licenseChoice CDXLicen
 
 	if matched {
 		arrPolicies, _ = familyNameMap.Get(key)
-
 		if len(arrPolicies) == 0 {
 			err = getLogger().Errorf("No policy match found in hashmap for family name key: `%s`", key)
 			return
 		}
+		var policies []LicensePolicy
+		for _, policyItem := range arrPolicies {
+			policy := policyItem.(LicensePolicy)
+			policies = append(policies, policy)
+		}
+		
+		matchedPolicy = config.FindPolicyByName(licenseName, policies)
 
-		if licenseChoice.License.Url != "" {
-			func() {
-				licenseUrl := strings.TrimSuffix(licenseChoice.License.Url, "/")
-				for _, arrItem := range arrPolicies {
-					policy := arrItem.(LicensePolicy)
-					for _, policyUrl := range policy.Urls {
-						if policyUrl == licenseUrl {
-							matchedPolicy = policy
-							return
-						}
-					}
-				}
-			}()
+		if matchedPolicy.UsagePolicy == POLICY_UNDEFINED {
+			matchedPolicy = config.FindPolicyByUrl(licenseUrl, policies)
 		}
 
-		if matchedPolicy.UsagePolicy == "" {
-			for _, arrItem := range arrPolicies {
-				policy := arrItem.(LicensePolicy)
-				if matchesLicenseVersion(licenseName, policy.Name) {
-					matchedPolicy = policy
-				}
-			}
-		}
-
-		if matchedPolicy.UsagePolicy == "" {
+		// if matchedPolicy.UsagePolicy == POLICY_UNDEFINED {
 			// NOTE: We can use the first policy (of a family) as fallback as they are
 			// verified to be consistent when loaded from the policy config. file
-			matchedPolicy = arrPolicies[0].(LicensePolicy)
-		}
+			// !!!Important!!! No. Looking up the family name in the license name is
+			// a weak strategy and may yield false positives. Defaulting to the first 
+			// policy within the family at this point would lead to rather poor results 
+			// in terms of accuracy and take away the chance to get better results based 
+			// on other search strategies (e.g., global search of matching policy based 
+			// on license URL)
+			// matchedPolicy = arrPolicies[0].(LicensePolicy)
+		// }
 
 		// If we have more than one license in the same family (name), then
 		// check if there are any "usage policy" conflicts to display in report
@@ -557,50 +549,57 @@ func (config *LicensePolicyConfig) searchForLicenseFamilyName(licenseName string
 	return
 }
 
-func (config *LicensePolicyConfig) FindPolicyByLicenseUrl(licenseChoice CDXLicenseChoice) (matchedPolicy LicensePolicy, err error) {
-	licenseName := licenseChoice.License.Name
+func (config *LicensePolicyConfig) FindPolicyByName(licenseName string, licensePolicies []LicensePolicy) (matchedPolicy LicensePolicy) {
 	getLogger().Enter("name:", licenseName)
 	defer getLogger().Exit()
 
-	var licenseUrls []string
-	if licenseChoice.License.Url != "" {
-		licenseUrls = append(licenseUrls, licenseChoice.License.Url)
-	} else if strings.HasPrefix(licenseName, "http") {
-		// Check if license name actually contains one or multiple license URLs
-		regex, e := getRegexForListSeparator()
-		if e != nil {
-			getLogger().Error(fmt.Errorf("unable to invoke regex. %v", err))
-			return
-		}
-		licenseUrls = regex.Split(licenseName, -1)
-	}
-
-	var policies []LicensePolicy
-	for _, licenseUrl := range licenseUrls {
-		func() {
-			licenseUrl = strings.TrimSuffix(licenseUrl, "/")
-			for _, policy := range config.PolicyList {
-				for _, policyUrl := range policy.Urls {
-					if policyUrl == licenseUrl {
-						policies = append(policies, policy)
+	if licenseName == "" {
+		matchedPolicy.UsagePolicy = POLICY_UNDEFINED
+		return
+	}	
+	
+	func() {
+		for _, policy := range licensePolicies {
+			if policy.Name == licenseName {
+				matchedPolicy = policy
+				return
+			} else {
+				for _, alias := range policy.Aliases {
+					if alias == licenseName {
+						matchedPolicy = policy
 						return
 					}
 				}
 			}
-		}()
+		}
+		getLogger().Tracef("No policy match found for license name=`%s` ", licenseName)
+		matchedPolicy.UsagePolicy = POLICY_UNDEFINED
+	}()
+	return
+}
+
+func (config *LicensePolicyConfig) FindPolicyByUrl(licenseUrl string, licensePolicies []LicensePolicy) (matchedPolicy LicensePolicy) {
+	getLogger().Enter("url:", licenseUrl)
+	defer getLogger().Exit()
+	
+	if licenseUrl == "" {
+		matchedPolicy.UsagePolicy = POLICY_UNDEFINED
+		return
 	}
 
-	if len(policies) > 0 {
-		for _, policy := range policies {
-			if matchedPolicy.UsagePolicy == "" || isPolicyMorePermissiveThan(policy, matchedPolicy) {
-				matchedPolicy = policy
+	func() {
+		licenseUrl = strings.TrimSuffix(licenseUrl, "/")
+		for _, policy := range licensePolicies {
+			for _, policyUrl := range policy.Urls {
+				if policyUrl == licenseUrl {
+					matchedPolicy = policy
+					return
+				}
 			}
 		}
-	} else {
-		getLogger().Tracef("No policy match found for license family name=`%s` ", licenseName)
+		getLogger().Tracef("No policy match found for license URL=`%s` ", licenseUrl)
 		matchedPolicy.UsagePolicy = POLICY_UNDEFINED
-	}
-
+	}()
 	return
 }
 
@@ -697,16 +696,6 @@ func policyConflictExists(arrPolicies []interface{}) bool {
 	return false
 }
 
-func isPolicyMorePermissiveThan(policy LicensePolicy, otherPolicy LicensePolicy) bool {
-	if policy.UsagePolicy == POLICY_ALLOW && (otherPolicy.UsagePolicy == POLICY_NEEDS_REVIEW || otherPolicy.UsagePolicy == POLICY_DENY) {
-		return true
-	}
-	if policy.UsagePolicy == POLICY_NEEDS_REVIEW && otherPolicy.UsagePolicy == POLICY_DENY {
-		return true
-	}
-	return false
-}
-
 // Looks for an SPDX family (name) somewhere in the CDX License object "Name" field
 func containsFamilyName(name string, familyName string) bool {
 	// Handle special cases
@@ -725,13 +714,50 @@ func containsFamilyName(name string, familyName string) bool {
 	// !!!Important!!! Only match whole words in CDX License object "Name" field, 
 	// otherwise familyName = `GPL` for (license) name = `AGPL` would result in a false 
 	// positive.
-	// return strings.Contains(name, familyName)
+	// if strings.Contains(name, familyName) {
+	//  return true
+	// }
 	for _, word := range strings.Fields(name) {
 		if word == familyName {
 			return true
 		}
 	}
+	
+	// Check if license name contains family name with spaces instead of dashes
+	// (e.g., 'Bouncy Castle' instead of 'Bouncy-Castle')
+	relaxedFamilyName := strings.ReplaceAll(familyName, "-", " ")
+	if strings.Contains(name, relaxedFamilyName) {
+		return true
+	}
+
+	// Check if family name matches license name initials excluding license version
+	// (e.g., Eclipse Public License 1.0 -> EPL, Eclipse Public License - v 2.0 -> EPL, Eclipse Public License, Version 2.0 -> EPL)
+	regex, err := getRegexForLicenseVersionSuffix()
+	if err != nil {
+		getLogger().Error(fmt.Errorf("unable to invoke regex. %v", err))
+		return false
+	}
+	strippedName := regex.ReplaceAllString(name, "")
+	strippedName = strings.TrimPrefix(strippedName, "The ")
+	words := strings.Fields(strippedName)
+	var initials string
+	for _, word := range words {
+		initials += string(word[0])
+	}
+	if familyName == initials {
+		return true
+	}
+
 	return false
+}
+
+// "getter" for compiled regex expression
+func getRegexForLicenseVersionSuffix() (regex *regexp.Regexp, err error) {
+	if licenseVersionSuffixRegexp == nil {
+		licenseVersionSuffixRegexp, err = regexp.Compile(REGEX_LICENSE_VERSION_SUFFIX)
+	}
+	regex = licenseVersionSuffixRegexp
+	return
 }
 
 // Supported conjunctions and prepositions
@@ -742,7 +768,7 @@ const (
 	CONJUNCTION_UNDEFINED string = ""
 )
 
-func hasLogicalConjunctionOrPreposition(value string) bool {
+func HasLogicalConjunctionOrPreposition(value string) bool {
 
 	if strings.Contains(value, AND) ||
 		strings.Contains(value, OR) ||
@@ -750,6 +776,30 @@ func hasLogicalConjunctionOrPreposition(value string) bool {
 		return true
 	}
 	return false
+}
+
+func IsUrlish(value string) bool {
+	return strings.HasPrefix(value, "http")
+}
+
+func SplitUrls(value string) (urls []string, err error) {
+	regex, e := GetRegexForListSeparator()
+	if e != nil {
+		getLogger().Error(fmt.Errorf("unable to invoke regex. %v", e))
+		err = e
+		return
+	}
+
+	encountered := make(map[string]bool)
+	urls = []string{}
+	for _, url := range regex.Split(value, -1) {
+		if !encountered[url] {
+			encountered[url] = true
+			urls = append(urls, url)
+		}
+	}
+
+	return
 }
 
 //------------------------------------------------
@@ -793,7 +843,7 @@ func IsValidFamilyKey(key string) bool {
 }
 
 // "getter" for compiled regex expression
-func getRegexForListSeparator() (regex *regexp.Regexp, err error) {
+func GetRegexForListSeparator() (regex *regexp.Regexp, err error) {
 	if listSeparatorRegexp == nil {
 		listSeparatorRegexp, err = regexp.Compile(REGEX_LIST_SEPARATOR)
 	}

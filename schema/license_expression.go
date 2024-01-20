@@ -23,7 +23,7 @@ import (
 
 )
 
-type CompoundExpression   struct {
+type CompoundExpression struct {
 	SimpleLeft            string
 	LeftPolicy            LicensePolicy
 	LeftUsagePolicy       string
@@ -35,7 +35,9 @@ type CompoundExpression   struct {
 	SubsequentConjunction string
 	CompoundLeft          *CompoundExpression
 	CompoundRight         *CompoundExpression
+	CompoundName          string
 	CompoundUsagePolicy   string
+	Urls                  []string
 }
 
 // Tokens
@@ -73,10 +75,11 @@ func CopyCompoundExpression(expression *CompoundExpression) *CompoundExpression 
 	ce.RightPolicy = expression.RightPolicy
 	ce.CompoundRight = expression.CompoundRight
 	ce.RightUsagePolicy = expression.RightUsagePolicy
+	ce.CompoundName = expression.CompoundName
+	ce.Urls = append(ce.Urls, expression.Urls...)
 	ce.CompoundUsagePolicy = expression.CompoundUsagePolicy
 	return ce
 }
-
 
 func tokenizeExpression(expression string) (tokens []string) {
 	// Add spaces to assure proper tokenization with whitespace bw/ tokens
@@ -87,22 +90,33 @@ func tokenizeExpression(expression string) (tokens []string) {
 	return
 }
 
-func ParseExpression(policyConfig *LicensePolicyConfig, rawExpression string) (ce *CompoundExpression, err error) {
+func findPolicy(policyConfig *LicensePolicyConfig, token string) (usagePolicy string, matchedPolicy LicensePolicy, err error) {
+	if IsUrlish(token) {
+		matchedPolicy = policyConfig.FindPolicyByUrl(token, policyConfig.PolicyList)
+		usagePolicy = matchedPolicy.UsagePolicy
+	} else {
+		matchedPolicy, err = policyConfig.FindPolicyBySpdxId(token)
+		usagePolicy = matchedPolicy.UsagePolicy
+	}
+	return
+}
+
+func ParseExpression(policyConfig *LicensePolicyConfig, rawExpression string) (expression *CompoundExpression, err error) {
 	getLogger().Enter()
 	defer getLogger().Exit()
 
-	ce = NewCompoundExpression()
+	expression = NewCompoundExpression()
 
 	tokens := tokenizeExpression(rawExpression)
 	getLogger().Debugf("Tokens: %v", tokens)
 
-	finalIndex, err := parseCompoundExpression(policyConfig, ce, tokens, 0)
-	getLogger().Debugf("Parsed expression (%v): %v", finalIndex, ce)
+	finalIndex, err := expression.Parse(policyConfig, tokens, 0)
+	getLogger().Debugf("Parsed expression (%v): %v", finalIndex, expression)
 
-	return ce, err
+	return expression, err
 }
 
-func parseCompoundExpression(policyConfig *LicensePolicyConfig, expression *CompoundExpression, tokens []string, index int) (i int, err error) {
+func (expression *CompoundExpression) Parse(policyConfig *LicensePolicyConfig, tokens []string, index int) (i int, err error) {
 	getLogger().Enter("expression:", expression)
 	defer getLogger().Exit()
 	defer func() {
@@ -122,37 +136,35 @@ func parseCompoundExpression(policyConfig *LicensePolicyConfig, expression *Comp
 		case LEFT_PARENS:
 			getLogger().Debugf("[%v] LEFT_PARENS: `%v`", index, token)
 			childExpression := NewCompoundExpression()
-
-			// if we have no conjunction, this token represents the "left" operand
-			if expression.Conjunction == "" {
-				expression.CompoundLeft = childExpression
-			} else {
-				// otherwise it is the "right" operand
-				expression.CompoundRight = childExpression
-			}
-
-			index, err = parseCompoundExpression(policyConfig, childExpression, tokens, index+1)
+			
+			index, err = childExpression.Parse(policyConfig, tokens, index+1)
 			if err != nil {
 				return
 			}
-
-			// retrieve the resolved policy from the child
-			childPolicy := childExpression.CompoundUsagePolicy
+			
+			// if we have no conjunction, this token represents the "left" operand
 			if expression.Conjunction == "" {
-				expression.LeftUsagePolicy = childPolicy
+				expression.CompoundLeft = childExpression
+				expression.CompoundName = LEFT_PARENS + " " + childExpression.CompoundName + " " + RIGHT_PARENS
+				expression.Urls = append(expression.Urls, childExpression.Urls...)
+				expression.LeftUsagePolicy = childExpression.CompoundUsagePolicy
 			} else {
 				// otherwise it is the "right" operand
-				expression.RightUsagePolicy = childPolicy
+				expression.CompoundRight = childExpression
+				expression.CompoundName += " " + LEFT_PARENS + " " + childExpression.CompoundName + " " + RIGHT_PARENS
+				expression.Urls = append(expression.Urls, childExpression.Urls...)
+				expression.RightUsagePolicy = childExpression.CompoundUsagePolicy
 			}
 
 		case RIGHT_PARENS:
 			getLogger().Debugf("[%v] RIGHT_PARENS: `%v`", index, token)
-			err = FinalizeCompoundPolicy(expression)
+			err = expression.EvaluateUsagePolicies()
 			return index, err // Do NOT Increment, parent caller will do that
 		case AND:
 			getLogger().Debugf("[%v] AND (Conjunction): `%v`", index, token)
 			if expression.Conjunction == "" {
 				expression.Conjunction = token
+				expression.CompoundName += " " + AND
 			} else {
 				expression.SubsequentConjunction = token
 			}
@@ -160,6 +172,7 @@ func parseCompoundExpression(policyConfig *LicensePolicyConfig, expression *Comp
 			getLogger().Debugf("[%v] OR (Conjunction): `%v`", index, token)
 			if expression.Conjunction == "" {
 				expression.Conjunction = token
+				expression.CompoundName += " " + OR
 			} else {
 				expression.SubsequentConjunction = token
 			}
@@ -167,6 +180,7 @@ func parseCompoundExpression(policyConfig *LicensePolicyConfig, expression *Comp
 			getLogger().Debugf("[%v] WITH (Conjunction): `%v`", index, token)
 			if expression.Conjunction == "" {
 				expression.Conjunction = token
+				expression.CompoundName += " " + WITH
 			} else {
 				expression.SubsequentConjunction = token
 			}
@@ -176,64 +190,72 @@ func parseCompoundExpression(policyConfig *LicensePolicyConfig, expression *Comp
 			if expression.Conjunction == CONJUNCTION_UNDEFINED {
 				expression.SimpleLeft = token
 				// Lookup policy in hashmap
-				expression.LeftUsagePolicy, expression.LeftPolicy, err = policyConfig.FindPolicyBySpdxId(token)
+				expression.LeftUsagePolicy, expression.LeftPolicy, err = findPolicy(policyConfig, token)
 				if err != nil {
 					return
+				}
+				expression.CompoundName = expression.LeftPolicy.Name
+				if len(expression.LeftPolicy.Urls) > 0 {
+					expression.Urls = append(expression.Urls, expression.LeftPolicy.Urls[0])
 				}
 			} else {
 				// if we have a single conjunction, this token represents the "right" operand
 				if expression.SubsequentConjunction == "" {
 					expression.SimpleRight = token
 					// Lookup policy in hashmap
-					expression.RightUsagePolicy, expression.RightPolicy, err = policyConfig.FindPolicyBySpdxId(token)
+					expression.RightUsagePolicy, expression.RightPolicy, err = findPolicy(policyConfig, token)
 					if err != nil {
 						return
 					}
-				} else {
+					expression.CompoundName += " " + expression.RightPolicy.Name
+					if len(expression.RightPolicy.Urls) > 0 {
+						expression.Urls = append(expression.Urls, expression.RightPolicy.Urls[0])
+					}
+					} else {
 					// if we have a subsequent conjunction, we must fold the expression taking into account the natural operator precedence;
 					// depending on the case, this token represents the "right" operand of either the expression itself or its right-side child expression
 					if expression.Conjunction == AND && expression.SubsequentConjunction == AND {
 						// left AND right AND another-> (left AND right) AND another
-						LeftFoldCompoundExpression(policyConfig, expression, AND, token)
+						expression.FoldLeftAndAppendRight(policyConfig, AND, token)
 					} else if expression.Conjunction == AND && expression.SubsequentConjunction == OR {
 						// left AND right OR another-> (left AND right) OR another
-						LeftFoldCompoundExpression(policyConfig, expression, OR, token)
+						expression.FoldLeftAndAppendRight(policyConfig, OR, token)
 					} else if expression.Conjunction == AND && expression.SubsequentConjunction == WITH {
 						// left AND right WITH another-> left AND (right WITH another)
-						RightFoldCompoundExpression(policyConfig, expression, WITH, token)
+						expression.FoldAndAppendRight(policyConfig, WITH, token)
 					} else if expression.Conjunction == OR && expression.SubsequentConjunction == AND {
 						// left OR right AND another-> left OR (right AND another)
-						RightFoldCompoundExpression(policyConfig, expression, AND, token)
+						expression.FoldAndAppendRight(policyConfig, AND, token)
 					} else if expression.Conjunction == OR && expression.SubsequentConjunction == OR {
 						// left OR right OR another-> left OR (right OR another)
-						RightFoldCompoundExpression(policyConfig, expression, OR, token)
+						expression.FoldAndAppendRight(policyConfig, OR, token)
 					} else if expression.Conjunction == OR && expression.SubsequentConjunction == WITH {
 						// left OR right WITH another-> left OR (right WITH another)
-						RightFoldCompoundExpression(policyConfig, expression, WITH, token)
+						expression.FoldAndAppendRight(policyConfig, WITH, token)
 					} else if expression.Conjunction == WITH && expression.SubsequentConjunction == AND {
 						// left WITH right AND another -> (left WITH right) AND another
-						LeftFoldCompoundExpression(policyConfig, expression, AND, token)
+						expression.FoldLeftAndAppendRight(policyConfig, AND, token)
 					} else if expression.Conjunction == WITH && expression.SubsequentConjunction == OR {
 						// left WITH right OR another -> (left WITH right) OR another
-						LeftFoldCompoundExpression(policyConfig, expression, OR, token)
+						expression.FoldLeftAndAppendRight(policyConfig, OR, token)
 					} else if expression.Conjunction == WITH && expression.SubsequentConjunction == WITH {
 						// left WITH right WITH another -> left WITH (right OR another)
-						RightFoldCompoundExpression(policyConfig, expression, OR, token)
+						expression.FoldAndAppendRight(policyConfig, OR, token)
 					}
 				}
 			}
 		}
-		
+
 		index = index + 1
 	}
-	
-	err = FinalizeCompoundPolicy(expression)
+
+	err = expression.EvaluateUsagePolicies()
 	return index, err
 }
 
-func LeftFoldCompoundExpression(policyConfig *LicensePolicyConfig, expression *CompoundExpression, conjunction string, token string) (err error) {
+func (expression *CompoundExpression) FoldLeftAndAppendRight(policyConfig *LicensePolicyConfig, conjunction string, token string) (err error) {
 	childExpression := CopyCompoundExpression(expression)
-	err = FinalizeCompoundPolicy(childExpression)
+	err = childExpression.EvaluateUsagePolicies()
 	if err != nil {
 		return
 	}
@@ -244,18 +266,23 @@ func LeftFoldCompoundExpression(policyConfig *LicensePolicyConfig, expression *C
 	expression.LeftUsagePolicy = childExpression.CompoundUsagePolicy
 
 	expression.Conjunction = conjunction
-	expression.SubsequentConjunction = ""
 
 	expression.SimpleRight = token
-	expression.RightUsagePolicy, expression.RightPolicy, err = policyConfig.FindPolicyBySpdxId(token)
-		if err != nil {
+	expression.RightUsagePolicy, expression.RightPolicy, err = findPolicy(policyConfig, token)
+	if err != nil {
 		return
 	}
-	
+
+	expression.CompoundName += " " + expression.SubsequentConjunction + " " + expression.RightPolicy.Name
+	expression.SubsequentConjunction = ""
+	if len(expression.RightPolicy.Urls) > 0 {
+		expression.Urls = append(expression.Urls, expression.RightPolicy.Urls[0])
+	}
+
 	return nil
 }
 
-func RightFoldCompoundExpression(policyConfig *LicensePolicyConfig, expression *CompoundExpression, conjunction string, token string) (err error) {
+func (expression *CompoundExpression) FoldAndAppendRight(policyConfig *LicensePolicyConfig, conjunction string, token string) (err error) {
 	childExpression := NewCompoundExpression()
 
 	childExpression.SimpleLeft = expression.SimpleRight
@@ -266,27 +293,44 @@ func RightFoldCompoundExpression(policyConfig *LicensePolicyConfig, expression *
 	childExpression.Conjunction = conjunction
 
 	childExpression.SimpleRight = token
-	childExpression.RightUsagePolicy, childExpression.RightPolicy, err = policyConfig.FindPolicyBySpdxId(token)
+	childExpression.RightUsagePolicy, childExpression.RightPolicy, err = findPolicy(policyConfig, token)
 	if err != nil {
 		return
 	}
 
-	err = FinalizeCompoundPolicy(childExpression)
+	if expression.CompoundRight != nil {
+		childExpression.CompoundName = expression.CompoundRight.CompoundName
+		childExpression.Urls = append(childExpression.Urls, expression.CompoundRight.Urls...)
+	} else {
+		childExpression.CompoundName = expression.RightPolicy.Name
+		if len(expression.RightPolicy.Urls) > 0 {
+			childExpression.Urls = append(expression.Urls, expression.RightPolicy.Urls[0])
+		}
+	}
+	childExpression.CompoundName = " " + expression.SubsequentConjunction + " " + childExpression.RightPolicy.Name
+	if len(childExpression.RightPolicy.Urls) > 0 {
+		childExpression.Urls = append(expression.Urls, childExpression.RightPolicy.Urls[0])
+	}
+	err = childExpression.EvaluateUsagePolicies()
 	if err != nil {
 		return
 	}
-
-	expression.SubsequentConjunction = ""
 
 	expression.SimpleRight = ""
 	expression.RightPolicy = LicensePolicy{}
 	expression.CompoundRight = childExpression
 	expression.RightUsagePolicy = childExpression.CompoundUsagePolicy
 
+	expression.CompoundName += " " + expression.SubsequentConjunction + " " + childExpression.RightPolicy.Name
+	expression.SubsequentConjunction = ""
+	if len(childExpression.RightPolicy.Urls) > 0 {
+		expression.Urls = append(expression.Urls, childExpression.RightPolicy.Urls[0])
+	}
+
 	return nil
 }
 
-func FinalizeCompoundPolicy(expression *CompoundExpression) (err error) {
+func (expression *CompoundExpression) EvaluateUsagePolicies() (err error) {
 	getLogger().Enter()
 	defer getLogger().Exit()
 

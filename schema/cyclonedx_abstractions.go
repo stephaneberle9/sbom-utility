@@ -140,7 +140,7 @@ type LicenseInfo struct {
 	LicenseChoiceTypeValue int              `json:"license-type-value"`
 	LicenseChoiceType      string           `json:"license-type"`
 	License                string           `json:"license"`
-	LicenseUrl             string           `json:"license-url"`
+	LicenseUrls            string           `json:"license-urls"`
 	ResourceName           string           `json:"resource-name"`
 	BOMRef                 CDXRefType       `json:"bom-ref"`
 	BOMLocationValue       int              `json:"bom-location-value"`

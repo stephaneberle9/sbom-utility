@@ -25,6 +25,7 @@ import (
 	"github.com/CycloneDX/sbom-utility/common"
 	"github.com/CycloneDX/sbom-utility/schema"
 	"github.com/spf13/cobra"
+
 )
 
 const (
@@ -422,36 +423,89 @@ func hashLicenseInfoByLicenseType(bom *schema.BOM, policyConfig *schema.LicenseP
 	getLogger().Enter()
 	defer getLogger().Exit(err)
 
-	licenseChoice := licenseInfo.LicenseChoice
-	pLicense := licenseChoice.License
-
-	if pLicense != nil && pLicense.Id != "" {
-		licenseInfo.LicenseChoiceTypeValue = schema.LC_TYPE_ID
-		_, err = bom.HashLicenseInfo(policyConfig, pLicense.Id, licenseInfo, whereFilters)
-	} else if pLicense != nil && (pLicense.Name != "" || pLicense.Url != "") {
-		licenseInfo.LicenseChoiceTypeValue = schema.LC_TYPE_NAME
-		_, err = bom.HashLicenseInfo(policyConfig, pLicense.Name, licenseInfo, whereFilters)
-	} else if licenseChoice.Expression != "" {
-		licenseInfo.LicenseChoiceTypeValue = schema.LC_TYPE_EXPRESSION
-		_, err = bom.HashLicenseInfo(policyConfig, licenseChoice.Expression, licenseInfo, whereFilters)
-	} else {
-		// Note: This code path only executes if hashing is performed
-		// without schema validation (which would find this as an error)
-		// Note: licenseInfo.LicenseChoiceType = 0 // default, invalid
-		baseError := NewSbomLicenseDataError()
-		baseError.AppendMessage(fmt.Sprintf(": for entity: `%s` (%s)",
+	defer func() {
+		if err != nil {
+			baseError := NewSbomLicenseDataError()
+			baseError.AppendMessage(fmt.Sprintf(": for entity: `%s` (%s)",
 			licenseInfo.BOMRef,
 			licenseInfo.ResourceName))
-		err = baseError
+			err = baseError
+		}
+	}()
+
+	var licenseInfoKey string
+	pLicense := licenseInfo.LicenseChoice.License
+
+	if pLicense != nil {
+		if pLicense.Id != "" {
+			licenseInfo.LicenseChoiceTypeValue = schema.LC_TYPE_ID
+			_, err = bom.HashLicenseInfo(policyConfig, pLicense.Id, licenseInfo, whereFilters)
+			return
+		}
+		
+		// Fix up licenses with sloppy/really weird names
+		if pLicense.Name != "" {
+			licenseInfoKey = pLicense.Name
+			// License name actually being a single or multiple license URLs?
+			if schema.IsUrlish(pLicense.Name) {
+				var licenseUrls []string
+				licenseUrls, err = schema.SplitUrls(pLicense.Name)
+				if err != nil {
+					return
+				}
+				if len(licenseUrls) == 1 {
+					// Move license URL to appropriate field
+					pLicense.Url = licenseUrls[0]
+				} else {
+					// Flip license into license expression using OR operator and license URLs instead of license ids
+					for i, url := range licenseUrls {
+						if i == 0 {
+							licenseInfo.LicenseChoice.Expression = url
+						} else {
+							licenseInfo.LicenseChoice.Expression += " " + schema.OR + " " + url
+						}
+					}
+				} 
+				pLicense.Name = ""
+			}
+			
+			// License name actually being a license expression?
+			if schema.HasLogicalConjunctionOrPreposition(pLicense.Name) {
+				// Flip license into license expression
+				licenseInfo.LicenseChoice.Expression = pLicense.Name
+				pLicense.Name = ""
+			}
+		} else {
+			licenseInfoKey = pLicense.Url
+		}
+		
+		if pLicense.Name != "" {
+			licenseInfo.LicenseChoiceTypeValue = schema.LC_TYPE_NAME
+			_, err = bom.HashLicenseInfo(policyConfig, licenseInfoKey, licenseInfo, whereFilters)
+			return
+		} 
+		if pLicense.Url != "" {
+			licenseInfo.LicenseChoiceTypeValue = schema.LC_TYPE_NAME
+			_, err = bom.HashLicenseInfo(policyConfig, licenseInfoKey, licenseInfo, whereFilters)
+			return
+		}
+	} else {
+		licenseInfoKey = licenseInfo.LicenseChoice.Expression
+	}
+
+	if licenseInfo.LicenseChoice.Expression != "" {
+		licenseInfo.LicenseChoiceTypeValue = schema.LC_TYPE_EXPRESSION
+		_, err = bom.HashLicenseInfo(policyConfig, licenseInfoKey, licenseInfo, whereFilters)
 		return
 	}
 
-	if err != nil {
-		baseError := NewSbomLicenseDataError()
-		baseError.AppendMessage(fmt.Sprintf(": for entity: `%s` (%s)",
-			licenseInfo.BOMRef,
-			licenseInfo.ResourceName))
-		err = baseError
-	}
+	// Note: This code path only executes if hashing is performed
+	// without schema validation (which would find this as an error)
+	// Note: licenseInfo.LicenseChoiceType = 0 // default, invalid
+	baseError := NewSbomLicenseDataError()
+	baseError.AppendMessage(fmt.Sprintf(": for entity: `%s` (%s)",
+		licenseInfo.BOMRef,
+		licenseInfo.ResourceName))
+	err = baseError
 	return
 }

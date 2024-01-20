@@ -28,7 +28,6 @@ import (
 	"github.com/CycloneDX/sbom-utility/log"
 	"github.com/CycloneDX/sbom-utility/schema"
 	"github.com/CycloneDX/sbom-utility/utils"
-
 )
 
 const (
@@ -393,15 +392,15 @@ func TestLicensePolicyMatchByIdAllow(t *testing.T) {
 	ID := "Apache-2.0"
 	EXPECTED_POLICY := schema.POLICY_ALLOW
 
-	value, policy, err := LicensePolicyConfig.FindPolicyBySpdxId(ID)
+	policy, err := LicensePolicyConfig.FindPolicyBySpdxId(ID)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if value != EXPECTED_POLICY {
-		t.Errorf("FindPolicyBySpdxId(): id: %s, returned: %v; expected: %v", ID, value, EXPECTED_POLICY)
+	if policy.UsagePolicy != EXPECTED_POLICY {
+		t.Errorf("FindPolicyBySpdxId(): id: %s, returned: %v; expected: %v", ID, policy.UsagePolicy, EXPECTED_POLICY)
 	} else {
-		getLogger().Tracef("FindPolicyBySpdxId(): id: %s (%s), policy: %s\n", ID, policy.Name, value)
+		getLogger().Tracef("FindPolicyBySpdxId(): id: %s (%s), policy: %s\n", ID, policy.Name, policy.UsagePolicy)
 	}
 }
 
@@ -409,15 +408,15 @@ func TestLicensePolicyMatchByIdDeny(t *testing.T) {
 	ID := "CC-BY-NC-1.0"
 	EXPECTED_POLICY := schema.POLICY_DENY
 
-	value, policy, err := LicensePolicyConfig.FindPolicyBySpdxId(ID)
+	policy, err := LicensePolicyConfig.FindPolicyBySpdxId(ID)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if value != EXPECTED_POLICY {
-		t.Errorf("FindPolicyBySpdxId(): id: %s, returned: %v; expected: %v", ID, value, EXPECTED_POLICY)
+	if policy.UsagePolicy != EXPECTED_POLICY {
+		t.Errorf("FindPolicyBySpdxId(): id: %s, returned: %v; expected: %v", ID, policy.UsagePolicy, EXPECTED_POLICY)
 	} else {
-		getLogger().Tracef("FindPolicyBySpdxId(): id: %s (%s), policy: %s\n", ID, policy.Name, value)
+		getLogger().Tracef("FindPolicyBySpdxId(): id: %s (%s), policy: %s\n", ID, policy.Name, policy.UsagePolicy)
 	}
 }
 
@@ -425,15 +424,15 @@ func TestLicensePolicyMatchByIdFailureEmpty(t *testing.T) {
 	ID := ""
 	EXPECTED_POLICY := schema.POLICY_UNDEFINED
 
-	value, policy, err := LicensePolicyConfig.FindPolicyBySpdxId(ID)
+	policy, err := LicensePolicyConfig.FindPolicyBySpdxId(ID)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if value != EXPECTED_POLICY {
-		t.Errorf("FindPolicyBySpdxId(): id: %s, returned: %v; expected: %v", ID, value, EXPECTED_POLICY)
+	if policy.UsagePolicy != EXPECTED_POLICY {
+		t.Errorf("FindPolicyBySpdxId(): id: %s, returned: %v; expected: %v", ID, policy.UsagePolicy, EXPECTED_POLICY)
 	} else {
-		getLogger().Tracef("FindPolicyBySpdxId(): id: %s (%s), policy: %s\n", ID, policy.Name, value)
+		getLogger().Tracef("FindPolicyBySpdxId(): id: %s (%s), policy: %s\n", ID, policy.Name, policy.UsagePolicy)
 	}
 }
 
@@ -441,15 +440,15 @@ func TestLicensePolicyMatchByIdFailureFoo(t *testing.T) {
 	ID := "Foo"
 	EXPECTED_POLICY := schema.POLICY_UNDEFINED
 
-	value, policy, err := LicensePolicyConfig.FindPolicyBySpdxId(ID)
+	policy, err := LicensePolicyConfig.FindPolicyBySpdxId(ID)
 	if err != nil {
 		t.Error(err)
 	}
 
-	if value != EXPECTED_POLICY {
-		t.Errorf("FindPolicyBySpdxId(): id: %s, returned: %v; expected: %v", ID, value, EXPECTED_POLICY)
+	if policy.UsagePolicy != EXPECTED_POLICY {
+		t.Errorf("FindPolicyBySpdxId(): id: %s, returned: %v; expected: %v", ID, policy.UsagePolicy, EXPECTED_POLICY)
 	} else {
-		getLogger().Tracef("FindPolicyBySpdxId(): id: %s (%s), policy: %s\n", ID, policy.Name, value)
+		getLogger().Tracef("FindPolicyBySpdxId(): id: %s (%s), policy: %s\n", ID, policy.Name, policy.UsagePolicy)
 	}
 }
 
@@ -467,7 +466,7 @@ func TestLicensePolicyMatchByFamilyNameBadExpression(t *testing.T) {
 	}
 	EXPECTED_POLICY := schema.POLICY_UNDEFINED
 
-	policy, err := LicensePolicyConfig.FindPolicyByFamilyName(LICENSE_CHOICE)
+	policy, err := LicensePolicyConfig.FindPolicyByNameOrUrlInFamily(LICENSE_CHOICE)
 	if err != nil {
 		t.Error(err)
 	}
@@ -485,7 +484,7 @@ func TestLicensePolicyMatchByFamilyNameBadExpression(t *testing.T) {
 			Name: "CC-BY-NC-1.0 AND Apache-2.0",
 		},
 	}
-	policy, err = LicensePolicyConfig.FindPolicyByFamilyName(LICENSE_CHOICE)
+	policy, err = LicensePolicyConfig.FindPolicyByNameOrUrlInFamily(LICENSE_CHOICE)
 	if err != nil {
 		t.Error(err)
 	}
@@ -503,7 +502,7 @@ func TestLicensePolicyMatchByFamilyNameBadExpression(t *testing.T) {
 			Name: "CC-BY-NC-1.0 WITH some-clause",
 		},
 	}
-	policy, err = LicensePolicyConfig.FindPolicyByFamilyName(LICENSE_CHOICE)
+	policy, err = LicensePolicyConfig.FindPolicyByNameOrUrlInFamily(LICENSE_CHOICE)
 	if err != nil {
 		t.Error(err)
 	}
@@ -703,138 +702,121 @@ func TestLicensePolicyListWhereDeprecatedTrue(t *testing.T) {
 func TestLicensePolicyMatchByExpFailureInvalidRightExp(t *testing.T) {
 	EXP := "(Apache-1.0 OR Apache-1.1) AND Foobar"
 	EXPECTED_POLICY := schema.POLICY_UNDEFINED
-	ParseLicenseExpressionAndVerifyResolvedPolicy(EXP, EXPECTED_POLICY, t)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 }
 
 func TestLicensePolicyMatchByExpFailureInvalidLeftExp(t *testing.T) {
 	EXP := "Foobar AND ( Apache-1.0 OR Apache-1.1 )"
 	EXPECTED_POLICY := schema.POLICY_UNDEFINED
-	ParseLicenseExpressionAndVerifyResolvedPolicy(EXP, EXPECTED_POLICY, t)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 }
 
 func TestLicensePolicyExpressionBSD3OrMIT(t *testing.T) {
 	EXP := "BSD-3-Clause OR MIT"
 	EXPECTED_POLICY := schema.POLICY_ALLOW
-	ParseLicenseExpressionAndVerifyResolvedPolicy(EXP, EXPECTED_POLICY, t)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 }
 
 func TestLicensePolicyExpressionWithConjunction(t *testing.T) {
 	EXP := "GPL-2.0 WITH Classpath-exception-2.0"
 	EXPECTED_POLICY := schema.POLICY_ALLOW
-	ParseLicenseExpressionAndVerifyResolvedPolicy(EXP, EXPECTED_POLICY, t)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 
 	EXP = "GPL-2.0 WITH OpenJDK-assembly-exception-1.0"
 	EXPECTED_POLICY = schema.POLICY_NEEDS_REVIEW
-	ParseLicenseExpressionAndVerifyResolvedPolicy(EXP, EXPECTED_POLICY, t)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 }
 
 // NOTE: we need more tests that verify support of multiple conjunctions without
 // parenthetical groups
-func TestLicensePolicyExpressionMultipleConjunctions(t *testing.T) {
+func TestLicensePolicyExpressionWithMultipleConjunctions(t *testing.T) {
 	// a AND b AND c
 
 	EXP := "BSD-3-Clause AND MIT AND EPL-2.0"
 	EXPECTED_POLICY := schema.POLICY_ALLOW
-	ParseLicenseExpressionAndVerifyResolvedPolicy(EXP, EXPECTED_POLICY, t)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 
 	EXP = "BSD-3-Clause AND MIT AND GPL-2.0"
 	EXPECTED_POLICY = schema.POLICY_DENY
-	ParseLicenseExpressionAndVerifyResolvedPolicy(EXP, EXPECTED_POLICY, t)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 
 	// a AND b OR c
 
 	EXP = "BSD-3-Clause AND MIT OR GPL-2.0"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	ParseLicenseExpressionAndVerifyResolvedPolicy(EXP, EXPECTED_POLICY, t)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 
 	EXP = "BSD-3-Clause AND CC-BY-NC-4.0 OR GPL-2.0"
 	EXPECTED_POLICY = schema.POLICY_DENY
-	ParseLicenseExpressionAndVerifyResolvedPolicy(EXP, EXPECTED_POLICY, t)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 
 	// a AND b WITH c
 
 	EXP = "BSD-3-Clause AND GPL-2.0 WITH Classpath-exception-2.0"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	ParseLicenseExpressionAndVerifyResolvedPolicy(EXP, EXPECTED_POLICY, t)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 
 	EXP = "CC-BY-NC-4.0 AND GPL-2.0 WITH Classpath-exception-2.0"
 	EXPECTED_POLICY = schema.POLICY_DENY
-	ParseLicenseExpressionAndVerifyResolvedPolicy(EXP, EXPECTED_POLICY, t)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 
 	// a OR b AND c
 
 	EXP = "BSD-3-Clause OR MIT AND GPL-2.0"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	ParseLicenseExpressionAndVerifyResolvedPolicy(EXP, EXPECTED_POLICY, t)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 
 	EXP = "CC-BY-NC-4.0 OR MIT AND GPL-2.0"
 	EXPECTED_POLICY = schema.POLICY_DENY
-	ParseLicenseExpressionAndVerifyResolvedPolicy(EXP, EXPECTED_POLICY, t)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 
 	// a OR b OR c
 
 	EXP = "BSD-3-Clause OR MIT OR GPL-2.0"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	ParseLicenseExpressionAndVerifyResolvedPolicy(EXP, EXPECTED_POLICY, t)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 
 	EXP = "CC-BY-NC-4.0 OR MIT OR GPL-2.0"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	ParseLicenseExpressionAndVerifyResolvedPolicy(EXP, EXPECTED_POLICY, t)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 
 	// a OR b WITH c
 
 	EXP = "BSD-3-Clause OR GPL-2.0 WITH Classpath-exception-2.0"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	ParseLicenseExpressionAndVerifyResolvedPolicy(EXP, EXPECTED_POLICY, t)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 
 	EXP = "CC-BY-NC-4.0 OR GPL-2.0 WITH Classpath-exception-2.0"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	ParseLicenseExpressionAndVerifyResolvedPolicy(EXP, EXPECTED_POLICY, t)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 
 	// a WITH b AND c
 
 	EXP = "GPL-2.0 WITH Classpath-exception-2.0 AND MIT"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	ParseLicenseExpressionAndVerifyResolvedPolicy(EXP, EXPECTED_POLICY, t)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 
 	EXP = "GPL-2.0 WITH Classpath-exception-2.0 AND CC-BY-NC-4.0"
 	EXPECTED_POLICY = schema.POLICY_DENY
-	ParseLicenseExpressionAndVerifyResolvedPolicy(EXP, EXPECTED_POLICY, t)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 
 	// a WITH b OR c
 
 	EXP = "GPL-2.0 WITH Classpath-exception-2.0 OR MIT"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	ParseLicenseExpressionAndVerifyResolvedPolicy(EXP, EXPECTED_POLICY, t)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 
 	EXP = "GPL-2.0 WITH Classpath-exception-2.0 OR CC-BY-NC-4.0"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	ParseLicenseExpressionAndVerifyResolvedPolicy(EXP, EXPECTED_POLICY, t)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 
 	// a WITH b WITH c
 
 	EXP = "GPL-2.0 WITH Classpath-exception-2.0 WITH OpenJDK-assembly-exception-1.0"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	ParseLicenseExpressionAndVerifyResolvedPolicy(EXP, EXPECTED_POLICY, t)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 
 	EXP = "GPL-2.0 WITH OpenJDK-assembly-exception-1.0 WITH Classpath-exception-2.0"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	ParseLicenseExpressionAndVerifyResolvedPolicy(EXP, EXPECTED_POLICY, t)
-}
-
-func ParseLicenseExpressionAndVerifyResolvedPolicy(expr string, expectedPolicy string, t *testing.T) {
-	expressionTree, err := schema.ParseExpression(LicensePolicyConfig, expr)
-
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-
-	getLogger().Tracef("Parsed expression:\n%v", expressionTree)
-	resolvedPolicy := expressionTree.CompoundUsagePolicy
-
-	if resolvedPolicy != expectedPolicy {
-		t.Errorf("FindPolicyBySpdxId(): expression: %s, returned: %v; expected: %v", expr, resolvedPolicy, expectedPolicy)
-	} else {
-		getLogger().Tracef("FindPolicyBySpdxId(): id: %s, policy: %s\n", expr, resolvedPolicy)
-	}
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 }

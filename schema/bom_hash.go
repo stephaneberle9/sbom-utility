@@ -26,7 +26,6 @@ import (
 
 	"github.com/CycloneDX/sbom-utility/common"
 	"github.com/CycloneDX/sbom-utility/utils"
-
 )
 
 // -------------------
@@ -264,8 +263,20 @@ func (bom *BOM) HashLicenseInfo(policyConfig *LicensePolicyConfig, key string, l
 		}
 		// Note: FindPolicy(), at worst, will return an empty LicensePolicy object
 		licenseInfo.License = licenseInfo.Policy.Name
-		if len(licenseInfo.Policy.Urls) > 0 {
-			licenseInfo.LicenseUrl = licenseInfo.Policy.Urls[0]
+		if LicensePolicyNotesContainValue(licenseInfo.Policy, NOTES_COMPOUND_LICENSE) {
+			// Retreive URLs of all license components
+			for i, url := range licenseInfo.Policy.Urls {
+				if i == 0 {
+					licenseInfo.LicenseUrls = url
+				} else {
+					licenseInfo.LicenseUrls += ", " + url
+				}
+			}
+		} else {
+			// Retrieve only primary license URL but not its alternatives
+			if len(licenseInfo.Policy.Urls) > 0 {
+				licenseInfo.LicenseUrls = licenseInfo.Policy.Urls[0]
+			}
 		}
 		licenseInfo.UsagePolicy = licenseInfo.Policy.UsagePolicy
 	}

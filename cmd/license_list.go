@@ -69,8 +69,8 @@ var LICENSE_SUMMARY_TITLES = []string{
 	"Component version",
 	"Component URL",
 	"License usage policy",
-	"License name",
-	"License URL",
+	"License",
+	"License URL(s)",
 }
 
 // Command help formatting
@@ -433,7 +433,7 @@ func DisplayLicenseListSummaryText(bom *schema.BOM, writer io.Writer) {
 				licenseInfo.Component.Purl,
 				licenseInfo.UsagePolicy,
 				licenseInfo.License,
-				licenseInfo.LicenseUrl,
+				licenseInfo.LicenseUrls,
 			)
 		}
 	}
@@ -497,7 +497,7 @@ func DisplayLicenseListSummaryCSV(bom *schema.BOM, writer io.Writer) (err error)
 				licenseInfo.Component.Purl,
 				licenseInfo.UsagePolicy,
 				licenseInfo.License,
-				licenseInfo.LicenseUrl,
+				licenseInfo.LicenseUrls,
 			)
 
 			if errWrite := w.Write(currentRow); errWrite != nil {
@@ -556,7 +556,7 @@ func DisplayLicenseListSummaryMarkdown(bom *schema.BOM, writer io.Writer) {
 				licenseInfo.Component.Purl,
 				licenseInfo.UsagePolicy,
 				licenseInfo.License,
-				licenseInfo.LicenseUrl,
+				licenseInfo.LicenseUrls,
 			)
 
 			lineRow = createMarkdownRow(line)
