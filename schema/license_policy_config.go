@@ -616,7 +616,17 @@ func containsFamilyName(name string, familyName string) bool {
 	// NOTE: we do not currently normalize as we assume family names
 	// are proper substring of SPDX IDs which are mixed case and
 	// should match exactly as encoded.
-	return strings.Contains(name, familyName)
+	
+	// !!!Important!!! Only match whole words in CDX License object "Name" field, 
+	// otherwise familyName = `GPL` for (license) name = `AGPL` would result in a false 
+	// positive.
+	// return strings.Contains(name, familyName)
+	for _, word := range strings.Fields(name) {
+		if word == familyName {
+			return true
+		}
+	}
+	return false
 }
 
 // Supported conjunctions and prepositions
