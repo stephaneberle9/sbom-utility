@@ -26,6 +26,10 @@ import (
 	"io/fs"
 	"log"
 	"os"
+	"os/exec"
+	"path"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/CycloneDX/sbom-utility/schema"
@@ -88,6 +92,24 @@ func NewValidateTestInfo(inputFile string, outputFormat string, schemaVariant st
 	pCommon.ResultExpectedError = expectedError
 	ti.SchemaVariant = schemaVariant
 	return ti
+}
+
+var gitRootDir string
+
+func getGitRootDir() (result string, err error) {
+	if gitRootDir == "" {
+		cmd := exec.Command("git", "rev-parse", "--show-toplevel")
+		cmd.Dir = "."
+		output, e := cmd.Output()
+		if err != nil {
+			getLogger().Tracef("unable to determine Git root directory: `%T`", err)
+			err = e
+			return
+		}
+		gitRootDir = filepath.ToSlash(filepath.Clean(strings.TrimSpace(string(output))))
+	}
+	result = gitRootDir
+	return
 }
 
 func innerTestValidate(t *testing.T, vti ValidateTestInfo) (document *schema.BOM, schemaErrors []gojsonschema.ResultError, actualError error) {
@@ -193,7 +215,12 @@ func innerValidateForcedSchema(t *testing.T, filename string, forcedSchema strin
 	getLogger().Enter()
 	defer getLogger().Exit()
 
-	utils.GlobalFlags.ValidateFlags.ForcedJsonSchemaFile = forcedSchema
+	gitRootDir, actualError := getGitRootDir()
+	if actualError != nil {
+		return
+	}
+
+	utils.GlobalFlags.ValidateFlags.ForcedJsonSchemaFile = path.Join(gitRootDir, forcedSchema)
 	// !!!Important!!! Must reset this global flag and use the default schema for subsequent tests
 	defer func() { utils.GlobalFlags.ValidateFlags.ForcedJsonSchemaFile = "" }()
 	vti := NewValidateTestInfo(filename, outputFormat, SCHEMA_VARIANT_NONE, expectedError)
