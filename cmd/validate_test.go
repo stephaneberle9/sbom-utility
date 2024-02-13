@@ -38,7 +38,9 @@ import (
 )
 
 const (
-	SCHEMA_VARIANT_NONE = ""
+	SCHEMA_VARIANT_NONE        = ""
+	SCHEMA_VARIANT_DEVELOPMENT = "development"
+	SCHEMA_VARIANT_CUSTOM      = "custom"
 )
 
 // JSON SBOM files containing syntax errors for testing
