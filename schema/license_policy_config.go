@@ -597,6 +597,17 @@ func (config *LicensePolicyConfig) FindPolicyByUrl(licenseUrl string, licensePol
 				}
 			}
 		}
+		if IsUnsecureUrl(licenseUrl) {
+			licenseUrl = ToSecureUrl(licenseUrl)
+			for _, policy := range licensePolicies {
+				for _, policyUrl := range policy.Urls {
+					if policyUrl == licenseUrl {
+						matchedPolicy = policy
+						return
+					}
+				}
+			}
+		}
 		getLogger().Tracef("No policy match found for license URL=`%s` ", licenseUrl)
 		matchedPolicy.UsagePolicy = POLICY_UNDEFINED
 	}()
@@ -780,6 +791,14 @@ func HasLogicalConjunctionOrPreposition(value string) bool {
 
 func IsUrlish(value string) bool {
 	return strings.HasPrefix(value, "http")
+}
+
+func IsUnsecureUrl(url string) bool {
+	return strings.HasPrefix(url, "http://")
+}
+
+func ToSecureUrl(url string) string {
+	return strings.ReplaceAll(url, "http://", "https://")
 }
 
 func SplitUrls(value string) (urls []string, err error) {
