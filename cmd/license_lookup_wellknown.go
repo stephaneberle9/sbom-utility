@@ -19,15 +19,15 @@
 package cmd
 
 import (
+	"strings"
+
 	"github.com/CycloneDX/sbom-utility/schema"
+
 )
 
 func LookupLicenseForWellknownComponents(cdxComponent schema.CDXComponent) (int, string) {
-	if cdxComponent.Group == "com.dslfoundry.javafx" {
-		if cdxComponent.Name == "plugin" {
-			return schema.LC_TYPE_ID, "Apache-2.0"
-		}
-	}
+
+	// JetBrains components
 	if cdxComponent.Group == "com.jetbrains.jdk" {
 		if cdxComponent.Name == "jbr_jcef" {
 			return schema.LC_TYPE_EXPRESSION, "GPL-2.0-only WITH Classpath-exception-2.0 WITH OpenJDK-assembly-exception-1.0"
@@ -35,6 +35,13 @@ func LookupLicenseForWellknownComponents(cdxComponent schema.CDXComponent) (int,
 	}
 	if cdxComponent.Group == "com.jetbrains" {
 		if cdxComponent.Name == "mps" {
+			return schema.LC_TYPE_ID, "Apache-2.0"
+		}
+	}
+
+	// mbeddr components
+	if cdxComponent.Group == "com.dslfoundry.javafx" {
+		if cdxComponent.Name == "plugin" {
 			return schema.LC_TYPE_ID, "Apache-2.0"
 		}
 	}
@@ -56,6 +63,20 @@ func LookupLicenseForWellknownComponents(cdxComponent schema.CDXComponent) (int,
 	if cdxComponent.Group == "org.graphviz" {
 		if cdxComponent.Name == "graphviz" {
 			return schema.LC_TYPE_ID, "CPL-1.0"
+		}
+	}
+
+	// Modelix components
+	if strings.HasPrefix(cdxComponent.Group, "org.modelix") {
+		return schema.LC_TYPE_ID, "Apache-2.0"
+	}
+
+	// Third-party components
+	if cdxComponent.Group == "trove" {
+		if cdxComponent.Name == "trove" {
+			if cdxComponent.Version == "1.0.2" {
+				return schema.LC_TYPE_ID, "LGPL-2.1"
+			}
 		}
 	}
 	return schema.LC_TYPE_INVALID, ""
