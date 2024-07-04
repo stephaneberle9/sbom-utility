@@ -39,19 +39,9 @@ func LookupLicenseForWellknownComponents(cdxComponent schema.CDXComponent) (int,
 		}
 	}
 
-	// mbeddr components
+	// MPS extensions components
 	if cdxComponent.Group == "com.dslfoundry.javafx" {
 		if cdxComponent.Name == "plugin" {
-			return schema.LC_TYPE_ID, "Apache-2.0"
-		}
-	}
-	if cdxComponent.Group == "com.mbeddr" {
-		if cdxComponent.Name == "platform" {
-			return schema.LC_TYPE_ID, "EPL-1.0"
-		}
-	}
-	if cdxComponent.Group == "de.itemis.mps.rapidfx" {
-		if cdxComponent.Name == "core" || cdxComponent.Name == "xdiagram" {
 			return schema.LC_TYPE_ID, "Apache-2.0"
 		}
 	}
@@ -60,18 +50,37 @@ func LookupLicenseForWellknownComponents(cdxComponent schema.CDXComponent) (int,
 			return schema.LC_TYPE_ID, "Apache-2.0"
 		}
 	}
+	
+	// Modelix components
+	if strings.HasPrefix(cdxComponent.Group, "org.modelix") {
+		return schema.LC_TYPE_ID, "Apache-2.0"
+	}
+	
+	// mbedddr components
+	if cdxComponent.Group == "com.mbeddr" {
+		if cdxComponent.Name == "platform" {
+			return schema.LC_TYPE_ID, "EPL-1.0"
+		}
+	}
+	if cdxComponent.Group == "org.mpsqa" {
+		if cdxComponent.Name == "all-in-one" {
+			return schema.LC_TYPE_ID, "Apache-2.0"
+		}
+	}
+
+	// itemis components
+	if cdxComponent.Group == "de.itemis.mps.rapidfx" {
+		if cdxComponent.Name == "core" || cdxComponent.Name == "xdiagram" {
+			return schema.LC_TYPE_ID, "Apache-2.0"
+		}
+	}
+	
+	// Third-party components
 	if cdxComponent.Group == "org.graphviz" {
 		if cdxComponent.Name == "graphviz" {
 			return schema.LC_TYPE_ID, "CPL-1.0"
 		}
 	}
-
-	// Modelix components
-	if strings.HasPrefix(cdxComponent.Group, "org.modelix") {
-		return schema.LC_TYPE_ID, "Apache-2.0"
-	}
-
-	// Third-party components
 	if cdxComponent.Group == "trove" {
 		if cdxComponent.Name == "trove" {
 			if cdxComponent.Version == "1.0.2" {
@@ -79,5 +88,6 @@ func LookupLicenseForWellknownComponents(cdxComponent schema.CDXComponent) (int,
 			}
 		}
 	}
+	
 	return schema.LC_TYPE_INVALID, ""
 }
