@@ -1,6 +1,26 @@
 {
     "policies": [
         {
+            "id": "itemis-Closed",
+            "name": "itemis Closed Source",
+            "family": "Closed",
+            "reference": "https://en.wikipedia.org/wiki/Proprietary_software",
+            "osi": false,
+            "fsf": false,
+            "usagePolicy": "allow",
+            "annotationRefs": [
+                "APPROVED"
+            ],
+            "aliases": [
+                "itemis Closed",
+                "itemis Unlicensed",
+                "itemis None"
+            ],
+            "urls": [
+                "https://www.itemis.com"
+            ]
+        },
+        {
             "id": "0BSD",
             "name": "BSD Zero Clause License",
             "family": "0BSD",
