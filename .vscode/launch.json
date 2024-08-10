@@ -6,6 +6,15 @@
     "configurations": [
         {
             "showGlobalVariables": true,
+            "name": "itemis license-scanning",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "main.go", // "program": "${file}",
+            "args": ["license", "list", "--summary", "--quiet", "--config-license", "license.json", "--input-file", "sbom.json", "--where", "bom-location=components", "--format", "csv", "--output-file", "license-scanning-report.csv"]
+        },
+        {
+            "showGlobalVariables": true,
             "name": "Query: SELECT * FROM metadata.component",
             "type": "go",
             "request": "launch",

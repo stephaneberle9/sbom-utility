@@ -13,3 +13,5 @@ cmd/__debug_bin
 # Misc
 *.gpg
 a.txt
+sbom.json
+license-scanning-report.csv
