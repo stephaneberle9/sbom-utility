@@ -59,7 +59,7 @@ func LookupLicenseForWellknownComponents(cdxComponent schema.CDXComponent) (int,
 	// mbedddr components
 	if cdxComponent.Group == "com.mbeddr" {
 		if cdxComponent.Name == "platform" {
-			return schema.LC_TYPE_ID, "EPL-1.0"
+			return schema.LC_TYPE_ID, "EPL-2.0"
 		}
 	}
 	if cdxComponent.Group == "org.mpsqa" {
