@@ -28,12 +28,11 @@ import (
 // license test helper functions
 // -------------------------------------------
 
-
 func innerTestFindLicensesInPom(t *testing.T, group string, name string, version string, expectedLicense string, expectedLicenseUrl string) {
 	var err error
 	cdxComponent := schema.CDXComponent{
-		Group: group,
-		Name: name,
+		Group:   group,
+		Name:    name,
 		Version: version,
 	}
 
@@ -62,7 +61,6 @@ func innerTestFindLicensesInPom(t *testing.T, group string, name string, version
 			expectedLicenseUrl, pomLicenses[1])
 		return
 	}
-	return
 }
 
 // ---------------------------------------
@@ -462,4 +460,3 @@ func TestFindLicensesInPom(t *testing.T) {
 	EXPECTED_LICENSE_URL = "http://www.opensource.org/licenses/mit-license.php"
 	innerTestFindLicensesInPom(t, GROUP, NAME, VERSION, EXPECTED_LICENSE, EXPECTED_LICENSE_URL)
 }
-

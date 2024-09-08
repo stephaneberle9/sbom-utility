@@ -25,9 +25,9 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
-	"regexp"
 
 	"github.com/CycloneDX/sbom-utility/schema"
 	"github.com/saintfish/chardet"
@@ -42,7 +42,7 @@ const (
 )
 
 const (
-	REGEX_MAVEN_PURL = "^pkg:maven/[\\w\\._-]+/[\\w\\._-]+@[\\w\\._-]+$"
+	REGEX_MAVEN_PURL = "^pkg:maven/[\\w\\._-]+/[\\w\\._-]+@[\\w\\._-]+\\?type=(jar|zip|pom)$"
 )
 
 // compiled regexp. to save time
@@ -64,8 +64,8 @@ func IsFullyQualifiedMavenComponent(cdxComponent schema.CDXComponent) (result bo
 		err = e
 		return
 	}
-	
-	// Check if given component's package URL starts with 'pkg:maven' and contains complete group/artifact/version information
+
+	// Check if given component's package URL starts with 'pkg:maven', contains complete group/artifact/version information, and matches one of the Maven core packaging types
 	result = regex.MatchString(cdxComponent.Purl)
 	if !result {
 		getLogger().Tracef("no fully qualified maven component: `%s`", cdxComponent.Purl)
@@ -100,39 +100,43 @@ func FindLicensesInPom(cdxComponent schema.CDXComponent) ([]string, error) {
 }
 
 func getPomFromMavenRepo(groupID, artifactID, version string) (*gopom.Project, error) {
+	// Compose Maven central URL to be reached out to
 	requestURL, err := formatMavenPomURL(groupID, artifactID, version)
 	if err != nil {
 		return nil, err
 	}
-	getLogger().Tracef("trying to fetch parent pom from Maven central %s", requestURL)
+	getLogger().Tracef("trying to fetch pom from Maven central %s", requestURL)
 
-	mavenRequest, err := http.NewRequest(http.MethodGet, requestURL, nil)
+	// Create an HTTP GET request
+	request, err := http.NewRequest(http.MethodGet, requestURL, nil)
 	if err != nil {
-		return nil, fmt.Errorf("unable to format request for Maven central: %w", err)
+		return nil, fmt.Errorf("unable to create request for Maven central: %w", err)
 	}
 
+	// Sent HTTP GET request
 	httpClient := &http.Client{
 		Timeout: time.Second * 10,
 	}
-
-	resp, err := httpClient.Do(mavenRequest)
+	response, err := httpClient.Do(request)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get pom from Maven central: %w", err)
 	}
 	defer func() {
-		if err := resp.Body.Close(); err != nil {
+		if err := response.Body.Close(); err != nil {
 			getLogger().Errorf("unable to close body: %+v", err)
 		}
 	}()
 
-	bytes, err := io.ReadAll(resp.Body)
+	// Read response body
+	responseBody, err := io.ReadAll(response.Body)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse pom from Maven central: %w", err)
+		return nil, fmt.Errorf("unable to read response data obtained from Maven central: %w", err)
 	}
 
-	pom, err := decodePomXML(strings.NewReader(string(bytes)))
+	// Parse pom
+	pom, err := decodePomXML(strings.NewReader(string(responseBody)))
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse pom from Maven central: %w", err)
+		return nil, fmt.Errorf("unable to parse pom obtained from Maven central: %w", err)
 	}
 
 	return &pom, nil

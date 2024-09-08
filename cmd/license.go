@@ -21,6 +21,7 @@ package cmd
 import (
 	"fmt"
 	"strings"
+	"regexp"
 
 	"github.com/CycloneDX/sbom-utility/common"
 	"github.com/CycloneDX/sbom-utility/schema"
@@ -40,6 +41,22 @@ const (
 	LICENSE_LIST_NOT_APPLICABLE = "N/A"
 	LICENSE_NO_ASSERTION        = "NOASSERTION"
 )
+
+const (
+	REGEX_LICENSE_EXPRESSION = "^[\\w\\.-]+( (AND|OR|WITH) [\\w\\.-]+)+$"
+)
+
+// compiled regexp. to save time
+var licenseExpressionRegexp *regexp.Regexp
+
+// "getter" for compiled regex expression
+func getRegexForLicenseExpression() (regex *regexp.Regexp, err error) {
+	if licenseExpressionRegexp == nil {
+		licenseExpressionRegexp, err = regexp.Compile(REGEX_LICENSE_EXPRESSION)
+	}
+	regex = licenseExpressionRegexp
+	return
+}
 
 func NewCommandLicense() *cobra.Command {
 	var command = new(cobra.Command)
@@ -276,14 +293,14 @@ func hashComponentLicense(bom *schema.BOM, policyConfig *schema.LicensePolicyCon
 
 	if pLicenses == nil || len(*pLicenses) == 0 {
 		// Fully qualified Maven component?
-		yes, e := IsFullyQualifiedMavenComponent(cdxComponent)
+		var yes bool
+		yes, err = IsFullyQualifiedMavenComponent(cdxComponent)
 		if err != nil {
-			err = e
 			return
 		}
 		if yes {
-			pomLicenses, err := FindLicensesInPom(cdxComponent)
-			if err == nil && len(pomLicenses) > 0 {
+			pomLicenses, e := FindLicensesInPom(cdxComponent)
+			if e == nil && len(pomLicenses) > 0 {
 				var licenseChoices []schema.CDXLicenseChoice
 				for i := 0; i < len(pomLicenses); i += 2 {
 					licenseChoices = append(licenseChoices, schema.CDXLicenseChoice{
@@ -296,6 +313,49 @@ func hashComponentLicense(bom *schema.BOM, policyConfig *schema.LicensePolicyCon
 				pLicenses = &licenseChoices
 			} else {
 				getLogger().Warningf("Unable to detect licenses for: %s", cdxComponent.Purl)
+				err = e
+			}
+		}
+
+		// Fully qualified p2 component?
+		yes, err = IsFullyQualifiedP2Component(cdxComponent)
+		if err != nil {
+			return
+		}
+		if yes {
+			fmt.Printf("Querying Eclipse license for %s:%s:%s\n", cdxComponent.Group, cdxComponent.Name, cdxComponent.Version)
+			eclipseLicense, e := QueryEclipseLicenseCheckService(cdxComponent)
+			if e == nil && len(eclipseLicense) > 0 {
+				regex, e := getRegexForLicenseExpression()
+				if e != nil {
+					getLogger().Error(fmt.Errorf("unable to invoke regex. %v", e))
+					err = e
+					return
+				}
+			
+				result := regex.MatchString(eclipseLicense)
+				if result {
+					licenseChoices := []schema.CDXLicenseChoice{
+						{
+							CDXLicenseExpression: schema.CDXLicenseExpression{
+								Expression: eclipseLicense,
+							},
+						},
+					}
+					pLicenses = &licenseChoices
+				} else {
+					licenseChoices := []schema.CDXLicenseChoice{
+						{
+							License: &schema.CDXLicense{
+								Id: eclipseLicense,
+							},
+						},
+					}
+					pLicenses = &licenseChoices
+				}
+			} else {
+				getLogger().Warningf("Unable to detect licenses for: %s", cdxComponent.Purl)
+				err = e
 			}
 		}
 	}
