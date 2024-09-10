@@ -22,7 +22,6 @@ import (
 	"strings"
 
 	"github.com/CycloneDX/sbom-utility/schema"
-
 )
 
 func LookupLicenseForWellknownComponents(cdxComponent schema.CDXComponent) (int, string) {
@@ -50,12 +49,12 @@ func LookupLicenseForWellknownComponents(cdxComponent schema.CDXComponent) (int,
 			return schema.LC_TYPE_ID, "Apache-2.0"
 		}
 	}
-	
+
 	// Modelix components
 	if strings.HasPrefix(cdxComponent.Group, "org.modelix") {
 		return schema.LC_TYPE_ID, "Apache-2.0"
 	}
-	
+
 	// mbedddr components
 	if cdxComponent.Group == "com.mbeddr" {
 		if cdxComponent.Name == "platform" {
@@ -74,7 +73,14 @@ func LookupLicenseForWellknownComponents(cdxComponent schema.CDXComponent) (int,
 			return schema.LC_TYPE_ID, "Apache-2.0"
 		}
 	}
-	
+
+	// Yakindu components
+	if cdxComponent.Group == "p2.eclipse.plugin" || cdxComponent.Group == "p2.eclipse.feature" || cdxComponent.Group == "p2.p2.installable.unit" || strings.HasPrefix(cdxComponent.Group, "com.yakindu") {
+		if strings.HasPrefix(cdxComponent.Name, "com.yakindu") || strings.HasPrefix(cdxComponent.Name, "org.yakindu") {
+			return schema.LC_TYPE_ID, "LicenseRef-itemis-Closed-2.0.2"
+		}
+	}
+
 	// Third-party components
 	if cdxComponent.Group == "org.graphviz" {
 		if cdxComponent.Name == "graphviz" {
@@ -88,6 +94,6 @@ func LookupLicenseForWellknownComponents(cdxComponent schema.CDXComponent) (int,
 			}
 		}
 	}
-	
+
 	return schema.LC_TYPE_INVALID, ""
 }
