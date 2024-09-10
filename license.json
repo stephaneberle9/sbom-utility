@@ -1,9 +1,9 @@
 {
     "policies": [
         {
-            "id": "itemis-Closed",
+            "id": "LicenseRef-itemis-Closed",
             "name": "itemis Closed Source",
-            "family": "Closed",
+            "family": "itemis-Closed",
             "reference": "https://en.wikipedia.org/wiki/Proprietary_software",
             "osi": false,
             "fsf": false,
@@ -17,6 +17,50 @@
                 "itemis None"
             ],
             "urls": [
+                "https://www.itemis.com"
+            ]
+        },
+        {
+            "id": "LicenseRef-itemis-Closed-2.0.2",
+            "name": "General Terms and Conditions of itemis AG for Software Licenses",
+            "family": "itemis-Closed",
+            "reference": "https://en.wikipedia.org/wiki/Proprietary_software",
+            "osi": false,
+            "fsf": false,
+            "usagePolicy": "allow",
+            "annotationRefs": [
+                "APPROVED"
+            ],
+            "aliases": [
+                "itemis Closed",
+                "itemis Unlicensed",
+                "itemis None"
+            ],
+            "urls": [
+                "https://legal.itemis.com/revisions/products/2.0.2/license_EN.html",
+                "https://legal.itemis.com/revisions/products/2.0.2/license_DE.html",
+                "https://www.itemis.com"
+            ]
+        },
+        {
+            "id": "LicenseRef-itemis-Closed-3.0.0",
+            "name": "General Terms and Conditions of itemis AG for Software Licenses",
+            "family": "itemis-Closed",
+            "reference": "https://en.wikipedia.org/wiki/Proprietary_software",
+            "osi": false,
+            "fsf": false,
+            "usagePolicy": "allow",
+            "annotationRefs": [
+                "APPROVED"
+            ],
+            "aliases": [
+                "itemis Closed",
+                "itemis Unlicensed",
+                "itemis None"
+            ],
+            "urls": [
+                "https://legal.itemis.com/revisions/products/3.0.0/license_EN.html",
+                "https://legal.itemis.com/revisions/products/3.0.0/license_DE.html",
                 "https://www.itemis.com"
             ]
         },
