@@ -37,7 +37,7 @@ const (
 )
 
 const (
-	REGEX_P2_PURL = "^pkg:maven/p2\\.[\\w\\._-]+/[\\w\\._-]+@[\\w\\._-]+\\?type=(eclipse-plugin|eclipse-feature|p2-installable-unit)$"
+	REGEX_P2_PURL = "^pkg:maven/p2\\.[\\w\\._-]+/[\\w\\._-]+@[\\w\\._-]+\\?(classifier=[\\w%-\\.]+&)?type=(eclipse-plugin|eclipse-feature|p2-installable-unit)$"
 )
 
 // compiled regexp. to save time
@@ -69,6 +69,8 @@ func IsFullyQualifiedP2Component(cdxComponent schema.CDXComponent) (result bool,
 }
 
 func QueryEclipseLicenseCheckService(cdxComponent schema.CDXComponent) (string, error) {
+	startTime := time.Now()
+
 	var license string
 
 	groupID := cdxComponent.Group
@@ -80,6 +82,9 @@ func QueryEclipseLicenseCheckService(cdxComponent schema.CDXComponent) (string, 
 		return "", err
 	}
 	license = parseLicensesFromEclipseLicenseData(licenseData)
+
+	elapsedTime := time.Since(startTime)
+	getLogger().Tracef("QueryEclipseLicenseCheckService() execution time: %s\n", elapsedTime)
 
 	return license, nil
 }

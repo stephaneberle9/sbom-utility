@@ -22,13 +22,37 @@ import (
 	"testing"
 
 	"github.com/CycloneDX/sbom-utility/schema"
+
 )
 
 // -------------------------------------------
 // license test helper functions
 // -------------------------------------------
 
+func innerTestIsFullyQualifiedP2Component(t *testing.T, purl string, expectedResult bool) {
+	t.Logf("PURL under test: `%s`", purl)
+
+	var err error
+	cdxComponent := schema.CDXComponent{
+		Purl:   purl,
+	}
+
+	result, err := IsFullyQualifiedP2Component(cdxComponent)
+	if err != nil {
+		t.Errorf("unable to determine if given component is a p2 component: `%v`: `%s`\n", cdxComponent, err.Error())
+		return
+	}
+
+	if result != expectedResult {
+		t.Errorf("Is p2 component: expected `%t`, actual `%t`\n",
+		expectedResult, result)
+		return
+	}
+}
+
 func innerTestQueryEclipseLicenseCheckService(t *testing.T, group string, name string, version string, expectedLicense string) {
+	t.Logf("Component under test: `%s:%s:%s`", group, name, version)
+
 	var err error
 	cdxComponent := schema.CDXComponent{
 		Group:   group,
@@ -57,6 +81,20 @@ func innerTestQueryEclipseLicenseCheckService(t *testing.T, group string, name s
 // ------------------------------------
 // P2 component license detection tests
 // ------------------------------------
+
+func TestIsFullyQualifiedP2Component(t *testing.T) {
+	PURL := "pkg:maven/p2.eclipse.plugin/org.apache.ant@1.10.12.v20211102-1452?type=eclipse-plugin"
+	innerTestIsFullyQualifiedP2Component(t, PURL, true)
+
+	PURL = "pkg:maven/p2.eclipse.plugin/org.apache.ant@1.10.12.v20211102-1452?classifier=lib%2Fant-apache-bcel.jar&type=eclipse-plugin"
+	innerTestIsFullyQualifiedP2Component(t, PURL, true)
+
+	PURL = "pkg:maven/org.apache.ant/ant@1.10.6?type=jar"
+	innerTestIsFullyQualifiedP2Component(t, PURL, false)
+
+	PURL = "pkg:maven/org.apache.ant/ant@1.10.6?classifier=lib%2Fant-apache-bcel.jar&type=jar"
+	innerTestIsFullyQualifiedP2Component(t, PURL, false)
+}
 
 func TestQueryEclipseLicenseCheckService(t *testing.T) {
 	GROUP := "p2.eclipse.plugin"

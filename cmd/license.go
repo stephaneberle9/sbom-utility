@@ -299,6 +299,7 @@ func hashComponentLicense(bom *schema.BOM, policyConfig *schema.LicensePolicyCon
 			return
 		}
 		if yes {
+			getLogger().Infof("Trying to find license for %s:%s:%s on Maven Central\n", cdxComponent.Group, cdxComponent.Name, cdxComponent.Version)
 			pomLicenses, e := FindLicensesInPom(cdxComponent)
 			if e == nil && len(pomLicenses) > 0 {
 				var licenseChoices []schema.CDXLicenseChoice
@@ -323,7 +324,7 @@ func hashComponentLicense(bom *schema.BOM, policyConfig *schema.LicensePolicyCon
 			return
 		}
 		if yes {
-			fmt.Printf("Querying Eclipse license for %s:%s:%s\n", cdxComponent.Group, cdxComponent.Name, cdxComponent.Version)
+			getLogger().Infof("Trying to find license for %s:%s:%s through Eclipse license check service\n", cdxComponent.Group, cdxComponent.Name, cdxComponent.Version)
 			eclipseLicense, e := QueryEclipseLicenseCheckService(cdxComponent)
 			if e == nil && len(eclipseLicense) > 0 {
 				regex, e := getRegexForLicenseExpression()

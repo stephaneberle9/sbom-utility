@@ -42,7 +42,7 @@ const (
 )
 
 const (
-	REGEX_MAVEN_PURL = "^pkg:maven/[\\w\\._-]+/[\\w\\._-]+@[\\w\\._-]+\\?type=(jar|zip|pom)$"
+	REGEX_MAVEN_PURL = "^pkg:maven/[\\w\\._-]+/[\\w\\._-]+@[\\w\\._-]+\\?(classifier=[\\w%-\\.]+&)?type=(jar|zip|pom)$"
 )
 
 // compiled regexp. to save time
@@ -74,6 +74,8 @@ func IsFullyQualifiedMavenComponent(cdxComponent schema.CDXComponent) (result bo
 }
 
 func FindLicensesInPom(cdxComponent schema.CDXComponent) ([]string, error) {
+	startTime := time.Now()
+
 	var licenses []string
 
 	groupID := cdxComponent.Group
@@ -95,6 +97,9 @@ func FindLicensesInPom(cdxComponent schema.CDXComponent) ([]string, error) {
 		artifactID = *pom.Parent.ArtifactID
 		version = *pom.Parent.Version
 	}
+
+	elapsedTime := time.Since(startTime)
+	getLogger().Tracef("FindLicensesInPom() execution time: %s\n", elapsedTime)
 
 	return licenses, nil
 }
