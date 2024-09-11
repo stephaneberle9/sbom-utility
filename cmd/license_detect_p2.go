@@ -25,11 +25,12 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"time"
 
 	"github.com/CycloneDX/sbom-utility/schema"
-
+	"github.com/patrickmn/go-cache"
 )
 
 const (
@@ -37,7 +38,7 @@ const (
 )
 
 const (
-	REGEX_P2_PURL = `^pkg:maven/p2\.[\w\._-]+/[\w\._-]+@[\w\._-]+\?(classifier=[\w%-\.]+&)?type=(eclipse-plugin|eclipse-feature|p2-installable-unit)$`
+	REGEX_P2_PURL                = `^pkg:maven/p2\.[\w\._-]+/[\w\._-]+@[\w\._-]+\?(classifier=[\w%-\.]+&)?type=(eclipse-plugin|eclipse-feature|p2-installable-unit)$`
 	REGEX_LICENSE_REF_EXPRESSION = `(\s+(AND|OR|WITH)\s+LicenseRef-[\w\.-]+)+`
 )
 
@@ -63,6 +64,29 @@ func getRegexForLicenseRefExpression() (regex *regexp.Regexp, err error) {
 	return
 }
 
+const (
+	P2_LICENSE_CACHE_FILENAME = ".p2-license-cache.dat"
+)
+
+var p2LicenseCache *cache.Cache
+
+func StartupP2LicenseDetector() {
+	p2LicenseCache = cache.New(cache.NoExpiration, cache.NoExpiration)
+
+	_, err := os.Stat(P2_LICENSE_CACHE_FILENAME)
+	if err == nil {
+		if err := p2LicenseCache.LoadFile(P2_LICENSE_CACHE_FILENAME); err != nil {
+			getLogger().Errorf("Failed to load cache from file: %v", err)
+		}
+	}
+}
+
+func ShutdownP2LicenseDetector() {
+	if err := p2LicenseCache.SaveFile(P2_LICENSE_CACHE_FILENAME); err != nil {
+		getLogger().Errorf("Failed to save cache to file: %v", err)
+	}
+}
+
 func IsFullyQualifiedP2Component(cdxComponent schema.CDXComponent) (result bool, err error) {
 	regex, e := getRegexForP2Purl()
 	if e != nil {
@@ -81,18 +105,25 @@ func IsFullyQualifiedP2Component(cdxComponent schema.CDXComponent) (result bool,
 
 func QueryEclipseLicenseCheckService(cdxComponent schema.CDXComponent) (string, error) {
 	startTime := time.Now()
+	defer func() {
+		elapsedTime := time.Since(startTime)
+		getLogger().Tracef("QueryEclipseLicenseCheckService() execution time: %s\n", elapsedTime)
+	}()
 
-	var license string
-
-	groupID := cdxComponent.Group
-	artifactID := cdxComponent.Name
+	group := cdxComponent.Group
+	name := cdxComponent.Name
 	version := cdxComponent.Version
 
-	licenseData, err := invokeEclipseLicenseCheckService(groupID, artifactID, version)
+	componentId := fmt.Sprintf("%s:%s:%s", group, name, version)
+	if license, found := p2LicenseCache.Get(componentId); found {
+		return license.(string), nil
+	}
+
+	licenseData, err := invokeEclipseLicenseCheckService(group, name, version)
 	if err != nil {
 		return "", err
 	}
-	license = parseLicensesFromEclipseLicenseData(licenseData)
+	license := parseLicensesFromEclipseLicenseData(licenseData)
 
 	// Ignore proprietary licenses prefixed by LicenseRef- from license expressions if any
 	regex, err := getRegexForLicenseRefExpression()
@@ -102,9 +133,7 @@ func QueryEclipseLicenseCheckService(cdxComponent schema.CDXComponent) (string, 
 	}
 	license = regex.ReplaceAllString(license, "")
 
-	elapsedTime := time.Since(startTime)
-	getLogger().Tracef("QueryEclipseLicenseCheckService() execution time: %s\n", elapsedTime)
-
+	p2LicenseCache.Set(componentId, license, cache.NoExpiration)
 	return license, nil
 }
 

@@ -15,3 +15,5 @@ cmd/__debug_bin
 a.txt
 sbom.json
 license-scanning-report.csv
+__debug_bin*
+*-license-cache.dat

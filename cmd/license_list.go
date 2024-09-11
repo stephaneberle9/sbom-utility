@@ -145,6 +145,8 @@ func checkLicenseListEmptyOrNoAssertionOnly(licenseKeys []interface{}) (empty bo
 func listCmdImpl(cmd *cobra.Command, args []string) (err error) {
 	getLogger().Enter(args)
 	defer getLogger().Exit()
+	StartupMavenLicenseDetector()
+	StartupP2LicenseDetector()
 
 	// Create output writer
 	outputFilename := utils.GlobalFlags.PersistentFlags.OutputFile
@@ -171,6 +173,8 @@ func listCmdImpl(cmd *cobra.Command, args []string) (err error) {
 		utils.GlobalFlags.PersistentFlags, utils.GlobalFlags.LicenseFlags,
 		whereFilters)
 
+	ShutdownP2LicenseDetector()
+	ShutdownMavenLicenseDetector()
 	return
 }
 

@@ -25,15 +25,16 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"strings"
 	"time"
 
 	"github.com/CycloneDX/sbom-utility/schema"
+	"github.com/patrickmn/go-cache"
 	"github.com/saintfish/chardet"
 	"github.com/vifraa/gopom"
 	"golang.org/x/net/html/charset"
-
 )
 
 const (
@@ -57,6 +58,29 @@ func getRegexForMavenPurl() (regex *regexp.Regexp, err error) {
 	return
 }
 
+const (
+	MAVEN_LICENSE_CACHE_FILENAME = ".maven-license-cache.dat"
+)
+
+var mavenLicenseCache *cache.Cache
+
+func StartupMavenLicenseDetector() {
+	mavenLicenseCache = cache.New(cache.NoExpiration, cache.NoExpiration)
+
+	_, err := os.Stat(MAVEN_LICENSE_CACHE_FILENAME)
+	if err == nil {
+		if err := mavenLicenseCache.LoadFile(MAVEN_LICENSE_CACHE_FILENAME); err != nil {
+			getLogger().Errorf("Failed to load cache from file: %v", err)
+		}
+	}
+}
+
+func ShutdownMavenLicenseDetector() {
+	if err := mavenLicenseCache.SaveFile(MAVEN_LICENSE_CACHE_FILENAME); err != nil {
+		getLogger().Errorf("Failed to save cache to file: %v", err)
+	}
+}
+
 func IsFullyQualifiedMavenComponent(cdxComponent schema.CDXComponent) (result bool, err error) {
 	regex, e := getRegexForMavenPurl()
 	if e != nil {
@@ -75,14 +99,22 @@ func IsFullyQualifiedMavenComponent(cdxComponent schema.CDXComponent) (result bo
 
 func FindLicensesInPom(cdxComponent schema.CDXComponent) ([]string, error) {
 	startTime := time.Now()
-
-	var licenses []string
+	defer func() {
+		elapsedTime := time.Since(startTime)
+		getLogger().Tracef("FindLicensesInPom() execution time: %s\n", elapsedTime)
+	}()
 
 	groupID := cdxComponent.Group
 	artifactID := cdxComponent.Name
 	version := cdxComponent.Version
 
+	componentId := fmt.Sprintf("%s:%s:%s", groupID, artifactID, version)
+	if licenses, found := mavenLicenseCache.Get(componentId); found {
+		return licenses.([]string), nil
+	}
+
 	// The given component may be nested into parent components, we'll recursively check for licenses until we reach the max depth
+	var licenses []string
 	for i := 0; i < MAX_PARENT_PACKAGE_RECURSION_DEPTH; i++ {
 		pom, err := getPomFromMavenRepo(groupID, artifactID, version)
 		if err != nil {
@@ -98,9 +130,7 @@ func FindLicensesInPom(cdxComponent schema.CDXComponent) ([]string, error) {
 		version = *pom.Parent.Version
 	}
 
-	elapsedTime := time.Since(startTime)
-	getLogger().Tracef("FindLicensesInPom() execution time: %s\n", elapsedTime)
-
+	mavenLicenseCache.Set(componentId, licenses, cache.NoExpiration)
 	return licenses, nil
 }
 
