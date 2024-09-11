@@ -43,7 +43,7 @@ const (
 )
 
 const (
-	REGEX_LICENSE_EXPRESSION = `^[\w\.-]+(\s+(AND|OR|WITH)\s+[\w\.-]+)+$`
+	REGEX_LICENSE_EXPRESSION = `\s+(AND|OR|WITH)\s+`
 )
 
 // compiled regexp. to save time
