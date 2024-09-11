@@ -151,6 +151,9 @@ func (expression *CompoundExpression) Parse(policyConfig *LicensePolicyConfig, t
 			} else {
 				// otherwise it is the "right" operand
 				expression.CompoundRight = childExpression
+				if expression.SubsequentConjunction != "" {
+					expression.CompoundName += " " + expression.SubsequentConjunction
+				}
 				expression.CompoundName += " " + LEFT_PARENS + " " + childExpression.CompoundName + " " + RIGHT_PARENS
 				expression.Urls = append(expression.Urls, childExpression.Urls...)
 				expression.RightUsagePolicy = childExpression.CompoundUsagePolicy
@@ -211,7 +214,7 @@ func (expression *CompoundExpression) Parse(policyConfig *LicensePolicyConfig, t
 					if len(expression.RightPolicy.Urls) > 0 {
 						expression.Urls = append(expression.Urls, expression.RightPolicy.Urls[0])
 					}
-					} else {
+				} else {
 					// if we have a subsequent conjunction, we must fold the expression taking into account the natural operator precedence;
 					// depending on the case, this token represents the "right" operand of either the expression itself or its right-side child expression
 					if expression.Conjunction == AND && expression.SubsequentConjunction == AND {

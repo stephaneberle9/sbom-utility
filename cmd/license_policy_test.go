@@ -28,6 +28,7 @@ import (
 	"github.com/CycloneDX/sbom-utility/log"
 	"github.com/CycloneDX/sbom-utility/schema"
 	"github.com/CycloneDX/sbom-utility/utils"
+
 )
 
 const (
@@ -711,9 +712,23 @@ func TestLicensePolicyMatchByExpFailureInvalidLeftExp(t *testing.T) {
 	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 }
 
-func TestLicensePolicyExpressionBSD3OrMIT(t *testing.T) {
+func TestLicensePolicyExpressionAndConjunction(t *testing.T) {
+	EXP := "EPL-1.0 AND CDDL-1.0"
+	EXPECTED_POLICY := schema.POLICY_ALLOW
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+}
+
+func TestLicensePolicyExpressionOrConjunction(t *testing.T) {
 	EXP := "BSD-3-Clause OR MIT"
 	EXPECTED_POLICY := schema.POLICY_ALLOW
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+
+	EXP = "LGPL-2.0-or-later OR MPL-1.1"
+	EXPECTED_POLICY = schema.POLICY_ALLOW
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+
+	EXP = "Apache-2.0 OR LGPL-2.1-or-later"
+	EXPECTED_POLICY = schema.POLICY_ALLOW
 	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 }
 
@@ -738,6 +753,10 @@ func TestLicensePolicyExpressionWithMultipleConjunctions(t *testing.T) {
 
 	EXP = "BSD-3-Clause AND MIT AND GPL-2.0"
 	EXPECTED_POLICY = schema.POLICY_DENY
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+
+	EXP = "EPL-1.0 AND Apache-2.0 AND CDDL-1.0"
+	EXPECTED_POLICY = schema.POLICY_ALLOW
 	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 
 	// a AND b OR c
@@ -790,6 +809,10 @@ func TestLicensePolicyExpressionWithMultipleConjunctions(t *testing.T) {
 	EXPECTED_POLICY = schema.POLICY_ALLOW
 	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 
+	EXP = "EPL-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0"
+	EXPECTED_POLICY = schema.POLICY_ALLOW
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+
 	// a WITH b AND c
 
 	EXP = "GPL-2.0 WITH Classpath-exception-2.0 AND MIT"
@@ -817,6 +840,16 @@ func TestLicensePolicyExpressionWithMultipleConjunctions(t *testing.T) {
 	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 
 	EXP = "GPL-2.0 WITH OpenJDK-assembly-exception-1.0 WITH Classpath-exception-2.0"
+	EXPECTED_POLICY = schema.POLICY_ALLOW
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+
+	// complex multiple conjunction expressions
+
+	EXP = "Apache-2.0 AND (Apache-2.0 AND BSD-3-Clause)"
+	EXPECTED_POLICY = schema.POLICY_ALLOW
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+
+	EXP = "Apache-2.0 AND BSD-3-Clause AND BSD-2-Clause AND MIT AND ISC AND Unicode-TOU AND (LGPL-2.1-or-later OR CC-BY-4.0)"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
 	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
 }
