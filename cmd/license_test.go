@@ -88,7 +88,7 @@ func innerTestLicenseListBuffered(t *testing.T, testInfo *LicenseTestInfo, where
 		policyConfig = new(schema.LicensePolicyConfig)
 		err = policyConfig.LoadHashPolicyConfigurationFile(testInfo.PolicyFile, "")
 		if err != nil {
-			getLogger().Warningf("unable to load policy configuration file: %v", err.Error())
+			t.Errorf("unable to load policy configuration file: %v", err.Error())
 			return
 		}
 	}
@@ -110,14 +110,14 @@ func innerTestLicenseList(t *testing.T, testInfo *LicenseTestInfo) (outputBuffer
 	// Perform the test with buffered output
 	outputBuffer, err = innerTestLicenseListBuffered(t, testInfo, whereFilters)
 	if err != nil {
-		getLogger().Tracef("%s", err)
+		t.Errorf("%s", err)
 		return
 	}
 
 	// Run all common tests against "result" values in the CommonTestInfo struct
 	err = innerRunReportResultTests(t, &testInfo.CommonTestInfo, outputBuffer, err)
 	if err != nil {
-		getLogger().Tracef("%s", err)
+		t.Errorf("%s", err)
 		return
 	}
 
@@ -132,7 +132,7 @@ func innerTestLicenseExpressionParsing(t *testing.T, expression string, expected
 		return
 	}
 
-	getLogger().Infof("expression:\n%v", parsedExpression)
+	t.Logf("parsed expression:\n%v", parsedExpression)
 	if parsedExpression.CompoundUsagePolicy != expectedPolicy {
 		t.Errorf("License Expression: expected `%s`, actual `%s`\n",
 			expectedPolicy, parsedExpression.CompoundUsagePolicy)
@@ -175,7 +175,7 @@ func innerTestLicenseInfoHashing(t *testing.T, licenseName string, licenseUrl st
 			licenseInfoKey, "schema.LicenseInfo", reflect.TypeOf(licenseInfos[0]))
 		return
 	}
-	getLogger().Infof("hashed license info:\n%v", licenseInfo)
+	t.Logf("hashed license info:\n%v", licenseInfo)
 
 	if licenseInfo.License != expectedLicense {
 		t.Errorf("License: expected `%s`, actual `%s`\n",
@@ -360,7 +360,6 @@ func TestLicenseListSummaryTextCdx13WhereLicenseTypeName(t *testing.T) {
 func TestLicenseListSummaryTextCdx14LicenseExpInName(t *testing.T) {
 	TEST_LICENSE_HUMAN_READABLE_EXPRESSION := "BSD 3-Clause \"New\" or \"Revised\" License OR MIT License"
 	TEST_LICENSE_URLS := "https://opensource.org/licenses/BSD-3-Clause, https://opensource.org/licenses/MIT"
-
 
 	lti := NewLicenseTestInfo(
 		TEST_LICENSE_LIST_CDX_1_4_LICENSE_EXPRESSION_IN_NAME,
@@ -604,34 +603,34 @@ func TestHashCDXLicense(t *testing.T) {
 	CDX_LICENSE_NAME = "http://www.opensource.org/licenses/bsd-license.php"
 	CDX_LICENSE_URL = ""
 	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
-	
+
 	CDX_LICENSE_NAME = "https://raw.githubusercontent.com/jaxen-xpath/jaxen/master/LICENSE.txt"
 	CDX_LICENSE_URL = ""
 	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
-	
+
 	//
 	// BSD-3-Clause
 	//
 	EXPECTED_LICENSE = "BSD 3-Clause \"New\" or \"Revised\" License"
 	EXPECTED_LICENSE_URLS = "https://opensource.org/licenses/BSD-3-Clause"
 	EXPECTED_USAGE_POLICY = schema.POLICY_ALLOW
-	
+
 	CDX_LICENSE_NAME = "BSD License"
 	CDX_LICENSE_URL = "http://opensource.org/licenses/BSD-3-Clause"
 	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
-	
+
 	CDX_LICENSE_NAME = "Revised BSD"
 	CDX_LICENSE_URL = "http://www.jcraft.com/jsch/LICENSE.txt"
 	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
-	
+
 	CDX_LICENSE_NAME = "BSD"
 	CDX_LICENSE_URL = "http://opensource.org/licenses/BSD-3-Clause"
 	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
-	
+
 	CDX_LICENSE_NAME = "New BSD License"
 	CDX_LICENSE_URL = "https://opensource.org/licenses/BSD-3-Clause"
 	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
-	
+
 	// License name -> BSD 3-Clause \"New\" or \"Revised\" License
 	// License URL -> BSD 2-Clause "Simplified" License URL
 	// => license name "wins"

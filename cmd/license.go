@@ -20,8 +20,8 @@ package cmd
 
 import (
 	"fmt"
-	"strings"
 	"regexp"
+	"strings"
 
 	"github.com/CycloneDX/sbom-utility/common"
 	"github.com/CycloneDX/sbom-utility/schema"
@@ -43,7 +43,7 @@ const (
 )
 
 const (
-	REGEX_LICENSE_EXPRESSION = "^[\\w\\.-]+( (AND|OR|WITH) [\\w\\.-]+)+$"
+	REGEX_LICENSE_EXPRESSION = `^[\w\.-]+(\s+(AND|OR|WITH)\s+[\w\.-]+)+$`
 )
 
 // compiled regexp. to save time
@@ -333,7 +333,7 @@ func hashComponentLicense(bom *schema.BOM, policyConfig *schema.LicensePolicyCon
 					err = e
 					return
 				}
-			
+
 				result := regex.MatchString(eclipseLicense)
 				if result {
 					licenseChoices := []schema.CDXLicenseChoice{
@@ -488,8 +488,8 @@ func hashLicenseInfoByLicenseType(bom *schema.BOM, policyConfig *schema.LicenseP
 		if err != nil {
 			baseError := NewSbomLicenseDataError()
 			baseError.AppendMessage(fmt.Sprintf(": for entity: `%s` (%s)",
-			licenseInfo.BOMRef,
-			licenseInfo.ResourceName))
+				licenseInfo.BOMRef,
+				licenseInfo.ResourceName))
 			err = baseError
 		}
 	}()
@@ -503,7 +503,7 @@ func hashLicenseInfoByLicenseType(bom *schema.BOM, policyConfig *schema.LicenseP
 			_, err = bom.HashLicenseInfo(policyConfig, pLicense.Id, licenseInfo, whereFilters)
 			return
 		}
-		
+
 		// Fix up licenses with sloppy/really weird names
 		if pLicense.Name != "" {
 			licenseInfoKey = pLicense.Name
@@ -526,10 +526,10 @@ func hashLicenseInfoByLicenseType(bom *schema.BOM, policyConfig *schema.LicenseP
 							licenseInfo.LicenseChoice.Expression += " " + schema.OR + " " + url
 						}
 					}
-				} 
+				}
 				pLicense.Name = ""
 			}
-			
+
 			// License name actually being a license expression?
 			if schema.HasLogicalConjunctionOrPreposition(pLicense.Name) {
 				// Flip license into license expression
@@ -539,12 +539,12 @@ func hashLicenseInfoByLicenseType(bom *schema.BOM, policyConfig *schema.LicenseP
 		} else {
 			licenseInfoKey = pLicense.Url
 		}
-		
+
 		if pLicense.Name != "" {
 			licenseInfo.LicenseChoiceTypeValue = schema.LC_TYPE_NAME
 			_, err = bom.HashLicenseInfo(policyConfig, licenseInfoKey, licenseInfo, whereFilters)
 			return
-		} 
+		}
 		if pLicense.Url != "" {
 			licenseInfo.LicenseChoiceTypeValue = schema.LC_TYPE_NAME
 			_, err = bom.HashLicenseInfo(policyConfig, licenseInfoKey, licenseInfo, whereFilters)

@@ -42,7 +42,7 @@ const (
 )
 
 const (
-	REGEX_MAVEN_PURL = "^pkg:maven/[\\w\\._-]+/[\\w\\._-]+@[\\w\\._-]+\\?(classifier=[\\w%-\\.]+&)?type=(jar|zip|pom)$"
+	REGEX_MAVEN_PURL = `^pkg:maven/[\w\._-]+/[\w\._-]+@[\w\._-]+\?(classifier=[\w%-\.]+&)?type=(jar|zip|pom)$`
 )
 
 // compiled regexp. to save time

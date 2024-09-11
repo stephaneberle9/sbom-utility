@@ -69,7 +69,7 @@ func innerTestQueryEclipseLicenseCheckService(t *testing.T, group string, name s
 		t.Errorf("no license found for component `%v`\n", cdxComponent)
 		return
 	}
-	getLogger().Infof("license: `%s`", license)
+	t.Logf("license: `%s`", license)
 
 	if license != expectedLicense {
 		t.Errorf("License: expected `%s`, actual `%s`\n",
@@ -121,10 +121,28 @@ func TestQueryEclipseLicenseCheckService(t *testing.T) {
 	EXPECTED_LICENSE = "EPL-2.0"
 	innerTestQueryEclipseLicenseCheckService(t, GROUP, NAME, VERSION, EXPECTED_LICENSE)
 
-	GROUP = "p2.eclipse.feature"
-	NAME = "org.eclipse.jdt"
-	VERSION = "3.18.1100.v20220308-0310"
-	EXPECTED_LICENSE = "EPL-2.0"
+	GROUP = "p2.eclipse.plugin"
+	NAME = "org.apache.ant"
+	VERSION = "1.10.12.v20211102-1452"
+	EXPECTED_LICENSE = "Apache-2.0 AND EPL-2.0 AND W3C"
+	innerTestQueryEclipseLicenseCheckService(t, GROUP, NAME, VERSION, EXPECTED_LICENSE)
+
+	GROUP = "p2.eclipse.plugin"
+	NAME = "org.apache.ant"
+	VERSION = "1.10.12"
+	EXPECTED_LICENSE = "Apache-2.0 AND EPL-2.0 AND W3C"
+	innerTestQueryEclipseLicenseCheckService(t, GROUP, NAME, VERSION, EXPECTED_LICENSE)
+
+	GROUP = "p2.eclipse.plugin"
+	NAME = "com.google.guava"
+	VERSION = "30.1.0.v20210127-2300"
+	EXPECTED_LICENSE = "Apache-2.0"
+	innerTestQueryEclipseLicenseCheckService(t, GROUP, NAME, VERSION, EXPECTED_LICENSE)
+
+	GROUP = "p2.eclipse.plugin"
+	NAME = "com.google.guava"
+	VERSION = "30.1.0"
+	EXPECTED_LICENSE = "Apache-2.0"
 	innerTestQueryEclipseLicenseCheckService(t, GROUP, NAME, VERSION, EXPECTED_LICENSE)
 
 	GROUP = "p2.eclipse.feature"

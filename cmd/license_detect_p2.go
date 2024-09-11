@@ -37,11 +37,13 @@ const (
 )
 
 const (
-	REGEX_P2_PURL = "^pkg:maven/p2\\.[\\w\\._-]+/[\\w\\._-]+@[\\w\\._-]+\\?(classifier=[\\w%-\\.]+&)?type=(eclipse-plugin|eclipse-feature|p2-installable-unit)$"
+	REGEX_P2_PURL = `^pkg:maven/p2\.[\w\._-]+/[\w\._-]+@[\w\._-]+\?(classifier=[\w%-\.]+&)?type=(eclipse-plugin|eclipse-feature|p2-installable-unit)$`
+	REGEX_LICENSE_REF_EXPRESSION = `(\s+(AND|OR|WITH)\s+LicenseRef-[\w\.-]+)+`
 )
 
 // compiled regexp. to save time
 var p2PurlRegexp *regexp.Regexp
+var licenseRefExpressionRegexp *regexp.Regexp
 
 // "getter" for compiled regex expression
 func getRegexForP2Purl() (regex *regexp.Regexp, err error) {
@@ -49,6 +51,15 @@ func getRegexForP2Purl() (regex *regexp.Regexp, err error) {
 		p2PurlRegexp, err = regexp.Compile(REGEX_P2_PURL)
 	}
 	regex = p2PurlRegexp
+	return
+}
+
+// "getter" for compiled regex expression
+func getRegexForLicenseRefExpression() (regex *regexp.Regexp, err error) {
+	if licenseRefExpressionRegexp == nil {
+		licenseRefExpressionRegexp, err = regexp.Compile(REGEX_LICENSE_REF_EXPRESSION)
+	}
+	regex = licenseRefExpressionRegexp
 	return
 }
 
@@ -82,6 +93,14 @@ func QueryEclipseLicenseCheckService(cdxComponent schema.CDXComponent) (string, 
 		return "", err
 	}
 	license = parseLicensesFromEclipseLicenseData(licenseData)
+
+	// Ignore proprietary licenses prefixed by LicenseRef- from license expressions if any
+	regex, err := getRegexForLicenseRefExpression()
+	if err != nil {
+		getLogger().Error(fmt.Errorf("unable to invoke regex. %v", err))
+		return "", err
+	}
+	license = regex.ReplaceAllString(license, "")
 
 	elapsedTime := time.Since(startTime)
 	getLogger().Tracef("QueryEclipseLicenseCheckService() execution time: %s\n", elapsedTime)

@@ -50,20 +50,6 @@ func innerTestIsFullyQualifiedMavenComponent(t *testing.T, purl string, expected
 	}
 }
 
-func TestIsFullyQualifiedMavenComponent(t *testing.T) {
-	PURL := "pkg:maven/org.apache.ant/ant@1.10.6?type=jar"
-	innerTestIsFullyQualifiedMavenComponent(t, PURL, true)
-	
-	PURL = "pkg:maven/org.apache.ant/ant@1.10.6?classifier=lib%2Fant-apache-bcel.jar&type=jar"
-	innerTestIsFullyQualifiedMavenComponent(t, PURL, true)
-
-	PURL = "pkg:maven/p2.eclipse.plugin/org.apache.ant@1.10.12.v20211102-1452?type=eclipse-plugin"
-	innerTestIsFullyQualifiedMavenComponent(t, PURL, false)
-
-	PURL = "pkg:maven/p2.eclipse.plugin/org.apache.ant@1.10.12.v20211102-1452?classifier=lib%2Fant-apache-bcel.jar&type=eclipse-plugin"
-	innerTestIsFullyQualifiedMavenComponent(t, PURL, false)
-}
-
 func innerTestFindLicensesInPom(t *testing.T, group string, name string, version string, expectedLicense string, expectedLicenseUrl string) {
 	t.Logf("Component under test: `%s:%s:%s`", group, name, version)
 
@@ -87,7 +73,7 @@ func innerTestFindLicensesInPom(t *testing.T, group string, name string, version
 		t.Errorf("multiple licenses found in POM of component `%v`\n", cdxComponent)
 		return
 	}
-	getLogger().Infof("pomLicenses[0]: `%s`, pomLicenses[1]: `%s`", pomLicenses[0], pomLicenses[1])
+	t.Logf("pomLicenses[0]: `%s`, pomLicenses[1]: `%s`", pomLicenses[0], pomLicenses[1])
 
 	if pomLicenses[0] != expectedLicense {
 		t.Errorf("License: expected `%s`, actual `%s`\n",
@@ -104,6 +90,20 @@ func innerTestFindLicensesInPom(t *testing.T, group string, name string, version
 // ---------------------------------------
 // Maven component license detection tests
 // ---------------------------------------
+
+func TestIsFullyQualifiedMavenComponent(t *testing.T) {
+	PURL := "pkg:maven/org.apache.ant/ant@1.10.6?type=jar"
+	innerTestIsFullyQualifiedMavenComponent(t, PURL, true)
+	
+	PURL = "pkg:maven/org.apache.ant/ant@1.10.6?classifier=lib%2Fant-apache-bcel.jar&type=jar"
+	innerTestIsFullyQualifiedMavenComponent(t, PURL, true)
+
+	PURL = "pkg:maven/p2.eclipse.plugin/org.apache.ant@1.10.12.v20211102-1452?type=eclipse-plugin"
+	innerTestIsFullyQualifiedMavenComponent(t, PURL, false)
+
+	PURL = "pkg:maven/p2.eclipse.plugin/org.apache.ant@1.10.12.v20211102-1452?classifier=lib%2Fant-apache-bcel.jar&type=eclipse-plugin"
+	innerTestIsFullyQualifiedMavenComponent(t, PURL, false)
+}
 
 func TestFindLicensesInPom(t *testing.T) {
 	GROUP := "ch.qos.reload4j"

@@ -30,6 +30,7 @@ import (
 
 	"github.com/CycloneDX/sbom-utility/utils"
 	"github.com/jwangsadinata/go-multimap/slicemultimap"
+
 )
 
 // Candidate BOM document (context) information
@@ -84,8 +85,8 @@ const (
 var spdxIdRegexp *regexp.Regexp
 
 const (
-	REGEX_LICENSE_VERSION_SUFFIX = "([-,\\s]*)?((Version|v)\\s*)?\\d{1,2}\\.\\d{1,2}"
-	REGEX_LIST_SEPARATOR         = ",?\\s"
+	REGEX_LICENSE_VERSION_SUFFIX = `([-,\s]*)?((Version|v)\s*)?\d{1,2}\.\d{1,2}`
+	REGEX_LIST_SEPARATOR         = `,?\s`
 )
 
 var licenseVersionSuffixRegexp *regexp.Regexp
