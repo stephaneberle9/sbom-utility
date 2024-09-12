@@ -6,6 +6,7 @@ sbom-utility*
 # IDEs (e.g., VSCode)
 *.code-workspace
 .vscode/*.log
+.vscode/easycode.ignore
 cmd/__debug_bin
 */__debug_bin
 .metals/*
@@ -13,7 +14,7 @@ cmd/__debug_bin
 # Misc
 *.gpg
 a.txt
-sbom.json
+sbom*.json
 license-scanning-report.csv
 __debug_bin*
 *-license-cache.dat
