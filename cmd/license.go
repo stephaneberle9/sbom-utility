@@ -314,7 +314,6 @@ func hashComponentLicense(bom *schema.BOM, policyConfig *schema.LicensePolicyCon
 				pLicenses = &licenseChoices
 			} else {
 				getLogger().Warningf("Unable to detect licenses for: %s", cdxComponent.Purl)
-				err = e
 			}
 		}
 
@@ -356,7 +355,6 @@ func hashComponentLicense(bom *schema.BOM, policyConfig *schema.LicensePolicyCon
 				}
 			} else {
 				getLogger().Warningf("Unable to detect licenses for: %s", cdxComponent.Purl)
-				err = e
 			}
 		}
 	}

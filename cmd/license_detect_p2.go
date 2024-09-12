@@ -31,6 +31,7 @@ import (
 
 	"github.com/CycloneDX/sbom-utility/schema"
 	"github.com/patrickmn/go-cache"
+
 )
 
 const (
@@ -133,7 +134,10 @@ func QueryEclipseLicenseCheckService(cdxComponent schema.CDXComponent) (string, 
 	}
 	license = regex.ReplaceAllString(license, "")
 
-	p2LicenseCache.Set(componentId, license, cache.NoExpiration)
+	// Only cache actually found licenses to make sure that missing licenses can be searched for later on again
+	if len(license) > 0 {
+		p2LicenseCache.Set(componentId, license, cache.NoExpiration)
+	}
 	return license, nil
 }
 

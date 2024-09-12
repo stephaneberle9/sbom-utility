@@ -35,6 +35,7 @@ import (
 	"github.com/saintfish/chardet"
 	"github.com/vifraa/gopom"
 	"golang.org/x/net/html/charset"
+
 )
 
 const (
@@ -130,7 +131,10 @@ func FindLicensesInPom(cdxComponent schema.CDXComponent) ([]string, error) {
 		version = *pom.Parent.Version
 	}
 
-	mavenLicenseCache.Set(componentId, licenses, cache.NoExpiration)
+	// Only cache actually found licenses to make sure that missing licenses can be searched for later on again
+	if len(licenses) > 0 {
+		mavenLicenseCache.Set(componentId, licenses, cache.NoExpiration)
+	}
 	return licenses, nil
 }
 
@@ -153,7 +157,7 @@ func getPomFromMavenRepo(groupID, artifactID, version string) (*gopom.Project, e
 		Timeout: time.Second * 10,
 	}
 	response, err := httpClient.Do(request)
-	if err != nil {
+	if err != nil || response.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("unable to get pom from Maven central: %w", err)
 	}
 	defer func() {
