@@ -92,7 +92,10 @@ func innerTestFindLicensesInPom(t *testing.T, group string, name string, version
 // ---------------------------------------
 
 func TestIsFullyQualifiedMavenComponent(t *testing.T) {
-	PURL := "pkg:maven/org.apache.ant/ant@1.10.6?type=jar"
+	PURL := "pkg:maven/ch.qos.reload4j/reload4j@1.2.22"
+	innerTestIsFullyQualifiedMavenComponent(t, PURL, true)
+	
+	PURL = "pkg:maven/org.apache.ant/ant@1.10.6?type=jar"
 	innerTestIsFullyQualifiedMavenComponent(t, PURL, true)
 	
 	PURL = "pkg:maven/org.apache.ant/ant@1.10.6?classifier=lib%2Fant-apache-bcel.jar&type=jar"
