@@ -714,8 +714,6 @@ func containsFamilyName(name string, familyName string) bool {
 		return familyName == "Apache"
 	} else if strings.HasPrefix(name, "CDDL+GPL") {
 		return familyName == "CDDL"
-	} else if name == "Public Domain" {
-		return familyName == "CC-PDDC"
 	}
 
 	// NOTE: we do not currently normalize as we assume family names

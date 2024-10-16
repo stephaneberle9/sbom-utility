@@ -1006,7 +1006,8 @@
                 "APPROVED"
             ],
             "urls": [
-                "https://creativecommons.org/publicdomain/zero/1.0/legalcode"
+                "https://creativecommons.org/publicdomain/zero/1.0/legalcode",
+                "https://github.com/stleary/JSON-java/blob/master/LICENSE"
             ]
         },
         {
