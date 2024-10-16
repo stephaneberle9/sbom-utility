@@ -15,6 +15,6 @@ cmd/__debug_bin
 *.gpg
 a.txt
 sbom*.json
-license-scanning-report.csv
+license-scanning-report*.csv
 __debug_bin*
 *-license-cache.dat

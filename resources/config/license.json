@@ -2534,9 +2534,9 @@
             "osi": true,
             "fsf": false,
             "deprecated": true,
-            "usagePolicy": "needs-review",
+            "usagePolicy": "allow",
             "annotationRefs": [
-                "NEEDS-APPROVAL",
+                "APPROVED",
                 "LGPL-LINK-WARNING"
             ],
             "urls": [
@@ -2551,9 +2551,9 @@
             "reference": "https://spdx.org/licenses/LGPL-2.0-only.html",
             "osi": true,
             "fsf": false,
-            "usagePolicy": "needs-review",
+            "usagePolicy": "allow",
             "annotationRefs": [
-                "NEEDS-APPROVAL",
+                "APPROVED",
                 "LGPL-LINK-WARNING"
             ],
             "urls": [
@@ -2568,9 +2568,9 @@
             "reference": "https://spdx.org/licenses/LGPL-2.0-or-later.html",
             "osi": true,
             "fsf": false,
-            "usagePolicy": "needs-review",
+            "usagePolicy": "allow",
             "annotationRefs": [
-                "NEEDS-APPROVAL",
+                "APPROVED",
                 "LGPL-LINK-WARNING"
             ],
             "urls": [
@@ -2586,9 +2586,9 @@
             "osi": true,
             "fsf": true,
             "deprecated": true,
-            "usagePolicy": "needs-review",
+            "usagePolicy": "allow",
             "annotationRefs": [
-                "NEEDS-APPROVAL",
+                "APPROVED",
                 "LGPL-LINK-WARNING"
             ],
             "urls": [
@@ -2604,9 +2604,9 @@
             "reference": "https://spdx.org/licenses/LGPL-2.1-only.html",
             "osi": true,
             "fsf": true,
-            "usagePolicy": "needs-review",
+            "usagePolicy": "allow",
             "annotationRefs": [
-                "NEEDS-APPROVAL",
+                "APPROVED",
                 "LGPL-LINK-WARNING"
             ],
             "urls": [
@@ -2624,9 +2624,9 @@
             "reference": "https://spdx.org/licenses/LGPL-2.1-or-later.html",
             "osi": true,
             "fsf": true,
-            "usagePolicy": "needs-review",
+            "usagePolicy": "allow",
             "annotationRefs": [
-                "NEEDS-APPROVAL",
+                "APPROVED",
                 "LGPL-LINK-WARNING"
             ],
             "urls": [
@@ -2643,9 +2643,9 @@
             "osi": true,
             "fsf": true,
             "deprecated": true,
-            "usagePolicy": "needs-review",
+            "usagePolicy": "allow",
             "annotationRefs": [
-                "NEEDS-APPROVAL",
+                "APPROVED",
                 "LGPL-LINK-WARNING"
             ],
             "urls": [
@@ -2661,9 +2661,9 @@
             "reference": "https://spdx.org/licenses/LGPL-3.0-only.html",
             "osi": true,
             "fsf": true,
-            "usagePolicy": "needs-review",
+            "usagePolicy": "allow",
             "annotationRefs": [
-                "NEEDS-APPROVAL",
+                "APPROVED",
                 "LGPL-LINK-WARNING"
             ],
             "urls": [
@@ -2679,9 +2679,9 @@
             "reference": "https://spdx.org/licenses/LGPL-3.0-or-later.html",
             "osi": true,
             "fsf": true,
-            "usagePolicy": "needs-review",
+            "usagePolicy": "allow",
             "annotationRefs": [
-                "NEEDS-APPROVAL",
+                "APPROVED",
                 "LGPL-LINK-WARNING"
             ],
             "urls": [
