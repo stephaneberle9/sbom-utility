@@ -360,24 +360,51 @@ func hashComponentLicense(bom *schema.BOM, policyConfig *schema.LicensePolicyCon
 	}
 
 	if pLicenses != nil && len(*pLicenses) > 0 {
-		for _, licenseChoice := range *pLicenses {
-			getLogger().Debugf("licenseChoice: %s", getLogger().FormatStruct(licenseChoice))
-			getLogger().Tracef("hashing license for component=`%s`", cdxComponent.Name)
-
-			licenseInfo.LicenseChoice = licenseChoice
-			licenseInfo.Component = cdxComponent
-			licenseInfo.BOMLocationValue = location
-			licenseInfo.ResourceName = cdxComponent.Name
-			if cdxComponent.BOMRef != nil {
-				licenseInfo.BOMRef = *cdxComponent.BOMRef
+		if (len(*pLicenses) > 1) {
+			// Convert multiple licenses into a single license expression using the OR operator
+			// (see https://maven.apache.org/ref/3-LATEST/maven-model/maven.html > licenses/license for justification)
+			var licenseExpressionParts []string
+			for _, licenseChoice := range *pLicenses {
+				if licenseChoice.License != nil {
+					if licenseChoice.License.Id != "" {
+						licenseExpressionParts = append(licenseExpressionParts, licenseChoice.License.Id)
+					} else if licenseChoice.License.Url != "" {
+						licenseExpressionParts = append(licenseExpressionParts, licenseChoice.License.Url)
+					} else if licenseChoice.License.Name != "" {
+						licenseExpressionParts = append(licenseExpressionParts, licenseChoice.License.Name)
+					} else {
+						getLogger().Errorf("Unable to include license w/o license id and URL in license expression for component with multiple licenses: %v", licenseInfo)
+					}
+				} else if licenseChoice.CDXLicenseExpression.Expression != "" {
+					licenseExpressionParts = append(licenseExpressionParts, schema.LEFT_PARENS + " " + licenseChoice.CDXLicenseExpression.Expression + " " + schema.RIGHT_PARENS)
+				} else {
+					getLogger().Errorf("Unable to include empty license in license expression for component with multiple licenses: %v", licenseInfo)
+				}
 			}
-			err = hashLicenseInfoByLicenseType(bom, policyConfig, licenseInfo, whereFilters)
-
-			if err != nil {
-				// Show intent to not check for error returns as there no intent to recover
-				_ = getLogger().Errorf("Unable to hash empty license: %v", licenseInfo)
-				return
+			licenseInfo.LicenseChoice = schema.CDXLicenseChoice{
+				CDXLicenseExpression: schema.CDXLicenseExpression{
+					Expression: strings.Join(licenseExpressionParts, " " + schema.OR + " "),
+				},
 			}
+		} else {
+			licenseInfo.LicenseChoice = (*pLicenses)[0]
+		}
+
+		getLogger().Debugf("licenseChoice: %s", getLogger().FormatStruct(licenseInfo.LicenseChoice))
+		getLogger().Tracef("hashing license for component=`%s`", cdxComponent.Name)
+
+		licenseInfo.Component = cdxComponent
+		licenseInfo.BOMLocationValue = location
+		licenseInfo.ResourceName = cdxComponent.Name
+		if cdxComponent.BOMRef != nil {
+			licenseInfo.BOMRef = *cdxComponent.BOMRef
+		}
+
+		err = hashLicenseInfoByLicenseType(bom, policyConfig, licenseInfo, whereFilters)
+		if err != nil {
+			// Show intent to not check for error returns as there no intent to recover
+			getLogger().Errorf("Unable to hash empty license: %v", licenseInfo)
+			return
 		}
 	} else {
 		// Account for component with no license with an "UNDEFINED" entry
@@ -388,6 +415,7 @@ func hashComponentLicense(bom *schema.BOM, policyConfig *schema.LicensePolicyCon
 		if cdxComponent.BOMRef != nil {
 			licenseInfo.BOMRef = *cdxComponent.BOMRef
 		}
+
 		_, err = bom.HashLicenseInfo(policyConfig, LICENSE_NO_ASSERTION, licenseInfo, whereFilters)
 
 		getLogger().Warningf("%s: %s (name:`%s`, version: `%s`, package-url: `%s`)",

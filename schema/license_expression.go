@@ -90,15 +90,32 @@ func tokenizeExpression(expression string) (tokens []string) {
 	return
 }
 
-func findPolicy(policyConfig *LicensePolicyConfig, token string) (usagePolicy string, matchedPolicy LicensePolicy, err error) {
+func findPolicy(policyConfig *LicensePolicyConfig, token string) (matchedUsagePolicy string, matchedPolicy LicensePolicy, err error) {
 	if IsUrlish(token) {
 		matchedPolicy = policyConfig.FindPolicyByUrl(token, policyConfig.PolicyList)
-		usagePolicy = matchedPolicy.UsagePolicy
-	} else {
-		matchedPolicy, err = policyConfig.FindPolicyBySpdxId(token)
-		usagePolicy = matchedPolicy.UsagePolicy
+		matchedUsagePolicy = matchedPolicy.UsagePolicy
+		return
 	}
+
+	matchedPolicy, err = policyConfig.FindPolicyBySpdxId(token)
+	if err != nil {
+		return
+	}
+	if matchedPolicy.UsagePolicy != POLICY_UNDEFINED {
+		matchedUsagePolicy = matchedPolicy.UsagePolicy
+		return
+	}
+	
+	matchedPolicy = policyConfig.FindPolicyByName(token, policyConfig.PolicyList)
+	matchedUsagePolicy = matchedPolicy.UsagePolicy
 	return
+}
+
+func renderPolicyName(policy LicensePolicy) string {
+	if policy.UsagePolicy == POLICY_UNDEFINED {
+		return NAME_NO_ASSERTION
+	}
+	return policy.Name
 }
 
 func ParseExpression(policyConfig *LicensePolicyConfig, rawExpression string) (expression *CompoundExpression, err error) {
@@ -136,12 +153,12 @@ func (expression *CompoundExpression) Parse(policyConfig *LicensePolicyConfig, t
 		case LEFT_PARENS:
 			getLogger().Debugf("[%v] LEFT_PARENS: `%v`", index, token)
 			childExpression := NewCompoundExpression()
-			
+
 			index, err = childExpression.Parse(policyConfig, tokens, index+1)
 			if err != nil {
 				return
 			}
-			
+
 			// if we have no conjunction, this token represents the "left" operand
 			if expression.Conjunction == "" {
 				expression.CompoundLeft = childExpression
@@ -197,7 +214,7 @@ func (expression *CompoundExpression) Parse(policyConfig *LicensePolicyConfig, t
 				if err != nil {
 					return
 				}
-				expression.CompoundName = expression.LeftPolicy.Name
+				expression.CompoundName = renderPolicyName(expression.LeftPolicy)
 				if len(expression.LeftPolicy.Urls) > 0 {
 					expression.Urls = append(expression.Urls, expression.LeftPolicy.Urls[0])
 				}
@@ -210,7 +227,7 @@ func (expression *CompoundExpression) Parse(policyConfig *LicensePolicyConfig, t
 					if err != nil {
 						return
 					}
-					expression.CompoundName += " " + expression.RightPolicy.Name
+					expression.CompoundName += " " + renderPolicyName(expression.RightPolicy)
 					if len(expression.RightPolicy.Urls) > 0 {
 						expression.Urls = append(expression.Urls, expression.RightPolicy.Urls[0])
 					}
@@ -276,7 +293,7 @@ func (expression *CompoundExpression) FoldLeftAndAppendRight(policyConfig *Licen
 		return
 	}
 
-	expression.CompoundName += " " + expression.SubsequentConjunction + " " + expression.RightPolicy.Name
+	expression.CompoundName += " " + expression.SubsequentConjunction + " " + renderPolicyName(expression.RightPolicy)
 	expression.SubsequentConjunction = ""
 	if len(expression.RightPolicy.Urls) > 0 {
 		expression.Urls = append(expression.Urls, expression.RightPolicy.Urls[0])
@@ -305,12 +322,12 @@ func (expression *CompoundExpression) FoldAndAppendRight(policyConfig *LicensePo
 		childExpression.CompoundName = expression.CompoundRight.CompoundName
 		childExpression.Urls = append(childExpression.Urls, expression.CompoundRight.Urls...)
 	} else {
-		childExpression.CompoundName = expression.RightPolicy.Name
+		childExpression.CompoundName = renderPolicyName(expression.RightPolicy)
 		if len(expression.RightPolicy.Urls) > 0 {
 			childExpression.Urls = append(expression.Urls, expression.RightPolicy.Urls[0])
 		}
 	}
-	childExpression.CompoundName = " " + expression.SubsequentConjunction + " " + childExpression.RightPolicy.Name
+	childExpression.CompoundName = " " + expression.SubsequentConjunction + " " + renderPolicyName(childExpression.RightPolicy)
 	if len(childExpression.RightPolicy.Urls) > 0 {
 		childExpression.Urls = append(expression.Urls, childExpression.RightPolicy.Urls[0])
 	}
@@ -324,7 +341,7 @@ func (expression *CompoundExpression) FoldAndAppendRight(policyConfig *LicensePo
 	expression.CompoundRight = childExpression
 	expression.RightUsagePolicy = childExpression.CompoundUsagePolicy
 
-	expression.CompoundName += " " + expression.SubsequentConjunction + " " + childExpression.RightPolicy.Name
+	expression.CompoundName += " " + expression.SubsequentConjunction + " " + renderPolicyName(childExpression.RightPolicy)
 	expression.SubsequentConjunction = ""
 	if len(childExpression.RightPolicy.Urls) > 0 {
 		expression.Urls = append(expression.Urls, childExpression.RightPolicy.Urls[0])

@@ -94,6 +94,9 @@ func TestIsFullyQualifiedP2Component(t *testing.T) {
 
 	PURL = "pkg:maven/org.apache.ant/ant@1.10.6?classifier=lib%2Fant-apache-bcel.jar&type=jar"
 	innerTestIsFullyQualifiedP2Component(t, PURL, false)
+
+	PURL = "pkg:maven/org.eclipse.jetty/jetty-io@12.0.12?type=jar"
+	innerTestIsFullyQualifiedP2Component(t, PURL, false)
 }
 
 func TestQueryEclipseLicenseCheckService(t *testing.T) {

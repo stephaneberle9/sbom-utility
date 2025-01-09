@@ -110,8 +110,10 @@ func FindLicensesInPom(cdxComponent schema.CDXComponent) ([]string, error) {
 	version := cdxComponent.Version
 
 	componentId := fmt.Sprintf("%s:%s:%s", groupID, artifactID, version)
-	if licenses, found := mavenLicenseCache.Get(componentId); found {
-		return licenses.([]string), nil
+	if mavenLicenseCache != nil {
+		if licenses, found := mavenLicenseCache.Get(componentId); found {
+			return licenses.([]string), nil
+		}
 	}
 
 	// The given component may be nested into parent components, we'll recursively check for licenses until we reach the max depth
@@ -133,7 +135,9 @@ func FindLicensesInPom(cdxComponent schema.CDXComponent) ([]string, error) {
 
 	// Only cache actually found licenses to make sure that missing licenses can be searched for later on again
 	if len(licenses) > 0 {
-		mavenLicenseCache.Set(componentId, licenses, cache.NoExpiration)
+		if mavenLicenseCache != nil {
+			mavenLicenseCache.Set(componentId, licenses, cache.NoExpiration)
+		}
 	}
 	return licenses, nil
 }

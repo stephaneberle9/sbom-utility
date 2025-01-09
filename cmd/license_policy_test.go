@@ -146,7 +146,7 @@ func TestLicensePolicyUsageConjunctionsANDCombinations(t *testing.T) {
 	// Set the policy file to the reduced, 3-entry policy file used to test the 3 policy states
 	testPolicyConfig, err := LoadCustomPolicyFile(POLICY_FILE_GOOD_BAD_MAYBE)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("%s", err.Error())
 	}
 
 	// 1. schema.POLICY_DENY AND schema.POLICY_ALLOW
@@ -154,7 +154,7 @@ func TestLicensePolicyUsageConjunctionsANDCombinations(t *testing.T) {
 	EXPECTED_USAGE_POLICY := schema.POLICY_DENY
 	parsedExpression, err := schema.ParseExpression(testPolicyConfig, EXP)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("%s", err.Error())
 	}
 	resolvedPolicy := parsedExpression.CompoundUsagePolicy
 	if resolvedPolicy != EXPECTED_USAGE_POLICY {
@@ -166,7 +166,7 @@ func TestLicensePolicyUsageConjunctionsANDCombinations(t *testing.T) {
 	EXPECTED_USAGE_POLICY = schema.POLICY_DENY
 	parsedExpression, err = schema.ParseExpression(testPolicyConfig, EXP)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("%s", err.Error())
 	}
 	resolvedPolicy = parsedExpression.CompoundUsagePolicy
 	if resolvedPolicy != EXPECTED_USAGE_POLICY {
@@ -178,7 +178,7 @@ func TestLicensePolicyUsageConjunctionsANDCombinations(t *testing.T) {
 	EXPECTED_USAGE_POLICY = schema.POLICY_DENY
 	parsedExpression, err = schema.ParseExpression(testPolicyConfig, EXP)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("%s", err.Error())
 	}
 	resolvedPolicy = parsedExpression.CompoundUsagePolicy
 	if resolvedPolicy != EXPECTED_USAGE_POLICY {
@@ -190,7 +190,7 @@ func TestLicensePolicyUsageConjunctionsANDCombinations(t *testing.T) {
 	EXPECTED_USAGE_POLICY = schema.POLICY_NEEDS_REVIEW
 	parsedExpression, err = schema.ParseExpression(testPolicyConfig, EXP)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("%s", err.Error())
 	}
 	resolvedPolicy = parsedExpression.CompoundUsagePolicy
 	if resolvedPolicy != EXPECTED_USAGE_POLICY {
@@ -202,7 +202,7 @@ func TestLicensePolicyUsageConjunctionsANDCombinations(t *testing.T) {
 	EXPECTED_USAGE_POLICY = schema.POLICY_NEEDS_REVIEW
 	parsedExpression, err = schema.ParseExpression(testPolicyConfig, EXP)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("%s", err.Error())
 	}
 	resolvedPolicy = parsedExpression.CompoundUsagePolicy
 	if resolvedPolicy != EXPECTED_USAGE_POLICY {
@@ -214,7 +214,7 @@ func TestLicensePolicyUsageConjunctionsANDCombinations(t *testing.T) {
 	EXPECTED_USAGE_POLICY = schema.POLICY_ALLOW
 	parsedExpression, err = schema.ParseExpression(testPolicyConfig, EXP)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("%s", err.Error())
 	}
 	resolvedPolicy = parsedExpression.CompoundUsagePolicy
 	if resolvedPolicy != EXPECTED_USAGE_POLICY {
@@ -236,7 +236,7 @@ func TestLicensePolicyUsageConjunctionsORCombinations(t *testing.T) {
 	// Set the policy file to the reduced, 3-entry policy file used to test the 3 policy states
 	testPolicyConfig, err := LoadCustomPolicyFile(POLICY_FILE_GOOD_BAD_MAYBE)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("%s", err.Error())
 	}
 
 	// 1. schema.POLICY_ALLOW OR schema.POLICY_DENY
@@ -244,7 +244,7 @@ func TestLicensePolicyUsageConjunctionsORCombinations(t *testing.T) {
 	EXPECTED_USAGE_POLICY := schema.POLICY_ALLOW
 	parsedExpression, err := schema.ParseExpression(testPolicyConfig, EXP)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("%s", err.Error())
 	}
 	resolvedPolicy := parsedExpression.CompoundUsagePolicy
 	if resolvedPolicy != EXPECTED_USAGE_POLICY {
@@ -256,7 +256,7 @@ func TestLicensePolicyUsageConjunctionsORCombinations(t *testing.T) {
 	EXPECTED_USAGE_POLICY = schema.POLICY_ALLOW
 	parsedExpression, err = schema.ParseExpression(testPolicyConfig, EXP)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("%s", err.Error())
 	}
 	resolvedPolicy = parsedExpression.CompoundUsagePolicy
 	if resolvedPolicy != EXPECTED_USAGE_POLICY {
@@ -268,7 +268,7 @@ func TestLicensePolicyUsageConjunctionsORCombinations(t *testing.T) {
 	EXPECTED_USAGE_POLICY = schema.POLICY_ALLOW
 	parsedExpression, err = schema.ParseExpression(testPolicyConfig, EXP)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("%s", err.Error())
 	}
 	resolvedPolicy = parsedExpression.CompoundUsagePolicy
 	if resolvedPolicy != EXPECTED_USAGE_POLICY {
@@ -280,7 +280,7 @@ func TestLicensePolicyUsageConjunctionsORCombinations(t *testing.T) {
 	EXPECTED_USAGE_POLICY = schema.POLICY_NEEDS_REVIEW
 	parsedExpression, err = schema.ParseExpression(testPolicyConfig, EXP)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("%s", err.Error())
 	}
 	resolvedPolicy = parsedExpression.CompoundUsagePolicy
 	if resolvedPolicy != EXPECTED_USAGE_POLICY {
@@ -292,7 +292,7 @@ func TestLicensePolicyUsageConjunctionsORCombinations(t *testing.T) {
 	EXPECTED_USAGE_POLICY = schema.POLICY_NEEDS_REVIEW
 	parsedExpression, err = schema.ParseExpression(testPolicyConfig, EXP)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("%s", err.Error())
 	}
 	resolvedPolicy = parsedExpression.CompoundUsagePolicy
 	if resolvedPolicy != EXPECTED_USAGE_POLICY {
@@ -304,7 +304,7 @@ func TestLicensePolicyUsageConjunctionsORCombinations(t *testing.T) {
 	EXPECTED_USAGE_POLICY = schema.POLICY_DENY
 	parsedExpression, err = schema.ParseExpression(testPolicyConfig, EXP)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("%s", err.Error())
 	}
 	resolvedPolicy = parsedExpression.CompoundUsagePolicy
 	if resolvedPolicy != EXPECTED_USAGE_POLICY {
@@ -324,7 +324,7 @@ func TestLicensePolicyFamilyUsagePolicyConflict(t *testing.T) {
 
 	// Note: the conflict is only encountered on the "hash"; load only loads what policies are defined in the config.
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("%s", err.Error())
 	}
 }
 
@@ -335,7 +335,7 @@ func TestLicensePolicyCustomListGoodBadMaybe(t *testing.T) {
 	outputBuffer, err := innerTestLicensePolicyList(t, lti)
 
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Errorf("%s", err.Error())
 		return
 	}
 

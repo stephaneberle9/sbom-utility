@@ -42,6 +42,10 @@ const (
 )
 
 const (
+	NAME_NO_ASSERTION   = "NOASSERTION"
+)
+
+const (
 	NOTES_COMPOUND_LICENSE = "Compound license"
 )
 

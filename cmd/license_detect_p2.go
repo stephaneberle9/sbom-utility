@@ -116,8 +116,10 @@ func QueryEclipseLicenseCheckService(cdxComponent schema.CDXComponent) (string, 
 	version := cdxComponent.Version
 
 	componentId := fmt.Sprintf("%s:%s:%s", group, name, version)
-	if license, found := p2LicenseCache.Get(componentId); found {
-		return license.(string), nil
+	if p2LicenseCache != nil {
+		if license, found := p2LicenseCache.Get(componentId); found {
+			return license.(string), nil
+		}
 	}
 
 	licenseData, err := invokeEclipseLicenseCheckService(group, name, version)
@@ -136,7 +138,9 @@ func QueryEclipseLicenseCheckService(cdxComponent schema.CDXComponent) (string, 
 
 	// Only cache actually found licenses to make sure that missing licenses can be searched for later on again
 	if len(license) > 0 {
-		p2LicenseCache.Set(componentId, license, cache.NoExpiration)
+		if p2LicenseCache != nil {
+			p2LicenseCache.Set(componentId, license, cache.NoExpiration)
+		}
 	}
 	return license, nil
 }

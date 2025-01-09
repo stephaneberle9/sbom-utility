@@ -261,7 +261,7 @@ func TestLicenseListCdx14MarkdownNoneFound(t *testing.T) {
 
 func TestLicenseListCdx13Json(t *testing.T) {
 	lti := NewLicenseTestInfo(TEST_LICENSE_LIST_CDX_1_3, FORMAT_JSON, false)
-	lti.ResultExpectedLineCount = 92 // array of LicenseChoice JSON objects
+	lti.ResultExpectedLineCount = 54 // array of LicenseChoice JSON objects
 	lti.OutputIndent = 6
 	buffer := innerTestLicenseList(t, lti)
 
@@ -285,19 +285,19 @@ func TestLicenseListCdx13Json(t *testing.T) {
 // Assure listing (report) works with summary flag (i.e., format: "txt")
 func TestLicenseListSummaryCdx13Text(t *testing.T) {
 	lti := NewLicenseTestInfo(TEST_LICENSE_LIST_CDX_1_3, FORMAT_TEXT, true)
-	lti.ResultExpectedLineCount = 20 // title, separator and data rows
+	lti.ResultExpectedLineCount = 16 // title, separator and data rows
 	innerTestLicenseList(t, lti)
 }
 
 func TestLicenseListSummaryCdx13Markdown(t *testing.T) {
 	lti := NewLicenseTestInfo(TEST_LICENSE_LIST_CDX_1_3, FORMAT_MARKDOWN, true)
-	lti.ResultExpectedLineCount = 20 // title, separator and data rows
+	lti.ResultExpectedLineCount = 16 // title, separator and data rows
 	innerTestLicenseList(t, lti)
 }
 
 func TestLicenseListSummaryCdx13Csv(t *testing.T) {
 	lti := NewLicenseTestInfo(TEST_LICENSE_LIST_CDX_1_3, FORMAT_CSV, true)
-	lti.ResultExpectedLineCount = 19 // title and data rows
+	lti.ResultExpectedLineCount = 15 // title and data rows
 	innerTestLicenseList(t, lti)
 }
 
@@ -338,14 +338,14 @@ func TestLicenseListSummaryTextCdx13WhereUsageNeedsReview(t *testing.T) {
 func TestLicenseListSummaryTextCdx13WhereUsageUndefined(t *testing.T) {
 	lti := NewLicenseTestInfo(TEST_LICENSE_LIST_CDX_1_3, FORMAT_TEXT, true)
 	lti.WhereClause = "usage-policy=UNDEFINED"
-	lti.ResultExpectedLineCount = 10 // title and data rows
+	lti.ResultExpectedLineCount = 7 // title and data rows
 	innerTestLicenseList(t, lti)
 }
 
 func TestLicenseListSummaryTextCdx13WhereLicenseTypeName(t *testing.T) {
 	lti := NewLicenseTestInfo(TEST_LICENSE_LIST_CDX_1_3, FORMAT_TEXT, true)
 	lti.WhereClause = "license-type=name"
-	lti.ResultExpectedLineCount = 8 // title and data rows
+	lti.ResultExpectedLineCount = 4 // title and data rows
 	innerTestLicenseList(t, lti)
 }
 
@@ -358,8 +358,8 @@ func TestLicenseListSummaryTextCdx14LicenseExpInName(t *testing.T) {
 		FORMAT_TEXT, true)
 	lti.WhereClause = "license-type=expression"
 	lti.ResultLineContainsValues = []string{schema.POLICY_ALLOW, TEST_LICENSE_HUMAN_READABLE_EXPRESSION, TEST_LICENSE_URLS}
-	lti.ResultLineContainsValuesAtLineNum = 3
-	lti.ResultExpectedLineCount = 4 // title and data rows
+	lti.ResultLineContainsValuesAtLineNum = 2
+	lti.ResultExpectedLineCount = 3 // title and data rows
 	innerTestLicenseList(t, lti)
 }
 
@@ -369,9 +369,9 @@ func TestLicenseListCdx13JsonEmptyAttachment(t *testing.T) {
 		"test/cyclonedx/cdx-1-3-license-list-no-attachment.json",
 		FORMAT_JSON,
 		false)
-	lti.ResultExpectedLineCount = 36
-	lti.ResultLineContainsValues = []string{"\"content\": \"CiAgICAgICAgICAgICA...\""}
-	lti.ResultLineContainsValuesAtLineNum = -1 // JSON Hashmaps in Go are not ordered, match any line
+	lti.ResultExpectedLineCount = 5
+	lti.ResultLineContainsValues = []string{"\"expression\": \"MIT OR UFL OR ( Apache-2.0 AND (MIT OR BSD-2-Clause) ) OR https://www.apache.org/licenses/LICENSE-2.0-variant.txt OR https://www.apache.org/licenses/LICENSE-2.0-variant-2.txt\""}
+	lti.ResultLineContainsValuesAtLineNum = 2
 	innerTestLicenseList(t, lti)
 }
 
