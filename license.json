@@ -3358,6 +3358,9 @@
             "notes": [
                 "This license requires separately licensed code."
             ],
+            "aliases": [
+                "UFL"
+            ],
             "urls": [
                 "https://ubuntu.com/legal/font-licence"
             ]
