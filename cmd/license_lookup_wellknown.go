@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/CycloneDX/sbom-utility/schema"
+
 )
 
 func LookupLicenseForWellknownComponents(cdxComponent schema.CDXComponent) (int, string) {
@@ -75,10 +76,10 @@ func LookupLicenseForWellknownComponents(cdxComponent schema.CDXComponent) (int,
 	}
 
 	// Yakindu components
-	if cdxComponent.Group == "p2.eclipse.plugin" || cdxComponent.Group == "p2.eclipse.feature" || cdxComponent.Group == "p2.p2.installable.unit" || strings.HasPrefix(cdxComponent.Group, "com.yakindu") {
-		if strings.HasPrefix(cdxComponent.Name, "com.yakindu") || strings.HasPrefix(cdxComponent.Name, "org.yakindu") {
-			return schema.LC_TYPE_ID, "LicenseRef-itemis-Closed-2.0.2"
-		}
+	if cdxComponent.Group == "p2.eclipse.plugin" || cdxComponent.Group == "p2.eclipse.feature" || cdxComponent.Group == "p2.p2.installable.unit" || strings.HasPrefix(cdxComponent.Group, "com.itemis") || strings.HasPrefix(cdxComponent.Group, "com.yakindu") || strings.HasPrefix(cdxComponent.Group, "org.yakindu") {
+			if strings.HasPrefix(cdxComponent.Name, "com.itemis") || strings.HasPrefix(cdxComponent.Name, "com.yakindu") || strings.HasPrefix(cdxComponent.Name, "org.yakindu") {
+					return schema.LC_TYPE_ID, "LicenseRef-itemis-Closed-2.0.2"
+			}
 	}
 
 	// Third-party components not advertising any license on Maven Central
