@@ -171,9 +171,15 @@ func TestMain(m *testing.M) {
 		os.Exit(ERROR_APPLICATION)
 	}
 
+	StartupMavenLicenseDetector()
+	StartupP2LicenseDetector()
+
 	// Run test
 	exitCode := m.Run()
 	getLogger().Tracef("exit code: `%v`", exitCode)
+
+	ShutdownP2LicenseDetector()
+	ShutdownMavenLicenseDetector()
 
 	// Exit with exit value from tests
 	os.Exit(exitCode)

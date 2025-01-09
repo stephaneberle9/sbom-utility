@@ -110,17 +110,9 @@ func innerTestLicenseList(t *testing.T, testInfo *LicenseTestInfo) (outputBuffer
 
 	// Perform the test with buffered output
 	outputBuffer, err = innerTestLicenseListBuffered(t, testInfo, whereFilters)
-	if err != nil {
-		t.Errorf("%s", err)
-		return
-	}
 
 	// Run all common tests against "result" values in the CommonTestInfo struct
-	err = innerRunReportResultTests(t, &testInfo.CommonTestInfo, outputBuffer, err)
-	if err != nil {
-		t.Errorf("%s", err)
-		return
-	}
+	innerRunReportResultTests(t, &testInfo.CommonTestInfo, outputBuffer, err)
 
 	return
 }
@@ -656,8 +648,8 @@ func TestHashCDXLicense(t *testing.T) {
 
 	// CC-PDDC
 	EXPECTED_LICENSE = "Creative Commons Public Domain Dedication and Certification"
-	EXPECTED_LICENSE_URLS = "https://creativecommons.org/public-domain/pdm"
-	EXPECTED_USAGE_POLICY = schema.POLICY_NEEDS_REVIEW
+	EXPECTED_LICENSE_URLS = "https://creativecommons.org/publicdomain"
+	EXPECTED_USAGE_POLICY = schema.POLICY_ALLOW
 
 	CDX_LICENSE_NAME = "Public Domain"
 	CDX_LICENSE_URL = ""

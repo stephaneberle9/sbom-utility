@@ -22,7 +22,6 @@ import (
 	"testing"
 
 	"github.com/CycloneDX/sbom-utility/schema"
-
 )
 
 // -------------------------------------------
@@ -34,7 +33,7 @@ func innerTestIsFullyQualifiedMavenComponent(t *testing.T, purl string, expected
 
 	var err error
 	cdxComponent := schema.CDXComponent{
-		Purl:   purl,
+		Purl: purl,
 	}
 
 	result, err := IsFullyQualifiedMavenComponent(cdxComponent)
@@ -44,8 +43,7 @@ func innerTestIsFullyQualifiedMavenComponent(t *testing.T, purl string, expected
 	}
 
 	if result != expectedResult {
-		t.Errorf("Is Maven component: expected `%t`, actual `%t`\n",
-		expectedResult, result)
+		t.Errorf("Is Maven component: expected `%t`, actual `%t`\n", expectedResult, result)
 		return
 	}
 }
@@ -81,7 +79,7 @@ func innerTestFindLicensesInPom(t *testing.T, group string, name string, version
 		return
 	}
 	if pomLicenses[1] != expectedLicenseUrl {
-		t.Errorf("License: expected `%s`, actual `%s`\n",
+		t.Errorf("License URL: expected `%s`, actual `%s`\n",
 			expectedLicenseUrl, pomLicenses[1])
 		return
 	}
@@ -94,10 +92,10 @@ func innerTestFindLicensesInPom(t *testing.T, group string, name string, version
 func TestIsFullyQualifiedMavenComponent(t *testing.T) {
 	PURL := "pkg:maven/ch.qos.reload4j/reload4j@1.2.22"
 	innerTestIsFullyQualifiedMavenComponent(t, PURL, true)
-	
+
 	PURL = "pkg:maven/org.apache.ant/ant@1.10.6?type=jar"
 	innerTestIsFullyQualifiedMavenComponent(t, PURL, true)
-	
+
 	PURL = "pkg:maven/org.apache.ant/ant@1.10.6?classifier=lib%2Fant-apache-bcel.jar&type=jar"
 	innerTestIsFullyQualifiedMavenComponent(t, PURL, true)
 
