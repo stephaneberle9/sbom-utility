@@ -185,6 +185,20 @@ func getPomFromMavenRepo(groupID, artifactID, version string) (*gopom.Project, e
 	return &pom, nil
 }
 
+func formatMavenPomURL(groupID, artifactID, version string) (requestURL string, err error) {
+	// groupID needs to go from maven.org -> maven/org
+	urlPath := strings.Split(groupID, ".")
+	artifactPom := fmt.Sprintf("%s-%s.pom", artifactID, version)
+	urlPath = append(urlPath, artifactID, version, artifactPom)
+
+	// ex:"https://repo1.maven.org/maven2/groupID/artifactID/artifactPom
+	requestURL, err = url.JoinPath(MAVEN_BASE_URL, urlPath...)
+	if err != nil {
+		return requestURL, fmt.Errorf("could not construct maven pom url: %w", err)
+	}
+	return requestURL, err
+}
+
 func parseLicensesFromPom(pom *gopom.Project) []string {
 	var licenses []string
 	if pom != nil && pom.Licenses != nil {
@@ -202,20 +216,6 @@ func parseLicensesFromPom(pom *gopom.Project) []string {
 		}
 	}
 	return licenses
-}
-
-func formatMavenPomURL(groupID, artifactID, version string) (requestURL string, err error) {
-	// groupID needs to go from maven.org -> maven/org
-	urlPath := strings.Split(groupID, ".")
-	artifactPom := fmt.Sprintf("%s-%s.pom", artifactID, version)
-	urlPath = append(urlPath, artifactID, version, artifactPom)
-
-	// ex:"https://repo1.maven.org/maven2/groupID/artifactID/artifactPom
-	requestURL, err = url.JoinPath(MAVEN_BASE_URL, urlPath...)
-	if err != nil {
-		return requestURL, fmt.Errorf("could not construct maven url: %w", err)
-	}
-	return requestURL, err
 }
 
 func decodePomXML(content io.Reader) (project gopom.Project, err error) {
