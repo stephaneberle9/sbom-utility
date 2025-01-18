@@ -11,7 +11,7 @@
             "request": "launch",
             "mode": "debug",
             "program": "main.go", // "program": "${file}",
-            "args": ["license", "list", "--summary", "--quiet", "--config-license", "license.json", "--input-file", "sbom.json", "--where", "bom-location=components", "--format", "csv", "--output-file", "license-scanning-report.csv"]
+            "args": ["license", "list", "--summary", "--trace", "--config-license", "license.json", "--input-file", "sbom.json", "--where", "bom-location=components", "--format", "csv", "--output-file", "license-scanning-report.csv"]
         },
         {
             "showGlobalVariables": true,

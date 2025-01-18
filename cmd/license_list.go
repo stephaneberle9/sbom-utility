@@ -31,6 +31,7 @@ import (
 	"github.com/CycloneDX/sbom-utility/schema"
 	"github.com/CycloneDX/sbom-utility/utils"
 	"github.com/spf13/cobra"
+
 )
 
 // Subcommand flags
@@ -145,8 +146,7 @@ func checkLicenseListEmptyOrNoAssertionOnly(licenseKeys []interface{}) (empty bo
 func listCmdImpl(cmd *cobra.Command, args []string) (err error) {
 	getLogger().Enter(args)
 	defer getLogger().Exit()
-	StartupMavenLicenseDetector()
-	StartupP2LicenseDetector()
+	LicenseFinderService.Startup()
 
 	// Create output writer
 	outputFilename := utils.GlobalFlags.PersistentFlags.OutputFile
@@ -173,8 +173,7 @@ func listCmdImpl(cmd *cobra.Command, args []string) (err error) {
 		utils.GlobalFlags.PersistentFlags, utils.GlobalFlags.LicenseFlags,
 		whereFilters)
 
-	ShutdownP2LicenseDetector()
-	ShutdownMavenLicenseDetector()
+	LicenseFinderService.Shutdown()
 	return
 }
 

@@ -43,11 +43,13 @@ const (
 )
 
 const (
-	REGEX_LICENSE_EXPRESSION = `\s+(AND|OR|WITH)\s+`
+	REGEX_LICENSE_EXPRESSION        = `\s+(AND|OR|WITH)\s+`
+	REGEX_LICENSE_REF_EXPRESSION    = `(\s+(AND|OR|WITH)\s+LicenseRef-[\w\.-]+)+`
 )
 
 // compiled regexp. to save time
 var licenseExpressionRegexp *regexp.Regexp
+var licenseRefExpressionRegexp *regexp.Regexp
 
 // "getter" for compiled regex expression
 func getRegexForLicenseExpression() (regex *regexp.Regexp, err error) {
@@ -55,6 +57,15 @@ func getRegexForLicenseExpression() (regex *regexp.Regexp, err error) {
 		licenseExpressionRegexp, err = regexp.Compile(REGEX_LICENSE_EXPRESSION)
 	}
 	regex = licenseExpressionRegexp
+	return
+}
+
+// "getter" for compiled regex expression
+func getRegexForLicenseRefExpression() (regex *regexp.Regexp, err error) {
+	if licenseRefExpressionRegexp == nil {
+		licenseRefExpressionRegexp, err = regexp.Compile(REGEX_LICENSE_REF_EXPRESSION)
+	}
+	regex = licenseRefExpressionRegexp
 	return
 }
 
@@ -264,130 +275,26 @@ func hashComponentLicense(bom *schema.BOM, policyConfig *schema.LicensePolicyCon
 
 	pLicenses := cdxComponent.Licenses
 	if pLicenses == nil || len(*pLicenses) == 0 {
-		wellknownLicenseChoiceTypeValue, wellknownLicenseCharacteristic := LookupLicenseForWellknownComponents(cdxComponent)
-		if wellknownLicenseChoiceTypeValue != schema.LC_TYPE_INVALID {
-			var licenseChoices []schema.CDXLicenseChoice
-			switch wellknownLicenseChoiceTypeValue {
-			case schema.LC_TYPE_ID:
-				licenseChoices = append(licenseChoices, schema.CDXLicenseChoice{
-					License: &schema.CDXLicense{
-						Id: wellknownLicenseCharacteristic,
-					},
-				})
-			case schema.LC_TYPE_NAME:
-				licenseChoices = append(licenseChoices, schema.CDXLicenseChoice{
-					License: &schema.CDXLicense{
-						Name: wellknownLicenseCharacteristic,
-					},
-				})
-			case schema.LC_TYPE_EXPRESSION:
-				licenseChoices = append(licenseChoices, schema.CDXLicenseChoice{
-					CDXLicenseExpression: schema.CDXLicenseExpression{
-						Expression: wellknownLicenseCharacteristic,
-					},
-				})
-			}
+		licenseChoices := LookupLicenseForWellknownComponents(cdxComponent)
+		if len(licenseChoices) > 0 {
 			pLicenses = &licenseChoices
 		}
 	}
 
 	if pLicenses == nil || len(*pLicenses) == 0 {
-		// Fully qualified Maven component?
-		var yes bool
-		yes, err = IsFullyQualifiedMavenComponent(cdxComponent)
-		if err != nil {
-			return
-		}
-		if yes {
-			getLogger().Infof("Trying to find license for %s:%s:%s on Maven Central\n", cdxComponent.Group, cdxComponent.Name, cdxComponent.Version)
-			pomLicenses, e := FindLicensesInPom(cdxComponent)
-			if e == nil && len(pomLicenses) > 0 {
-				var licenseChoices []schema.CDXLicenseChoice
-				for i := 0; i < len(pomLicenses); i += 2 {
-					licenseChoices = append(licenseChoices, schema.CDXLicenseChoice{
-						License: &schema.CDXLicense{
-							Name: pomLicenses[i],
-							Url:  pomLicenses[i+1],
-						},
-					})
-				}
-				pLicenses = &licenseChoices
-			} else {
-				getLogger().Warningf("Unable to detect licenses for: %s", cdxComponent.Purl)
-			}
-		}
-
-		// Fully qualified p2 component?
-		yes, err = IsFullyQualifiedP2Component(cdxComponent)
-		if err != nil {
-			return
-		}
-		if yes {
-			getLogger().Infof("Trying to find license for %s:%s:%s through Eclipse license check service\n", cdxComponent.Group, cdxComponent.Name, cdxComponent.Version)
-			eclipseLicense, e := QueryEclipseLicenseCheckService(cdxComponent)
-			if e == nil && len(eclipseLicense) > 0 {
-				regex, e := getRegexForLicenseExpression()
-				if e != nil {
-					getLogger().Error(fmt.Errorf("unable to invoke regex. %v", e))
-					err = e
-					return
-				}
-
-				result := regex.MatchString(eclipseLicense)
-				if result {
-					licenseChoices := []schema.CDXLicenseChoice{
-						{
-							CDXLicenseExpression: schema.CDXLicenseExpression{
-								Expression: eclipseLicense,
-							},
-						},
-					}
-					pLicenses = &licenseChoices
-				} else {
-					licenseChoices := []schema.CDXLicenseChoice{
-						{
-							License: &schema.CDXLicense{
-								Id: eclipseLicense,
-							},
-						},
-					}
-					pLicenses = &licenseChoices
-				}
-			} else {
-				getLogger().Warningf("Unable to detect licenses for: %s", cdxComponent.Purl)
-			}
+		// Try to find missing license of component
+		licenseChoices, e := LicenseFinderService.FindLicenses(cdxComponent)
+		if e == nil && len(licenseChoices) > 0 {
+			pLicenses = &licenseChoices
+		} else {
+			getLogger().Warningf("Unable to find licenses for: %s", cdxComponent.Purl)
 		}
 	}
 
 	if pLicenses != nil && len(*pLicenses) > 0 {
-		if (len(*pLicenses) > 1) {
-			// Convert multiple licenses into a single license expression using the OR operator
-			// (see https://maven.apache.org/ref/3-LATEST/maven-model/maven.html > licenses/license for justification)
-			var licenseExpressionParts []string
-			for _, licenseChoice := range *pLicenses {
-				if licenseChoice.License != nil {
-					if licenseChoice.License.Id != "" {
-						licenseExpressionParts = append(licenseExpressionParts, licenseChoice.License.Id)
-					} else if licenseChoice.License.Url != "" {
-						licenseExpressionParts = append(licenseExpressionParts, licenseChoice.License.Url)
-					} else if licenseChoice.License.Name != "" {
-						licenseExpressionParts = append(licenseExpressionParts, licenseChoice.License.Name)
-					} else {
-						getLogger().Errorf("Unable to include license w/o license id and URL in license expression for component with multiple licenses: %v", licenseInfo)
-					}
-				} else if licenseChoice.CDXLicenseExpression.Expression != "" {
-					licenseExpressionParts = append(licenseExpressionParts, schema.LEFT_PARENS + " " + licenseChoice.CDXLicenseExpression.Expression + " " + schema.RIGHT_PARENS)
-				} else {
-					getLogger().Errorf("Unable to include empty license in license expression for component with multiple licenses: %v", licenseInfo)
-				}
-			}
-			licenseInfo.LicenseChoice = schema.CDXLicenseChoice{
-				CDXLicenseExpression: schema.CDXLicenseExpression{
-					Expression: strings.Join(licenseExpressionParts, " " + schema.OR + " "),
-				},
-			}
-		} else {
-			licenseInfo.LicenseChoice = (*pLicenses)[0]
+		licenseInfo.LicenseChoice, err = multipleLicensesToLicenseExpression(pLicenses)
+		if err != nil {
+			return
 		}
 
 		getLogger().Debugf("licenseChoice: %s", getLogger().FormatStruct(licenseInfo.LicenseChoice))
@@ -594,5 +501,40 @@ func hashLicenseInfoByLicenseType(bom *schema.BOM, policyConfig *schema.LicenseP
 		licenseInfo.BOMRef,
 		licenseInfo.ResourceName))
 	err = baseError
+	return
+}
+
+func multipleLicensesToLicenseExpression(originalLicenses *[]schema.CDXLicenseChoice) (combinedLicenseChoice schema.CDXLicenseChoice, err error) {
+	if len(*originalLicenses) > 1 {
+		// Convert multiple licenses into a single license expression using the OR operator
+		// (see https://maven.apache.org/ref/3-LATEST/maven-model/maven.html > licenses/license for justification)
+		var licenseExpressionParts []string
+		for _, licenseChoice := range *originalLicenses {
+			if licenseChoice.License != nil {
+				if licenseChoice.License.Id != "" {
+					licenseExpressionParts = append(licenseExpressionParts, licenseChoice.License.Id)
+				} else if licenseChoice.License.Url != "" {
+					licenseExpressionParts = append(licenseExpressionParts, licenseChoice.License.Url)
+				} else if licenseChoice.License.Name != "" {
+					licenseExpressionParts = append(licenseExpressionParts, licenseChoice.License.Name)
+				} else {
+					getLogger().Warningf("Unable to include license w/o license id and URL in license expression for component with multiple licenses: %v", licenseChoice)
+				}
+			} else if licenseChoice.CDXLicenseExpression.Expression != "" {
+				licenseExpressionParts = append(licenseExpressionParts, schema.LEFT_PARENS+" "+licenseChoice.CDXLicenseExpression.Expression+" "+schema.RIGHT_PARENS)
+			} else {
+				getLogger().Warningf("Unable to include empty license in license expression for component with multiple licenses: %v", licenseChoice)
+			}
+		}
+		combinedLicenseChoice = schema.CDXLicenseChoice{
+			CDXLicenseExpression: schema.CDXLicenseExpression{
+				Expression: strings.Join(licenseExpressionParts, " "+schema.OR+" "),
+			},
+		}
+	} else if len(*originalLicenses) == 1 {
+		combinedLicenseChoice = (*originalLicenses)[0]
+	} else {
+		err = fmt.Errorf("unable to convert empty license list into a single license")
+	}
 	return
 }
