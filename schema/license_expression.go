@@ -149,7 +149,7 @@ func (expression *CompoundExpression) Parse(policyConfig *LicensePolicyConfig, t
 	var token string
 	for index < len(tokens) {
 		token = tokens[index]
-		switch token {
+		switch strings.ToUpper(token) {
 		case LEFT_PARENS:
 			getLogger().Debugf("[%v] LEFT_PARENS: `%v`", index, token)
 			childExpression := NewCompoundExpression()
@@ -183,26 +183,26 @@ func (expression *CompoundExpression) Parse(policyConfig *LicensePolicyConfig, t
 		case AND:
 			getLogger().Debugf("[%v] AND (Conjunction): `%v`", index, token)
 			if expression.Conjunction == "" {
-				expression.Conjunction = token
+				expression.Conjunction = AND
 				expression.CompoundName += " " + AND
 			} else {
-				expression.SubsequentConjunction = token
+				expression.SubsequentConjunction = AND
 			}
 		case OR:
 			getLogger().Debugf("[%v] OR (Conjunction): `%v`", index, token)
 			if expression.Conjunction == "" {
-				expression.Conjunction = token
+				expression.Conjunction = OR
 				expression.CompoundName += " " + OR
 			} else {
-				expression.SubsequentConjunction = token
+				expression.SubsequentConjunction = OR
 			}
 		case WITH:
 			getLogger().Debugf("[%v] WITH (Conjunction): `%v`", index, token)
 			if expression.Conjunction == "" {
-				expression.Conjunction = token
+				expression.Conjunction = WITH
 				expression.CompoundName += " " + WITH
 			} else {
-				expression.SubsequentConjunction = token
+				expression.SubsequentConjunction = WITH
 			}
 		default:
 			getLogger().Debugf("[%v] Simple Expression: `%v`", index, token)

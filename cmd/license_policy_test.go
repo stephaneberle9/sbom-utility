@@ -74,7 +74,7 @@ func LoadCustomPolicyFile(policyFile string) (customPolicyConfig *schema.License
 	return
 }
 
-func innerTestLicensePolicyListCustomAndBuffered(t *testing.T, testInfo *LicenseTestInfo, whereFilters []common.WhereFilter) (outputBuffer bytes.Buffer, err error) {
+func innerTestLicensePolicyListCustomAndBuffered(_ *testing.T, testInfo *LicenseTestInfo, whereFilters []common.WhereFilter) (outputBuffer bytes.Buffer, err error) {
 	// Declare an output outputBuffer/outputWriter to use used during tests
 	var outputWriter = bufio.NewWriter(&outputBuffer)
 	// ensure all data is written to buffer before further validation
@@ -702,44 +702,52 @@ func TestLicensePolicyListWhereDeprecatedTrue(t *testing.T) {
 
 func TestLicensePolicyMatchByExpFailureInvalidRightExp(t *testing.T) {
 	EXP := "(Apache-1.0 OR Apache-1.1) AND Foobar"
+	EXPECTED_NAME := "( Apache License Version 1.0 OR Apache License Version 1.1 ) AND NOASSERTION"
 	EXPECTED_POLICY := schema.POLICY_UNDEFINED
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 }
 
 func TestLicensePolicyMatchByExpFailureInvalidLeftExp(t *testing.T) {
 	EXP := "Foobar AND ( Apache-1.0 OR Apache-1.1 )"
+	EXPECTED_NAME := "NOASSERTION AND ( Apache License Version 1.0 OR Apache License Version 1.1 )"
 	EXPECTED_POLICY := schema.POLICY_UNDEFINED
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 }
 
 func TestLicensePolicyExpressionAndConjunction(t *testing.T) {
 	EXP := "EPL-1.0 AND CDDL-1.0"
 	EXPECTED_POLICY := schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	EXPECTED_NAME := "Eclipse Public License 1.0 AND Common Development and Distribution License 1.0"
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 }
 
 func TestLicensePolicyExpressionOrConjunction(t *testing.T) {
 	EXP := "BSD-3-Clause OR MIT"
+	EXPECTED_NAME := "BSD 3-Clause \"New\" or \"Revised\" License OR MIT License"
 	EXPECTED_POLICY := schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 
 	EXP = "LGPL-2.0-or-later OR MPL-1.1"
+	EXPECTED_NAME = "GNU Library General Public License v2 or later OR Mozilla Public License 1.1"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 
 	EXP = "Apache-2.0 OR LGPL-2.1-or-later"
+	EXPECTED_NAME = "Apache License Version 2.0 OR GNU Lesser General Public License v2.1 or later"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 }
 
 func TestLicensePolicyExpressionWithConjunction(t *testing.T) {
 	EXP := "GPL-2.0 WITH Classpath-exception-2.0"
+	EXPECTED_NAME := "GNU General Public License v2.0 only WITH Classpath exception 2.0"
 	EXPECTED_POLICY := schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 
 	EXP = "GPL-2.0 WITH OpenJDK-assembly-exception-1.0"
+	EXPECTED_NAME = "GNU General Public License v2.0 only WITH OpenJDK Assembly exception 1.0"
 	EXPECTED_POLICY = schema.POLICY_NEEDS_REVIEW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 }
 
 // NOTE: we need more tests that verify support of multiple conjunctions without
@@ -748,108 +756,135 @@ func TestLicensePolicyExpressionWithMultipleConjunctions(t *testing.T) {
 	// a AND b AND c
 
 	EXP := "BSD-3-Clause AND MIT AND EPL-2.0"
+	EXPECTED_NAME := "BSD 3-Clause \"New\" or \"Revised\" License AND MIT License AND Eclipse Public License 2.0"
 	EXPECTED_POLICY := schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 
 	EXP = "BSD-3-Clause AND MIT AND GPL-2.0"
+	EXPECTED_NAME = "BSD 3-Clause \"New\" or \"Revised\" License AND MIT License AND GNU General Public License v2.0 only"
 	EXPECTED_POLICY = schema.POLICY_DENY
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 
 	EXP = "EPL-1.0 AND Apache-2.0 AND CDDL-1.0"
+	EXPECTED_NAME = "Eclipse Public License 1.0 AND Apache License Version 2.0 AND Common Development and Distribution License 1.0"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 
 	// a AND b OR c
 
 	EXP = "BSD-3-Clause AND MIT OR GPL-2.0"
+	EXPECTED_NAME = "BSD 3-Clause \"New\" or \"Revised\" License AND MIT License OR GNU General Public License v2.0 only"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 
 	EXP = "BSD-3-Clause AND CC-BY-NC-4.0 OR GPL-2.0"
+	EXPECTED_NAME = "BSD 3-Clause \"New\" or \"Revised\" License AND Creative Commons Attribution Non Commercial 4.0 International OR GNU General Public License v2.0 only"
 	EXPECTED_POLICY = schema.POLICY_DENY
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 
 	// a AND b WITH c
 
 	EXP = "BSD-3-Clause AND GPL-2.0 WITH Classpath-exception-2.0"
+	EXPECTED_NAME = "BSD 3-Clause \"New\" or \"Revised\" License AND GNU General Public License v2.0 only WITH Classpath exception 2.0"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 
 	EXP = "CC-BY-NC-4.0 AND GPL-2.0 WITH Classpath-exception-2.0"
+	EXPECTED_NAME = "Creative Commons Attribution Non Commercial 4.0 International AND GNU General Public License v2.0 only WITH Classpath exception 2.0"
 	EXPECTED_POLICY = schema.POLICY_DENY
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 
 	// a OR b AND c
 
 	EXP = "BSD-3-Clause OR MIT AND GPL-2.0"
+	EXPECTED_NAME = "BSD 3-Clause \"New\" or \"Revised\" License OR MIT License AND GNU General Public License v2.0 only"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 
 	EXP = "CC-BY-NC-4.0 OR MIT AND GPL-2.0"
+	EXPECTED_NAME = "Creative Commons Attribution Non Commercial 4.0 International OR MIT License AND GNU General Public License v2.0 only"
 	EXPECTED_POLICY = schema.POLICY_DENY
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 
 	// a OR b OR c
 
 	EXP = "BSD-3-Clause OR MIT OR GPL-2.0"
+	EXPECTED_NAME = "BSD 3-Clause \"New\" or \"Revised\" License OR MIT License OR GNU General Public License v2.0 only"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 
 	EXP = "CC-BY-NC-4.0 OR MIT OR GPL-2.0"
+	EXPECTED_NAME = "Creative Commons Attribution Non Commercial 4.0 International OR MIT License OR GNU General Public License v2.0 only"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 
 	// a OR b WITH c
 
 	EXP = "BSD-3-Clause OR GPL-2.0 WITH Classpath-exception-2.0"
+	EXPECTED_NAME = "BSD 3-Clause \"New\" or \"Revised\" License OR GNU General Public License v2.0 only WITH Classpath exception 2.0"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 
 	EXP = "CC-BY-NC-4.0 OR GPL-2.0 WITH Classpath-exception-2.0"
+	EXPECTED_NAME = "Creative Commons Attribution Non Commercial 4.0 International OR GNU General Public License v2.0 only WITH Classpath exception 2.0"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 
 	EXP = "EPL-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0"
+	EXPECTED_NAME = "Eclipse Public License 2.0 OR GNU General Public License v2.0 only WITH Classpath exception 2.0"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 
 	// a WITH b AND c
 
 	EXP = "GPL-2.0 WITH Classpath-exception-2.0 AND MIT"
+	EXPECTED_NAME = "GNU General Public License v2.0 only WITH Classpath exception 2.0 AND MIT License"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 
 	EXP = "GPL-2.0 WITH Classpath-exception-2.0 AND CC-BY-NC-4.0"
+	EXPECTED_NAME = "GNU General Public License v2.0 only WITH Classpath exception 2.0 AND Creative Commons Attribution Non Commercial 4.0 International"
 	EXPECTED_POLICY = schema.POLICY_DENY
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 
 	// a WITH b OR c
 
 	EXP = "GPL-2.0 WITH Classpath-exception-2.0 OR MIT"
+	EXPECTED_NAME = "GNU General Public License v2.0 only WITH Classpath exception 2.0 OR MIT License"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 
 	EXP = "GPL-2.0 WITH Classpath-exception-2.0 OR CC-BY-NC-4.0"
+	EXPECTED_NAME = "GNU General Public License v2.0 only WITH Classpath exception 2.0 OR Creative Commons Attribution Non Commercial 4.0 International"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 
 	// a WITH b WITH c
 
 	EXP = "GPL-2.0 WITH Classpath-exception-2.0 WITH OpenJDK-assembly-exception-1.0"
+	EXPECTED_NAME = "GNU General Public License v2.0 only WITH Classpath exception 2.0 WITH OpenJDK Assembly exception 1.0"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 
 	EXP = "GPL-2.0 WITH OpenJDK-assembly-exception-1.0 WITH Classpath-exception-2.0"
+	EXPECTED_NAME = "GNU General Public License v2.0 only WITH OpenJDK Assembly exception 1.0 WITH Classpath exception 2.0"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 
 	// complex multiple conjunction expressions
 
 	EXP = "Apache-2.0 AND (Apache-2.0 AND BSD-3-Clause)"
+	EXPECTED_NAME = "Apache License Version 2.0 AND ( Apache License Version 2.0 AND BSD 3-Clause \"New\" or \"Revised\" License )"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 
 	EXP = "Apache-2.0 AND BSD-3-Clause AND BSD-2-Clause AND MIT AND ISC AND Unicode-TOU AND (LGPL-2.1-or-later OR CC-BY-4.0)"
+	EXPECTED_NAME = "Apache License Version 2.0 AND BSD 3-Clause \"New\" or \"Revised\" License AND BSD 2-Clause \"Simplified\" License AND MIT License AND ISC License AND Unicode Terms of Use AND ( GNU Lesser General Public License v2.1 or later OR Creative Commons Attribution 4.0 International )"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
+
+	EXP = "EPL-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0"
+	EXPECTED_NAME = "Eclipse Public License 2.0 OR GNU General Public License v2.0 only WITH Classpath exception 2.0"
+	EXPECTED_POLICY = schema.POLICY_ALLOW
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 }

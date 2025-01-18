@@ -117,7 +117,7 @@ func innerTestLicenseList(t *testing.T, testInfo *LicenseTestInfo) (outputBuffer
 	return
 }
 
-func innerTestLicenseExpressionParsing(t *testing.T, expression string, expectedPolicy string) (parsedExpression *schema.CompoundExpression) {
+func innerTestLicenseExpressionParsing(t *testing.T, expression string, expectedName, expectedPolicy string) (parsedExpression *schema.CompoundExpression) {
 	var err error
 	parsedExpression, err = schema.ParseExpression(LicensePolicyConfig, expression)
 	if err != nil {
@@ -126,8 +126,13 @@ func innerTestLicenseExpressionParsing(t *testing.T, expression string, expected
 	}
 
 	t.Logf("parsed expression:\n%v", parsedExpression)
+	if parsedExpression.CompoundName != expectedName {
+		t.Errorf("License Expression name: expected `%s`, actual `%s`\n",
+			expectedName, parsedExpression.CompoundName)
+		return
+	}
 	if parsedExpression.CompoundUsagePolicy != expectedPolicy {
-		t.Errorf("License Expression: expected `%s`, actual `%s`\n",
+		t.Errorf("License Expression policy: expected `%s`, actual `%s`\n",
 			expectedPolicy, parsedExpression.CompoundUsagePolicy)
 		return
 	}
@@ -184,7 +189,6 @@ func innerTestLicenseInfoHashing(t *testing.T, licenseName string, licenseUrl st
 			expectedUsagePolicy, licenseInfo.UsagePolicy)
 		return
 	}
-	return
 }
 
 // ----------------------------------------
@@ -378,8 +382,16 @@ func TestLicenseListCdx13JsonEmptyAttachment(t *testing.T) {
 // Tests for expression parser
 func TestLicenseExpressionParsingTestComplex1(t *testing.T) {
 	SPDX_LICENSE_EXPRESSION_TEST1 := "Apache-2.0 AND (MIT OR GPL-2.0-only)"
+	EXPECTED_NAME := "Apache License Version 2.0 AND ( MIT License OR GNU General Public License v2.0 only )"
 	EXPECTED_POLICY := schema.POLICY_ALLOW
-	result := innerTestLicenseExpressionParsing(t, SPDX_LICENSE_EXPRESSION_TEST1, EXPECTED_POLICY)
+	result := innerTestLicenseExpressionParsing(t, SPDX_LICENSE_EXPRESSION_TEST1, EXPECTED_NAME, EXPECTED_POLICY)
+	if result.LeftUsagePolicy != schema.POLICY_ALLOW && result.RightUsagePolicy != schema.POLICY_ALLOW {
+		t.Errorf("License Expression: expectedLeft `%s`, actualLeft `%s`, expectedRight `%s`, actualRight `%s`\n",
+			schema.POLICY_ALLOW, result.LeftUsagePolicy, schema.POLICY_ALLOW, result.RightUsagePolicy)
+	}
+
+	SPDX_LICENSE_EXPRESSION_TEST1 = "Apache-2.0 and (MIT or GPL-2.0-only)"
+	result = innerTestLicenseExpressionParsing(t, SPDX_LICENSE_EXPRESSION_TEST1, EXPECTED_NAME, EXPECTED_POLICY)
 	if result.LeftUsagePolicy != schema.POLICY_ALLOW && result.RightUsagePolicy != schema.POLICY_ALLOW {
 		t.Errorf("License Expression: expectedLeft `%s`, actualLeft `%s`, expectedRight `%s`, actualRight `%s`\n",
 			schema.POLICY_ALLOW, result.LeftUsagePolicy, schema.POLICY_ALLOW, result.RightUsagePolicy)
@@ -388,9 +400,35 @@ func TestLicenseExpressionParsingTestComplex1(t *testing.T) {
 
 func TestLicenseExpressionParsingTestComplex2(t *testing.T) {
 	SPDX_LICENSE_EXPRESSION_TEST1 := "MPL-1.0 AND (MIT AND AGPL-3.0)"
+	EXPECTED_NAME := "Mozilla Public License 1.0 AND ( MIT License AND GNU Affero General Public License v3.0 )"
 	EXPECTED_POLICY := schema.POLICY_NEEDS_REVIEW
-	result := innerTestLicenseExpressionParsing(t, SPDX_LICENSE_EXPRESSION_TEST1, EXPECTED_POLICY)
+	result := innerTestLicenseExpressionParsing(t, SPDX_LICENSE_EXPRESSION_TEST1, EXPECTED_NAME, EXPECTED_POLICY)
 	if result.LeftUsagePolicy != schema.POLICY_ALLOW && result.RightUsagePolicy != schema.POLICY_ALLOW {
+		t.Errorf("License Expression: expectedLeft `%s`, actualLeft `%s`, expectedRight `%s`, actualRight `%s`\n",
+			schema.POLICY_ALLOW, result.LeftUsagePolicy, schema.POLICY_ALLOW, result.RightUsagePolicy)
+	}
+
+	SPDX_LICENSE_EXPRESSION_TEST1 = "MPL-1.0 and (MIT and AGPL-3.0)"
+	result = innerTestLicenseExpressionParsing(t, SPDX_LICENSE_EXPRESSION_TEST1, EXPECTED_NAME, EXPECTED_POLICY)
+	if result.LeftUsagePolicy != schema.POLICY_ALLOW && result.RightUsagePolicy != schema.POLICY_ALLOW {
+		t.Errorf("License Expression: expectedLeft `%s`, actualLeft `%s`, expectedRight `%s`, actualRight `%s`\n",
+			schema.POLICY_ALLOW, result.LeftUsagePolicy, schema.POLICY_ALLOW, result.RightUsagePolicy)
+	}
+}
+
+func TestLicenseExpressionParsingTestComplex3(t *testing.T) {
+	SPDX_LICENSE_EXPRESSION_TEST1 := "EPL-2.0 OR GPL-2.0-only WITH Classpath-exception-2.0"
+	EXPECTED_NAME := "Eclipse Public License 2.0 OR GNU General Public License v2.0 only WITH Classpath exception 2.0"
+	EXPECTED_POLICY := schema.POLICY_ALLOW
+	result := innerTestLicenseExpressionParsing(t, SPDX_LICENSE_EXPRESSION_TEST1, EXPECTED_NAME, EXPECTED_POLICY)
+	if result.LeftUsagePolicy != schema.POLICY_ALLOW || result.RightUsagePolicy != schema.POLICY_ALLOW {
+		t.Errorf("License Expression: expectedLeft `%s`, actualLeft `%s`, expectedRight `%s`, actualRight `%s`\n",
+			schema.POLICY_ALLOW, result.LeftUsagePolicy, schema.POLICY_ALLOW, result.RightUsagePolicy)
+	}
+
+	SPDX_LICENSE_EXPRESSION_TEST1 = "EPL-2.0 or GPL-2.0-only with Classpath-exception-2.0"
+	result = innerTestLicenseExpressionParsing(t, SPDX_LICENSE_EXPRESSION_TEST1, EXPECTED_NAME, EXPECTED_POLICY)
+	if result.LeftUsagePolicy != schema.POLICY_ALLOW || result.RightUsagePolicy != schema.POLICY_ALLOW {
 		t.Errorf("License Expression: expectedLeft `%s`, actualLeft `%s`, expectedRight `%s`, actualRight `%s`\n",
 			schema.POLICY_ALLOW, result.LeftUsagePolicy, schema.POLICY_ALLOW, result.RightUsagePolicy)
 	}
@@ -398,69 +436,80 @@ func TestLicenseExpressionParsingTestComplex2(t *testing.T) {
 
 func TestLicenseExpressionParsingCompoundRightSide(t *testing.T) {
 	EXP := "Apache-2.0 AND (MIT OR GPL-2.0-only )"
+	EXPECTED_NAME := "Apache License Version 2.0 AND ( MIT License OR GNU General Public License v2.0 only )"
 	EXPECTED_POLICY := schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 }
 
 func TestLicenseExpressionCompoundLeftSide(t *testing.T) {
 	EXP := "(Apache-1.0 OR Apache-1.1 ) AND 0BSD"
+	EXPECTED_NAME := "( Apache License Version 1.0 OR Apache License Version 1.1 ) AND BSD Zero Clause License"
 	EXPECTED_POLICY := schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 }
 
 // Test license expression entirely inside a logical group (i.e., outer parens)
 func TestLicenseExpressionSingleCompoundAllow(t *testing.T) {
 	EXP := "(MIT OR CC0-1.0)"
+	EXPECTED_NAME := "( MIT License OR Creative Commons Zero v1.0 Universal )"
 	EXPECTED_POLICY := schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 }
 
 func TestLicenseExpressionSingleCompoundUndefinedBoth(t *testing.T) {
 	EXP := "(FOO OR BAR)"
+	EXPECTED_NAME := "( NOASSERTION OR NOASSERTION )"
 	EXPECTED_POLICY := schema.POLICY_UNDEFINED
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 }
 
 func TestLicenseExpressionSingleCompoundUndefinedLeft(t *testing.T) {
 	EXP := "(FOO OR MIT)"
+	EXPECTED_NAME := "( NOASSERTION OR MIT License )"
 	EXPECTED_POLICY := schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 }
 
 func TestLicenseExpressionSingleCompoundUndefinedRight(t *testing.T) {
 	EXP := "(MIT OR BAR)"
+	EXPECTED_NAME := "( MIT License OR NOASSERTION )"
 	EXPECTED_POLICY := schema.POLICY_ALLOW
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 }
 
 func TestLicenseExpressionSingleCompoundInvalid(t *testing.T) {
 	EXP := "()"
+	EXPECTED_NAME := "(  )"
 	EXPECTED_POLICY := schema.POLICY_UNDEFINED
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 }
 
 func TestLicenseExpressionSingleCompoundInvalidAND(t *testing.T) {
 	EXP := "AND"
+	EXPECTED_NAME := " AND"
 	EXPECTED_POLICY := schema.POLICY_UNDEFINED
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 }
 
 func TestLicenseExpressionSingleCompoundInvalidOR(t *testing.T) {
 	EXP := "OR"
+	EXPECTED_NAME := " OR"
 	EXPECTED_POLICY := schema.POLICY_UNDEFINED
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 }
 
 func TestLicenseExpressionSingleCompoundInvalidAND2(t *testing.T) {
 	EXP := "AND GPL-2.0-only"
+	EXPECTED_NAME := " AND GNU General Public License v2.0 only"
 	EXPECTED_POLICY := schema.POLICY_DENY
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 }
 
 func TestLicenseExpressionSingleCompoundInvalidOR2(t *testing.T) {
 	EXP := "OR GPL-2.0-only"
+	EXPECTED_NAME := " OR GNU General Public License v2.0 only"
 	EXPECTED_POLICY := schema.POLICY_DENY
-	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_POLICY)
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 }
 
 // ---------------------------
