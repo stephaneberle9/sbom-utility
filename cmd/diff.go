@@ -69,7 +69,7 @@ func NewCommandDiff() *cobra.Command {
 	return command
 }
 
-func preRunTestForFiles(cmd *cobra.Command, args []string) error {
+func preRunTestForFiles(_ *cobra.Command, args []string) error {
 	getLogger().Enter()
 	defer getLogger().Exit()
 	getLogger().Tracef("args: %v", args)

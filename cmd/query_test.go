@@ -83,7 +83,7 @@ func innerQuery(t *testing.T, cti *CommonTestInfo, queryRequest *common.QueryReq
 	return
 }
 
-func innerBufferedTestQuery(t *testing.T, testInfo *CommonTestInfo, queryRequest *common.QueryRequest, queryResponse *common.QueryResponse) (resultJson interface{}, outputBuffer bytes.Buffer, err error) {
+func innerBufferedTestQuery(_ *testing.T, testInfo *CommonTestInfo, queryRequest *common.QueryRequest, queryResponse *common.QueryResponse) (resultJson interface{}, outputBuffer bytes.Buffer, err error) {
 
 	// The command looks for the input & output filename in global flags struct
 	utils.GlobalFlags.PersistentFlags.InputFile = testInfo.InputFile

@@ -282,7 +282,7 @@ func Execute() {
 }
 
 // Command PreRunE helper function to test for input file
-func preRunTestForInputFile(cmd *cobra.Command, args []string) error {
+func preRunTestForInputFile(_ *cobra.Command, args []string) error {
 	getLogger().Enter()
 	defer getLogger().Exit()
 	getLogger().Tracef("args: %v", args)
@@ -301,7 +301,7 @@ func preRunTestForInputFile(cmd *cobra.Command, args []string) error {
 
 // TODO: when the package "golang.org/x/exp/slices" is graduated from "experimental", replace
 // for loop with the "Contains" method.
-func preRunTestForSubcommand(cmd *cobra.Command, validSubcommands []string, subcommand string) bool {
+func preRunTestForSubcommand(_ *cobra.Command, validSubcommands []string, subcommand string) bool {
 	getLogger().Enter()
 	defer getLogger().Exit()
 	getLogger().Tracef("subcommands: %v, subcommand: `%v`", validSubcommands, subcommand)

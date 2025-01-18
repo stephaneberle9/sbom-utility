@@ -20,6 +20,7 @@ package cmd
 
 import (
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"io"
 	"sort"
@@ -335,7 +336,7 @@ func DisplayResourceListCSV(bom *schema.BOM, writer io.Writer) (err error) {
 			// unable to emit an error message into output stream
 			return getLogger().Errorf("error writing to output (%v): %s", currentRow, err)
 		}
-		return fmt.Errorf(currentRow[0])
+		return errors.New(currentRow[0])
 	}
 
 	// Sort by Type
@@ -390,7 +391,7 @@ func DisplayResourceListMarkdown(bom *schema.BOM, writer io.Writer) (err error) 
 	// Emit no resource found warning into output
 	if len(entries) == 0 {
 		fmt.Fprintf(writer, "%s\n", MSG_OUTPUT_NO_RESOURCES_FOUND)
-		return fmt.Errorf(MSG_OUTPUT_NO_RESOURCES_FOUND)
+		return errors.New(MSG_OUTPUT_NO_RESOURCES_FOUND)
 	}
 
 	// Sort by Type

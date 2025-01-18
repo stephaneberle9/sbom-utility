@@ -110,7 +110,7 @@ func retrieveWhereFilters(whereValues string) (whereFilters []common.WhereFilter
 // text rows according to parameterized constraints.
 // NOTE: Currently, only wraps []string values
 // TODO: Also wrap on "maxChar" (per column) limit
-func wrapTableRowText(maxChars int, joinChar string, columns ...interface{}) (tableData [][]string, err error) {
+func wrapTableRowText(_ int, _ string, columns ...interface{}) (tableData [][]string, err error) {
 
 	// calculate column dimension needed as max of slice sizes
 	numColumns := len(columns)

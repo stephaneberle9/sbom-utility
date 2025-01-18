@@ -20,6 +20,7 @@ package cmd
 
 import (
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"io"
 	"sort"
@@ -290,7 +291,7 @@ func DisplaySchemasMarkdown(writer io.Writer, filteredSchemas []schema.FormatSch
 	// Emit no schemas found warning into output
 	if len(filteredSchemas) == 0 {
 		fmt.Fprintf(writer, "%s\n", MSG_OUTPUT_NO_SCHEMAS_FOUND)
-		return fmt.Errorf(MSG_OUTPUT_NO_SCHEMAS_FOUND)
+		return errors.New(MSG_OUTPUT_NO_SCHEMAS_FOUND)
 	}
 
 	var line []string
@@ -343,7 +344,7 @@ func DisplaySchemasCSV(writer io.Writer, filteredSchemas []schema.FormatSchemaIn
 		if err = w.Write(currentRow); err != nil {
 			return getLogger().Errorf("error writing to output (%v): %s", currentRow, err)
 		}
-		return fmt.Errorf(currentRow[0])
+		return errors.New(currentRow[0])
 	}
 
 	var line []string

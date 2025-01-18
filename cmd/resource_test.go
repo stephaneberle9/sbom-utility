@@ -71,7 +71,7 @@ func NewResourceTestInfoBasic(inputFile string, listFormat string, resultExpecte
 // -------------------------------------------
 // resource list test helper functions
 // -------------------------------------------
-func innerBufferedTestResourceList(t *testing.T, testInfo *ResourceTestInfo, whereFilters []common.WhereFilter) (outputBuffer bytes.Buffer, err error) {
+func innerBufferedTestResourceList(_ *testing.T, testInfo *ResourceTestInfo, whereFilters []common.WhereFilter) (outputBuffer bytes.Buffer, err error) {
 	// Declare an output outputBuffer/outputWriter to use used during tests
 	var outputWriter = bufio.NewWriter(&outputBuffer)
 	// ensure all data is written to buffer before further validation

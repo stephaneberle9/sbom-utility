@@ -163,7 +163,7 @@ func loadComponentStats(document *schema.BOM) (err error) {
 	return
 }
 
-func loadDocumentStatisticalEntities(document *schema.BOM, statsFlags utils.StatsCommandFlags) (err error) {
+func loadDocumentStatisticalEntities(document *schema.BOM, _ utils.StatsCommandFlags) (err error) {
 	getLogger().Enter()
 	defer getLogger().Exit(err)
 

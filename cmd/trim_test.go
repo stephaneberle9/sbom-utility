@@ -97,7 +97,7 @@ func innerTestTrim(t *testing.T, testInfo *TrimTestInfo) (outputBuffer bytes.Buf
 	return
 }
 
-func innerBufferedTestTrim(t *testing.T, testInfo *TrimTestInfo) (outputBuffer bytes.Buffer, err error) {
+func innerBufferedTestTrim(_ *testing.T, testInfo *TrimTestInfo) (outputBuffer bytes.Buffer, err error) {
 
 	// The command looks for the input & output filename in global flags struct
 	utils.GlobalFlags.PersistentFlags.InputFile = testInfo.InputFile
