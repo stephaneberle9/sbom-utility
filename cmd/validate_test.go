@@ -101,7 +101,7 @@ func getGitRootDir() (result string, err error) {
 		cmd := exec.Command("git", "rev-parse", "--show-toplevel")
 		cmd.Dir = "."
 		output, e := cmd.Output()
-		if err != nil {
+		if e != nil {
 			getLogger().Tracef("unable to determine Git root directory: `%T`", err)
 			err = e
 			return
@@ -198,7 +198,7 @@ func innerTestValidate(t *testing.T, vti ValidateTestInfo) (document *schema.BOM
 	return
 }
 
-func innerValidateErrorBuffered(t *testing.T, persistentFlags utils.PersistentCommandFlags, validationFlags utils.ValidateCommandFlags) (isValid bool, document *schema.BOM, schemaErrors []gojsonschema.ResultError, outputBuffer bytes.Buffer, err error) {
+func innerValidateErrorBuffered(_ *testing.T, persistentFlags utils.PersistentCommandFlags, _ utils.ValidateCommandFlags) (isValid bool, document *schema.BOM, schemaErrors []gojsonschema.ResultError, outputBuffer bytes.Buffer, err error) {
 	// Declare an output outputBuffer/outputWriter to use used during tests
 	var outputWriter = bufio.NewWriter(&outputBuffer)
 	// ensure all data is written to buffer before further validation
@@ -456,7 +456,7 @@ func TestValidateCdx14ErrorResultsFormatIriReferencesJson(t *testing.T) {
 // Test custom config.json (i.e., `--config-schema` flag)
 // -----------------------------------------------------------
 
-func loadCustomSchemaConfig(t *testing.T, filename string) (err error) {
+func loadCustomSchemaConfig(_ *testing.T, filename string) (err error) {
 	// Do not pass a default file, it should fail if custom policy cannot be loaded
 	err = SupportedFormatConfig.InnerLoadSchemaConfigFile(filename, DEFAULT_SCHEMA_CONFIG)
 	if err != nil {
@@ -469,7 +469,7 @@ func restoreEmbeddedDefaultSchemaConfig(t *testing.T) (err error) {
 	return loadCustomSchemaConfig(t, "")
 }
 
-func innerValidateCustomSchemaConfig(t *testing.T, filename string, configFile string, variant string, format string, expectedError error) (document *schema.BOM, schemaErrors []gojsonschema.ResultError, actualError error) {
+func innerValidateCustomSchemaConfig(t *testing.T, _ string, configFile string, variant string, _ string, _ error) (document *schema.BOM, schemaErrors []gojsonschema.ResultError, actualError error) {
 	getLogger().Enter()
 	defer getLogger().Exit()
 
