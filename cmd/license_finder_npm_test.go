@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"github.com/CycloneDX/sbom-utility/schema"
+
 )
 
 // -------------------------------------------
@@ -98,7 +99,16 @@ func innerTestFindLicenseOfNpmComponent(t *testing.T, group string, name string,
 // ------------------------------------
 
 func TestIsApplicableToNpmComponent(t *testing.T) {
-	PURL := "pkg:npm/@babel/code-frame@7.24.7"
+	PURL := "pkg:npm/express@5.0.1"
+	innerTestIsApplicableToNpmComponent(t, PURL, true)
+
+	PURL = "pkg:npm/abbrev@2.0.0"
+	innerTestIsApplicableToNpmComponent(t, PURL, true)
+
+	PURL = "pkg:npm/boolbase@1.0.0"
+	innerTestIsApplicableToNpmComponent(t, PURL, true)
+
+	PURL = "pkg:npm/@babel/code-frame@7.24.7"
 	innerTestIsApplicableToNpmComponent(t, PURL, true)
 
 	PURL = "pkg:npm/@babel/helper-validator-identifier@7.24.7"
@@ -110,9 +120,39 @@ func TestIsApplicableToNpmComponent(t *testing.T) {
 
 func TestFindLicenseOfNpmComponent(t *testing.T) {
 	GROUP := ""
-	NAME := "express"
-	VERSION := ""
-	EXPECTED_LICENSE := "MIT"
+	NAME := "abbrev"
+	VERSION := "2.0.0"
+	EXPECTED_LICENSE := "ISC"
+	innerTestFindLicenseOfNpmComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE)
+
+	GROUP = ""
+	NAME = "boolbase"
+	VERSION = "1.0.0"
+	EXPECTED_LICENSE = "ISC"
+	innerTestFindLicenseOfNpmComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE)
+
+	GROUP = ""
+	NAME = "express"
+	VERSION = "5.0.1"
+	EXPECTED_LICENSE = "MIT"
+	innerTestFindLicenseOfNpmComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE)
+
+	GROUP = ""
+	NAME = "config-chain"
+	VERSION = "1.1.13"
+	EXPECTED_LICENSE = "MIT"
+	innerTestFindLicenseOfNpmComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE)
+
+	GROUP = ""
+	NAME = "memorystream"
+	VERSION = "0.3.1"
+	EXPECTED_LICENSE = "MIT"
+	innerTestFindLicenseOfNpmComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE)
+
+	GROUP = ""
+	NAME = "string-width-cjs"
+	VERSION = "4.2.3"
+	EXPECTED_LICENSE = "ISC"
 	innerTestFindLicenseOfNpmComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE)
 
 	GROUP = "@babel"

@@ -30,13 +30,20 @@ import (
 
 const (
 	// Matches component package URLs starting with 'pkg:npm' and containing complete group/artifact/version information
-	REGEX_NPM_PURL = `^pkg:npm/@?[\w\._-]+/[\w\._-]+@[\w\._-]+$`
+	REGEX_NPM_PURL = `^pkg:npm/(@?[\w\._-]+/)?[\w\._-]+@[\w\._-]+$`
 
 	NPM_BASE_URL = "https://registry.npmjs.org"
 )
 
 type PackageInfo struct {
-	License string `json:"license"`
+	Versions map[string]VersionInfo `json:"versions"`
+	License  interface{}            `json:"license"`
+	Licenses []interface{}          `json:"licenses"`
+}
+
+type VersionInfo struct {
+	License  interface{}   `json:"license"`
+	Licenses []interface{} `json:"licenses"`
 }
 
 type NpmComponentLicenseFinderData struct {
@@ -66,7 +73,7 @@ func (finder *NpmComponentLicenseFinderData) FindLicenses(cdxComponent schema.CD
 		return nil, err
 	}
 
-	licenseChoices, err := extractLicenseFromNpmPackageInfo(packageInfo)
+	licenseChoices, err := extractLicensesFromNpmPackageInfo(packageInfo, cdxComponent)
 	if err != nil {
 		return nil, err
 	}
@@ -114,12 +121,48 @@ func parsePackageInfoJson(packageInfoJson []byte) (packageInfo PackageInfo, err 
 	return
 }
 
-func extractLicenseFromNpmPackageInfo(packageInfo *PackageInfo) ([]schema.CDXLicenseChoice, error) {
-	// Retrieve value of license attribute
-	licenseString := packageInfo.License
+func extractLicensesFromNpmPackageInfo(packageInfo *PackageInfo, cdxComponent schema.CDXComponent) ([]schema.CDXLicenseChoice, error) {
+	// Collect license infos from license/licenses attribute from inside matching version info if any or from package info root otherwise
+	var licenseInfos []interface{}
+	if versionInfo, ok := packageInfo.Versions[cdxComponent.Version]; ok {
+		if versionInfo.License != nil {
+			licenseInfos = append(licenseInfos, versionInfo.License)
+		} else if versionInfo.Licenses != nil {
+			licenseInfos = append(licenseInfos, versionInfo.Licenses...)
+		}
+	} else {
+		if packageInfo.License != nil {
+			licenseInfos = append(licenseInfos, packageInfo.License)
+		} else if packageInfo.Licenses != nil {
+			licenseInfos = append(licenseInfos, packageInfo.Licenses...)
+		}
+	}
+	if len(licenseInfos) == 0 {
+		return nil, fmt.Errorf("package info for %s@%s has unexpected format", cdxComponent.Name, cdxComponent.Version)
+	}
+
+	// Retrieve string values of license attributes if they are simple or that nested type attribute if they are complex
+	var licenseStrings []string
+	for _, licenseInfo := range licenseInfos {
+		switch licenseInfo := licenseInfo.(type) {
+		case string:
+			licenseStrings = append(licenseStrings, licenseInfo)
+		case map[string]interface{}:
+			licenseType, ok := licenseInfo["type"].(string)
+			if !ok {
+				return nil, fmt.Errorf("license info for %s@%s has unexpected format", cdxComponent.Name, cdxComponent.Version)
+			}
+			licenseStrings = append(licenseStrings, licenseType)
+		default:
+			return nil, fmt.Errorf("license info for %s@%s has unexpected format", cdxComponent.Name, cdxComponent.Version)
+		}
+	}
+	if len(licenseStrings) == 0 {
+		return nil, fmt.Errorf("license for %s@%s not found", cdxComponent.Name, cdxComponent.Version)
+	}
 
 	// Build license choices
-	licenseChoices, err := licenseStringToLicenseChoices(licenseString)
+	licenseChoices, err := licenseStringsToLicenseChoices(licenseStrings)
 	if err != nil {
 		return nil, err
 	}

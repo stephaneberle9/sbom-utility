@@ -30,6 +30,7 @@ import (
 
 	"github.com/CycloneDX/sbom-utility/schema"
 	"github.com/patrickmn/go-cache"
+
 )
 
 type LicenseFinder interface {
@@ -160,28 +161,30 @@ func performHttpPostFormRequest(requestURL, formDataKey string, formData []byte)
 	return responseBody, nil
 }
 
-func licenseStringToLicenseChoices(licenseString string) (licenseChoices []schema.CDXLicenseChoice, err error) {
+func licenseStringToLicenseChoices(licenseString string) ([]schema.CDXLicenseChoice, error) {
+	return licenseStringsToLicenseChoices([]string{licenseString})
+}
+
+func licenseStringsToLicenseChoices(licenseStrings []string) (licenseChoices []schema.CDXLicenseChoice, err error) {
 	regex, err := getRegexForLicenseExpression()
 	if err != nil {
 		getLogger().Error(fmt.Errorf("unable to invoke regex. %v", err))
 		return
 	}
-
-	if regex.MatchString(licenseString) {
-		licenseChoices = []schema.CDXLicenseChoice{
-			{
+	
+	for _, licenseString := range licenseStrings {
+		if regex.MatchString(licenseString) {
+			licenseChoices = append(licenseChoices, schema.CDXLicenseChoice{
 				CDXLicenseExpression: schema.CDXLicenseExpression{
 					Expression: licenseString,
 				},
-			},
-		}
-	} else {
-		licenseChoices = []schema.CDXLicenseChoice{
-			{
+			})
+		} else {
+			licenseChoices = append(licenseChoices, schema.CDXLicenseChoice{
 				License: &schema.CDXLicense{
 					Id: licenseString,
 				},
-			},
+			})
 		}
 	}
 	return
