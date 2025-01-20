@@ -531,6 +531,23 @@
             ]
         },
         {
+            "id": "BlueOak-1.0.0",
+            "name": "Blue Oak Model License 1.0.0",
+            "family": "Blue-Oak",
+            "reference": "https://spdx.org/licenses/preview/BlueOak-1.0.0.html",
+            "osi": true,
+            "fsf": true,
+            "usagePolicy": "allow",
+            "annotationRefs": [
+                "APPROVED"
+            ],
+            "urls": [
+                "https://blueoakcouncil.org/license/1.0.0",
+                "https://blueoakcouncil.org/license/1.0.0.md",
+                "https://opensource.org/license/blue-oak-model-license"
+            ]
+        },
+        {
             "id": "Bouncy-Castle",
             "name": "Bouncy Castle Licence",
             "family": "Bouncy-Castle",
