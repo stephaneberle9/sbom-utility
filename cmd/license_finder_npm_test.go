@@ -155,6 +155,38 @@ func TestFindLicenseOfNpmComponent(t *testing.T) {
 	EXPECTED_LICENSE = "ISC"
 	innerTestFindLicenseOfNpmComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE)
 
+	// versions/0.1.3/licenses is spelled in plural and contains an array of object values
+	// (see https://registry.npmjs.org/word-wrap for details)
+	GROUP = ""
+	NAME = "word-wrap"
+	VERSION = "0.1.3"
+	EXPECTED_LICENSE = "MIT"
+	innerTestFindLicenseOfNpmComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE)
+
+	// versions/1.0.1/licenses is spelled in plural and contains a single object value
+	// (see https://registry.npmjs.org/word-wrap for details)
+	GROUP = ""
+	NAME = "word-wrap"
+	VERSION = "1.0.1"
+	EXPECTED_LICENSE = "MIT"
+	innerTestFindLicenseOfNpmComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE)
+
+	// versions/1.0.3/license is spelled in singular and contains a single object value
+	// (see https://registry.npmjs.org/word-wrap for details)
+	GROUP = ""
+	NAME = "word-wrap"
+	VERSION = "1.0.3"
+	EXPECTED_LICENSE = "MIT"
+	innerTestFindLicenseOfNpmComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE)
+
+	// versions/1.2.5/license is spelled in singular and contains a single string value
+	// (see https://registry.npmjs.org/word-wrap for details)
+	GROUP = ""
+	NAME = "word-wrap"
+	VERSION = "1.2.5"
+	EXPECTED_LICENSE = "MIT"
+	innerTestFindLicenseOfNpmComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE)
+
 	GROUP = "@babel"
 	NAME = "code-frame"
 	VERSION = "7.24.7"

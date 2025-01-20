@@ -36,14 +36,17 @@ const (
 )
 
 type PackageInfo struct {
+	LicenseInfo
 	Versions map[string]VersionInfo `json:"versions"`
-	License  interface{}            `json:"license"`
-	Licenses []interface{}          `json:"licenses"`
 }
 
 type VersionInfo struct {
+	LicenseInfo
+}
+
+type LicenseInfo struct {
 	License  interface{}   `json:"license"`
-	Licenses []interface{} `json:"licenses"`
+	Licenses interface{}   `json:"licenses"`
 }
 
 type NpmComponentLicenseFinderData struct {
@@ -122,23 +125,31 @@ func parsePackageInfoJson(packageInfoJson []byte) (packageInfo PackageInfo, err 
 }
 
 func extractLicensesFromNpmPackageInfo(packageInfo *PackageInfo, cdxComponent schema.CDXComponent) ([]schema.CDXLicenseChoice, error) {
-	// Collect license infos from license/licenses attribute from inside matching version info if any or from package info root otherwise
 	var licenseInfos []interface{}
-	if versionInfo, ok := packageInfo.Versions[cdxComponent.Version]; ok {
-		if versionInfo.License != nil {
-			licenseInfos = append(licenseInfos, versionInfo.License)
-		} else if versionInfo.Licenses != nil {
-			licenseInfos = append(licenseInfos, versionInfo.Licenses...)
-		}
-	} else {
-		if packageInfo.License != nil {
-			licenseInfos = append(licenseInfos, packageInfo.License)
-		} else if packageInfo.Licenses != nil {
-			licenseInfos = append(licenseInfos, packageInfo.Licenses...)
+	
+	collectLicenseInfos := func(licenseInfo LicenseInfo) {
+		if licenseInfo.License != nil {
+			licenseInfos = append(licenseInfos, licenseInfo.License)
+		} else if licenseInfo.Licenses != nil {
+			// Check if licenses is an array or a single object
+			if licenseInfoArray, exists := licenseInfo.Licenses.([]interface{}); exists {
+				// Collect all licenses from the array
+				licenseInfos = append(licenseInfos, licenseInfoArray...)
+			} else {
+				// Collect the single license object
+				licenseInfos = append(licenseInfos, licenseInfo.Licenses)
+			}
 		}
 	}
+
+	// Collect license infos from license/licenses attribute inside matching version info if any or directly from package info otherwise
+	if versionInfo, exists := packageInfo.Versions[cdxComponent.Version]; exists {
+		collectLicenseInfos(versionInfo.LicenseInfo)
+	} else {
+		collectLicenseInfos(packageInfo.LicenseInfo)
+	}
 	if len(licenseInfos) == 0 {
-		return nil, fmt.Errorf("package info for %s@%s has unexpected format", cdxComponent.Name, cdxComponent.Version)
+		return nil, fmt.Errorf("package info for %s@%s contains not license information", cdxComponent.Name, cdxComponent.Version)
 	}
 
 	// Retrieve string values of license attributes if they are simple or that nested type attribute if they are complex
