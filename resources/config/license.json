@@ -12,9 +12,7 @@
                 "APPROVED"
             ],
             "aliases": [
-                "itemis Closed",
-                "itemis Unlicensed",
-                "itemis None"
+                "itemis Closed"
             ],
             "urls": [
                 "https://www.itemis.com"
@@ -32,9 +30,7 @@
                 "APPROVED"
             ],
             "aliases": [
-                "itemis Closed",
-                "itemis Unlicensed",
-                "itemis None"
+                "itemis Closed"
             ],
             "urls": [
                 "https://legal.itemis.com/revisions/products/2.0.2/license_EN.html",
@@ -54,9 +50,7 @@
                 "APPROVED"
             ],
             "aliases": [
-                "itemis Closed",
-                "itemis Unlicensed",
-                "itemis None"
+                "itemis Closed"
             ],
             "urls": [
                 "https://legal.itemis.com/revisions/products/3.0.0/license_EN.html",
@@ -1395,9 +1389,6 @@
             ],
             "notes": [
                 "The \"CC-PDDC\" family assures this license is not confused with other \"CC-\" licenses"
-            ],
-            "aliases": [
-                "Public Domain"
             ]
         },
         {
@@ -3346,6 +3337,21 @@
             ]
         },
         {
+            "id": "SSLeay-standalone",
+            "name": "SSLeay License - standalone",
+            "family": "OpenSSL",
+            "reference": "https://spdx.org/licenses/SSLeay-standalone",
+            "osi": false,
+            "fsf": true,
+            "usagePolicy": "allow",
+            "annotationRefs": [
+                "APPROVED"
+            ],
+            "urls": [
+                "https://www.tq-group.com/filedownloads/files/software-license-conditions/OriginalSSLeay/OriginalSSLeay.pdf"
+            ]
+        },
+        {
             "id": "SSPL-1.0",
             "name": "Server Side Public License, v 1",
             "family": "SSPL",
@@ -3380,6 +3386,21 @@
             ],
             "urls": [
                 "https://ubuntu.com/legal/font-licence"
+            ]
+        },
+        {
+            "id": "Unicode-3.0",
+            "name": "Unicode License v3",
+            "family": "Unicode",
+            "reference": "https://spdx.org/licenses/Unicode-3.0.html",
+            "osi": false,
+            "fsf": false,
+            "usagePolicy": "allow",
+            "annotationRefs": [
+                "APPROVED"
+            ],
+            "urls": [
+                "https://www.unicode.org/license.txt"
             ]
         },
         {
@@ -3448,6 +3469,27 @@
                 "https://foss.heptapod.net/python-libs/passlib/-/blob/branch/stable/LICENSE#L70",
                 "https://opensource.apple.com/source/JBoss/JBoss-737/jboss-all/jetty/src/main/org/mortbay/util/UnixCrypt.java.auto.html",
                 "https://archive.eclipse.org/jetty/8.0.1.v20110908/xref/org/eclipse/jetty/http/security/UnixCrypt.html"
+            ]
+        },
+        {
+            "id": "Unlicense",
+            "name": "The Unlicense",
+            "family": "Unlicense",
+            "reference": "https://spdx.org/licenses/Unlicense",
+            "osi": false,
+            "fsf": false,
+            "usagePolicy": "allow",
+            "annotationRefs": [
+                "APPROVED"
+            ],
+            "urls": [
+                "https://unlicense.org"
+            ],
+            "notes": [
+                "This is a public domain dedication"
+            ],
+            "aliases": [
+                "Public Domain"
             ]
         },
         {
