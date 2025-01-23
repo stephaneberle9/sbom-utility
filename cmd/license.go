@@ -263,15 +263,8 @@ func hashComponentLicense(bom *schema.BOM, policyConfig *schema.LicensePolicyCon
 	defer getLogger().Exit(err)
 	var licenseInfo schema.LicenseInfo
 
-	// Extract group from name if the latter appears to be a composed name
-	// (e.g. "name": "org.apache.commons/commons-lang3" -> "group": "org.apache.commons", "name": "commons-lang3")
-	if cdxComponent.Group == "" && strings.Contains(cdxComponent.Name, "/") {
-		compositeName := strings.Split(cdxComponent.Name, "/")
-		if len(compositeName) == 2 {
-			cdxComponent.Group = compositeName[0]
-			cdxComponent.Name = compositeName[1]
-		}
-	}
+	normalizeGroupAndName(&cdxComponent)
+	stripUnknownLicenses(&cdxComponent)
 
 	pLicenses := cdxComponent.Licenses
 	if pLicenses == nil || len(*pLicenses) == 0 {
@@ -502,6 +495,33 @@ func hashLicenseInfoByLicenseType(bom *schema.BOM, policyConfig *schema.LicenseP
 		licenseInfo.ResourceName))
 	err = baseError
 	return
+}
+
+func normalizeGroupAndName(cdxComponent *schema.CDXComponent) {
+	// Extract group from name if the latter appears to be a composed name
+	// (e.g. "name": "org.apache.commons/commons-lang3" -> "group": "org.apache.commons", "name": "commons-lang3")
+	if cdxComponent.Group == "" && strings.Contains(cdxComponent.Name, "/") {
+		compositeName := strings.Split(cdxComponent.Name, "/")
+		if len(compositeName) == 2 {
+			cdxComponent.Group = compositeName[0]
+			cdxComponent.Name = compositeName[1]
+		}
+	}
+}
+
+func stripUnknownLicenses(cdxComponent *schema.CDXComponent) {
+	// Strip out any licenses that are marked as "Unknown"
+	if cdxComponent.Licenses != nil && len(*cdxComponent.Licenses) > 0 {
+		var knownLicenseChoices []schema.CDXLicenseChoice
+		for _, licenseChoice := range *cdxComponent.Licenses {
+			if licenseChoice.License != nil && strings.ToLower(licenseChoice.License.Name) == "unknown" {
+				continue
+			} else {
+				knownLicenseChoices = append(knownLicenseChoices, licenseChoice)
+			}
+		}
+		cdxComponent.Licenses = &knownLicenseChoices
+	}
 }
 
 func multipleLicensesToLicenseExpression(originalLicenses *[]schema.CDXLicenseChoice) (combinedLicenseChoice schema.CDXLicenseChoice, err error) {

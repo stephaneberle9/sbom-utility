@@ -714,6 +714,13 @@ func TestLicensePolicyMatchByExpFailureInvalidLeftExp(t *testing.T) {
 	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 }
 
+func TestLicensePolicyExpressionNoConjunction(t *testing.T) {
+	EXP := "Unicode-3.0"
+	EXPECTED_POLICY := schema.POLICY_ALLOW
+	EXPECTED_NAME := "Unicode License v3"
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
+}
+
 func TestLicensePolicyExpressionAndConjunction(t *testing.T) {
 	EXP := "EPL-1.0 AND CDDL-1.0"
 	EXPECTED_POLICY := schema.POLICY_ALLOW

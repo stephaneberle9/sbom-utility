@@ -210,6 +210,14 @@ func LookupLicenseForWellknownComponents(cdxComponent schema.CDXComponent) []sch
 		}
 	}
 
+	// Third-party Rust components
+	if cdxComponent.Group == "" {
+		if cdxComponent.Name == "ring" {
+			// https://github.com/briansmith/ring?tab=License-1-ov-file#readme
+			return licenseWithExpression("OpenSSL AND SSLeay-standalone AND ISC AND MIT")
+		}
+	}
+
 	return nil
 }
 
