@@ -531,6 +531,12 @@ func (config *LicensePolicyConfig) searchForLicenseFamilyName(licenseName string
 	getLogger().Enter()
 	defer getLogger().Exit()
 
+	if familyName = lookupFamilyNameForSpecialLicenseNameSynonyms(licenseName); familyName != "" {
+		found = true
+		getLogger().Debugf("Match found: License with special name synonym: '%s' belongs to license family: %s", licenseName, familyName)
+		return
+	}
+
 	familyNameMap, err := config.GetFamilyNameMap()
 	if err != nil {
 		getLogger().Error(err)
@@ -711,17 +717,19 @@ func policyConflictExists(arrPolicies []interface{}) bool {
 	return false
 }
 
-// Looks for an SPDX family (name) somewhere in the CDX License object "Name" field
-func containsFamilyName(name string, familyName string) bool {
-	// Handle special cases
-	if strings.HasPrefix(name, "ASF") {
-		return familyName == "Apache"
-	} else if strings.HasPrefix(name, "CDDL+GPL") {
-		return familyName == "CDDL"
-	} else if name == "Public Domain" {
-		return familyName == "CC-PDDC"
+func lookupFamilyNameForSpecialLicenseNameSynonyms(licenseName string) string {
+	if strings.HasPrefix(licenseName, "ASF") {
+		return "Apache"
+	} else if strings.HasPrefix(licenseName, "CDDL+GPL") {
+		return "CDDL"
+	} else if licenseName == "Public Domain" {
+		return "Unlicense"
 	}
+	return ""
+}
 
+// Looks for an SPDX family (name) somewhere in the CDX License object "Name" field
+func containsFamilyName(licenseName string, familyName string) bool {
 	// NOTE: we do not currently normalize as we assume family names
 	// are proper substring of SPDX IDs which are mixed case and
 	// should match exactly as encoded.
@@ -732,7 +740,7 @@ func containsFamilyName(name string, familyName string) bool {
 	// if strings.Contains(name, familyName) {
 	//  return true
 	// }
-	for _, word := range strings.Fields(name) {
+	for _, word := range strings.Fields(licenseName) {
 		if word == familyName {
 			return true
 		}
@@ -741,7 +749,7 @@ func containsFamilyName(name string, familyName string) bool {
 	// Check if license name contains family name with spaces instead of dashes
 	// (e.g., 'Bouncy Castle' instead of 'Bouncy-Castle')
 	relaxedFamilyName := strings.ReplaceAll(familyName, "-", " ")
-	if strings.Contains(name, relaxedFamilyName) {
+	if strings.Contains(licenseName, relaxedFamilyName) {
 		return true
 	}
 
@@ -752,9 +760,9 @@ func containsFamilyName(name string, familyName string) bool {
 		getLogger().Error(fmt.Errorf("unable to invoke regex. %v", err))
 		return false
 	}
-	strippedName := regex.ReplaceAllString(name, "")
-	strippedName = strings.TrimPrefix(strippedName, "The ")
-	words := strings.Fields(strippedName)
+	strippedLicenseName := regex.ReplaceAllString(licenseName, "")
+	strippedLicenseName = strings.TrimPrefix(strippedLicenseName, "The ")
+	words := strings.Fields(strippedLicenseName)
 	var initials string
 	for _, word := range words {
 		initials += string(word[0])
