@@ -123,6 +123,12 @@ func lookupLicenseForWellknownMavenComponents(cdxComponent schema.CDXComponent) 
 			}
 		}
 	}
+	if cdxComponent.Group == "org.jsweet.ext" {
+		if cdxComponent.Name == "typescript.java-ts.core" {
+			// https://github.com/cincheo/jsweet/blob/develop/typescript.java-ts.core/LICENSE
+			return licenseWithId("MIT")
+		}
+	}
 
 	return nil
 }
