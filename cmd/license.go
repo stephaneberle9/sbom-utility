@@ -263,7 +263,7 @@ func hashComponentLicense(bom *schema.BOM, policyConfig *schema.LicensePolicyCon
 	defer getLogger().Exit(err)
 	var licenseInfo schema.LicenseInfo
 
-	normalizeGroupAndName(&cdxComponent)
+	normalizeComponentGroupAndName(&cdxComponent)
 	stripUnknownLicenses(&cdxComponent)
 
 	pLicenses := cdxComponent.Licenses
@@ -285,6 +285,15 @@ func hashComponentLicense(bom *schema.BOM, policyConfig *schema.LicensePolicyCon
 	}
 
 	if pLicenses != nil && len(*pLicenses) > 0 {
+		// Fix up licenses with sloppy/really weird names
+		for _, licenseChoice := range *pLicenses {
+			err = licenseChoice.FixUp()
+			if err != nil {
+				return
+			}
+		}
+
+		// Combine multiple licenses into a single license expression
 		licenseInfo.LicenseChoice, err = multipleLicensesToLicenseExpression(pLicenses)
 		if err != nil {
 			return
@@ -420,70 +429,29 @@ func hashLicenseInfoByLicenseType(bom *schema.BOM, policyConfig *schema.LicenseP
 		}
 	}()
 
-	var licenseInfoKey string
-	pLicense := licenseInfo.LicenseChoice.License
-
-	if pLicense != nil {
-		if pLicense.Id != "" {
+	pLicense := licenseInfo.LicenseChoice
+	if pLicense.License != nil {
+		if pLicense.License.Id != "" {
 			licenseInfo.LicenseChoiceTypeValue = schema.LC_TYPE_ID
-			_, err = bom.HashLicenseInfo(policyConfig, pLicense.Id, licenseInfo, whereFilters)
+			_, err = bom.HashLicenseInfo(policyConfig, pLicense.License.Id, licenseInfo, whereFilters)
 			return
 		}
-
-		// Fix up licenses with sloppy/really weird names
-		if pLicense.Name != "" {
-			licenseInfoKey = pLicense.Name
-			// License name actually being a single or multiple license URLs?
-			if schema.IsUrlish(pLicense.Name) {
-				var licenseUrls []string
-				licenseUrls, err = schema.SplitUrls(pLicense.Name)
-				if err != nil {
-					return
-				}
-				if len(licenseUrls) == 1 {
-					// Move license URL to appropriate field
-					pLicense.Url = licenseUrls[0]
-				} else {
-					// Flip license into license expression using OR operator and license URLs instead of license ids
-					for i, url := range licenseUrls {
-						if i == 0 {
-							licenseInfo.LicenseChoice.Expression = url
-						} else {
-							licenseInfo.LicenseChoice.Expression += " " + schema.OR + " " + url
-						}
-					}
-				}
-				pLicense.Name = ""
-			}
-
-			// License name actually being a license expression?
-			if schema.HasLogicalConjunctionOrPreposition(pLicense.Name) {
-				// Flip license into license expression
-				licenseInfo.LicenseChoice.Expression = pLicense.Name
-				pLicense.Name = ""
-			}
-		} else {
-			licenseInfoKey = pLicense.Url
-		}
-
-		if pLicense.Name != "" {
+		if pLicense.License.Name != "" {
 			licenseInfo.LicenseChoiceTypeValue = schema.LC_TYPE_NAME
-			_, err = bom.HashLicenseInfo(policyConfig, licenseInfoKey, licenseInfo, whereFilters)
+			_, err = bom.HashLicenseInfo(policyConfig, pLicense.License.Name, licenseInfo, whereFilters)
 			return
 		}
-		if pLicense.Url != "" {
+		if pLicense.License.Url != "" {
 			licenseInfo.LicenseChoiceTypeValue = schema.LC_TYPE_NAME
-			_, err = bom.HashLicenseInfo(policyConfig, licenseInfoKey, licenseInfo, whereFilters)
+			_, err = bom.HashLicenseInfo(policyConfig, pLicense.License.Url, licenseInfo, whereFilters)
 			return
 		}
 	} else {
-		licenseInfoKey = licenseInfo.LicenseChoice.Expression
-	}
-
-	if licenseInfo.LicenseChoice.Expression != "" {
-		licenseInfo.LicenseChoiceTypeValue = schema.LC_TYPE_EXPRESSION
-		_, err = bom.HashLicenseInfo(policyConfig, licenseInfoKey, licenseInfo, whereFilters)
-		return
+		if pLicense.Expression != "" {
+			licenseInfo.LicenseChoiceTypeValue = schema.LC_TYPE_EXPRESSION
+			_, err = bom.HashLicenseInfo(policyConfig, pLicense.Expression, licenseInfo, whereFilters)
+			return
+		}
 	}
 
 	// Note: This code path only executes if hashing is performed
@@ -497,7 +465,7 @@ func hashLicenseInfoByLicenseType(bom *schema.BOM, policyConfig *schema.LicenseP
 	return
 }
 
-func normalizeGroupAndName(cdxComponent *schema.CDXComponent) {
+func normalizeComponentGroupAndName(cdxComponent *schema.CDXComponent) {
 	// Extract group from name if the latter appears to be a composed name
 	// (e.g. "name": "org.apache.commons/commons-lang3" -> "group": "org.apache.commons", "name": "commons-lang3")
 	if cdxComponent.Group == "" && strings.Contains(cdxComponent.Name, "/") {

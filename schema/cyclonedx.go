@@ -251,6 +251,55 @@ type CDXLicense struct {
 	Properties *[]CDXProperty `json:"properties,omitempty"` // v1.5: added
 }
 
+func (licenseChoice *CDXLicenseChoice) FixUp() error {
+	if licenseChoice.License != nil {
+		pLicense := licenseChoice.License
+		if pLicense.Id != "" {
+			return nil
+		}
+
+		if pLicense.Name != "" {
+			// License name actually being an SPDX id?
+			if IsValidSpdxId(pLicense.Name) {
+				// Move license id to appropriate field
+				pLicense.Id = pLicense.Name
+				pLicense.Name = ""
+			}
+
+			// License name actually being a single or multiple license URLs?
+			if IsUrlish(pLicense.Name) {
+				licenseUrls, err := SplitUrls(pLicense.Name)
+				if err != nil {
+					return err
+				}
+				if len(licenseUrls) == 1 {
+					// Move license URL to appropriate field
+					pLicense.Url = licenseUrls[0]
+				} else {
+					// Flip license choice into license expression using OR operator and license URLs instead of license ids
+					for i, url := range licenseUrls {
+						if i == 0 {
+							licenseChoice.Expression = url
+						} else {
+							licenseChoice.Expression += " " + OR + " " + url
+						}
+					}
+				}
+				pLicense.Name = ""
+			}
+
+			// License name actually being a license expression?
+			if HasLogicalConjunctionOrPreposition(pLicense.Name) {
+				// Flip license choice into license expression
+				licenseChoice.Expression = pLicense.Name
+				pLicense.Name = ""
+			}
+		}
+	}
+
+	return nil
+}
+
 // v1.5: added
 type CDXLicensing struct {
 	AltIds        *[]string             `json:"altIds,omitempty"`
