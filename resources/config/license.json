@@ -1020,6 +1020,9 @@
             ],
             "urls": [
                 "https://creativecommons.org/publicdomain/zero/1.0/legalcode"
+            ],
+            "aliases": [
+                "Public Domain, per Creative Commons CC0"
             ]
         },
         {
@@ -2550,7 +2553,8 @@
             ],
             "urls": [
                 "https://www.gnu.org/licenses/old-licenses/lgpl-2.0-standalone.html",
-                "https://www.gnu.org/licenses/gpl-2.0-standalone.html"
+                "https://www.gnu.org/licenses/gpl-2.0-standalone.html",
+                "https://opensource.org/licenses/LGPL-2.0"
             ]
         },
         {
@@ -2567,7 +2571,8 @@
             ],
             "urls": [
                 "https://www.gnu.org/licenses/old-licenses/lgpl-2.0-standalone.html",
-                "https://www.gnu.org/licenses/gpl-2.0-standalone.html"
+                "https://www.gnu.org/licenses/gpl-2.0-standalone.html",
+                "https://opensource.org/licenses/LGPL-2.0"
             ]
         },
         {
@@ -2584,7 +2589,8 @@
             ],
             "urls": [
                 "https://www.gnu.org/licenses/old-licenses/lgpl-2.0-standalone.html",
-                "https://www.gnu.org/licenses/gpl-2.0-standalone.html"
+                "https://www.gnu.org/licenses/gpl-2.0-standalone.html",
+                "https://opensource.org/licenses/LGPL-2.0"
             ]
         },
         {
@@ -2602,10 +2608,11 @@
             ],
             "urls": [
                 "https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html",
-                "https://www.gnu.org/licenses/lgpl-2.1-standalone.html",
                 "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html",
                 "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html",
                 "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt",
+                "https://www.gnu.org/licenses/old-licenses/lgpl-2.1",
+                "https://www.gnu.org/licenses/lgpl-2.1-standalone.html",
                 "https://www.gnu.org/licenses/lgpl-2.1.txt",
                 "https://opensource.org/licenses/LGPL-2.1"
             ]
@@ -2624,10 +2631,11 @@
             ],
             "urls": [
                 "https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html",
-                "https://www.gnu.org/licenses/lgpl-2.1-standalone.html",
                 "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html",
                 "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html",
                 "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt",
+                "https://www.gnu.org/licenses/old-licenses/lgpl-2.1",
+                "https://www.gnu.org/licenses/lgpl-2.1-standalone.html",
                 "https://www.gnu.org/licenses/lgpl-2.1.txt",
                 "https://opensource.org/licenses/LGPL-2.1"
             ]
@@ -2646,10 +2654,11 @@
             ],
             "urls": [
                 "https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html",
-                "https://www.gnu.org/licenses/lgpl-2.1-standalone.html",
                 "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html",
                 "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html",
                 "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt",
+                "https://www.gnu.org/licenses/old-licenses/lgpl-2.1",
+                "https://www.gnu.org/licenses/lgpl-2.1-standalone.html",
                 "https://www.gnu.org/licenses/lgpl-2.1.txt",
                 "https://opensource.org/licenses/LGPL-2.1"
             ]
@@ -2670,7 +2679,8 @@
             "urls": [
                 "https://www.gnu.org/licenses/lgpl-3.0-standalone.html",
                 "https://www.gnu.org/licenses/lgpl+gpl-3.0.txt",
-                "https://opensource.org/licenses/LGPL-3.0"
+                "https://opensource.org/licenses/LGPL-3.0",
+                "http://www.gnu.org/licenses/lgpl.html"
             ]
         },
         {
@@ -2688,7 +2698,8 @@
             "urls": [
                 "https://www.gnu.org/licenses/lgpl-3.0-standalone.html",
                 "https://www.gnu.org/licenses/lgpl+gpl-3.0.txt",
-                "https://opensource.org/licenses/LGPL-3.0"
+                "https://opensource.org/licenses/LGPL-3.0",
+                "http://www.gnu.org/licenses/lgpl.html"
             ]
         },
         {
@@ -2706,7 +2717,8 @@
             "urls": [
                 "https://www.gnu.org/licenses/lgpl-3.0-standalone.html",
                 "https://www.gnu.org/licenses/lgpl+gpl-3.0.txt",
-                "https://opensource.org/licenses/LGPL-3.0"
+                "https://opensource.org/licenses/LGPL-3.0",
+                "http://www.gnu.org/licenses/lgpl.html"
             ]
         },
         {
