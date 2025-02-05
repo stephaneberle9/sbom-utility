@@ -59,6 +59,24 @@
             ]
         },
         {
+            "id": "LicenseRef-client-io-Closed",
+            "name": "JointJS+ General License Statement and Limited Warranty",
+            "family": "client-io-Closed",
+            "reference": "https://en.wikipedia.org/wiki/Proprietary_software",
+            "osi": false,
+            "fsf": false,
+            "usagePolicy": "allow",
+            "annotationRefs": [
+                "APPROVED"
+            ],
+            "aliases": [
+                "client IO Closed"
+            ],
+            "urls": [
+                "https://www.jointjs.com/license"
+            ]
+        },
+        {
             "id": "0BSD",
             "name": "BSD Zero Clause License",
             "family": "0BSD",
@@ -3076,10 +3094,9 @@
             "osi": true,
             "fsf": true,
             "annotationRefs": [
-                "NEEDS-APPROVAL",
-                "NEEDS-IP-LEGAL-REVIEW"
+                "APPROVED"
             ],
-            "usagePolicy": "needs-review",
+            "usagePolicy": "allow",
             "urls":[
                 "http://scripts.sil.org/cms/scripts/page.php?item_id\u003dOFL_web",
                 "https://opensource.org/licenses/OFL-1.1"
@@ -3093,10 +3110,9 @@
             "osi": true,
             "fsf": false,
             "annotationRefs": [
-                "NEEDS-APPROVAL",
-                "NEEDS-IP-LEGAL-REVIEW"
+                "APPROVED"
             ],
-            "usagePolicy": "needs-review",
+            "usagePolicy": "allow",
             "urls":[
                 "http://scripts.sil.org/cms/scripts/page.php?item_id\u003dOFL_web",
                 "https://opensource.org/licenses/OFL-1.1"
@@ -3110,10 +3126,9 @@
             "osi": true,
             "fsf": false,
             "annotationRefs": [
-                "NEEDS-APPROVAL",
-                "NEEDS-IP-LEGAL-REVIEW"
+                "APPROVED"
             ],
-            "usagePolicy": "needs-review",
+            "usagePolicy": "allow",
             "urls":[
                 "http://scripts.sil.org/cms/scripts/page.php?item_id\u003dOFL_web",
                 "https://opensource.org/licenses/OFL-1.1"
