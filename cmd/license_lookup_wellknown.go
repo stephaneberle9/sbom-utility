@@ -263,6 +263,18 @@ func lookupLicenseForWellknownNpmComponents(cdxComponent schema.CDXComponent) []
 		}
 	}
 
+	// Third-party commercial components
+	if cdxComponent.Group == "@clientio" {
+		if cdxComponent.Name == "rappid" {
+			return licenseWithId("LicenseRef-client-io-Closed")
+		}
+	}
+	if cdxComponent.Group == "@joint" {
+		if cdxComponent.Name == "plus" {
+			return licenseWithId("LicenseRef-client-io-Closed")
+		}
+	}
+
 	return nil
 }
 
