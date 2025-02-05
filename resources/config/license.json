@@ -352,12 +352,14 @@
                 "https://www.apache.org/licenses/LICENSE-2.0.txt",
                 "http://www.apache.org/licenses/LICENSE-2.0.txt",
                 "http://www.apache.org/licenses/LICENSE-2.0.html",
+                "https://www.apache.org/licenses/LICENSE-2.0.html",
                 "https://opensource.org/licenses/Apache-2.0",
                 "https://www.opensource.org/licenses/apache2.0.php",
                 "http://www.opensource.org/licenses/apache2.0.php"
             ],
             "aliases": [
                 "Apache 2.0",
+                "Apache License 2.0",
                 "Apache License, Version 2.0",
                 "Apache License v. 2.0",
                 "Apache License Version 2.0",
@@ -682,7 +684,8 @@
                 "Modified BSD License",
                 "Revised BSD",
                 "BSD License",
-                "The BSD License"
+                "The BSD License",
+                "Eclipse Distribution License (New BSD License)"
             ]
         },
         {
@@ -956,7 +959,6 @@
                 "BSD Bootstrap",
                 "BSD Bzip2",
                 "BSD DOM4J",
-                "BSD Eclipse Distribution License (EDL)",
                 "BSD HSQLDB",
                 "BSD Infozip",
                 "BSD Jaxen",
@@ -1404,7 +1406,7 @@
             ],
             "urls": [
                 "https://opensource.org/licenses/cddl1",
-                "http://www.eclipse.org/org/documents/edl-v10.php"
+                "http://www.opensource.org/licenses/cddl1.php"
             ]
         },
         {
@@ -2601,6 +2603,10 @@
             "urls": [
                 "https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html",
                 "https://www.gnu.org/licenses/lgpl-2.1-standalone.html",
+                "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html",
+                "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html",
+                "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt",
+                "https://www.gnu.org/licenses/lgpl-2.1.txt",
                 "https://opensource.org/licenses/LGPL-2.1"
             ]
         },
@@ -2620,6 +2626,7 @@
                 "https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html",
                 "https://www.gnu.org/licenses/lgpl-2.1-standalone.html",
                 "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html",
+                "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html",
                 "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt",
                 "https://www.gnu.org/licenses/lgpl-2.1.txt",
                 "https://opensource.org/licenses/LGPL-2.1"
@@ -2640,6 +2647,10 @@
             "urls": [
                 "https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html",
                 "https://www.gnu.org/licenses/lgpl-2.1-standalone.html",
+                "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html",
+                "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html",
+                "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt",
+                "https://www.gnu.org/licenses/lgpl-2.1.txt",
                 "https://opensource.org/licenses/LGPL-2.1"
             ]
         },
@@ -2713,10 +2724,13 @@
                 "https://opensource.org/licenses/MIT",
                 "http://www.opensource.org/licenses/mit-license.php",
                 "https://jsoup.org/license",
-                "https://www.bouncycastle.org/licence.html"
+                "https://www.bouncycastle.org/licence.html",
+                "https://github.com/mockito/mockito/blob/main/LICENSE"
             ],
             "aliases": [
-                "MIT license"
+                "MIT",
+                "MIT license",
+                "The MIT License"
             ]
         },
         {
