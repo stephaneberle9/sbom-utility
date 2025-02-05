@@ -86,9 +86,15 @@ func innerTestFindLicenseOfNpmComponent(t *testing.T, group string, name string,
 			return
 		}
 	} else {
-		if licenseChoices[0].License.Id != expectedLicense {
+		var actualLicense string
+		if schema.IsValidSpdxId(expectedLicense) {
+			actualLicense = licenseChoices[0].License.Id
+		} else {
+			actualLicense = licenseChoices[0].License.Name
+		}
+		if actualLicense != expectedLicense {
 			t.Errorf("License: expected `%s`, actual `%s`\n",
-				expectedLicense, licenseChoices[0].License.Id)
+				expectedLicense, actualLicense)
 			return
 		}
 	}
@@ -191,5 +197,17 @@ func TestFindLicenseOfNpmComponent(t *testing.T) {
 	NAME = "code-frame"
 	VERSION = "7.24.7"
 	EXPECTED_LICENSE = "MIT"
+	innerTestFindLicenseOfNpmComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE)
+
+	GROUP = "@vue"
+	NAME = "compiler-sfc"
+	VERSION = "2.7.16"
+	EXPECTED_LICENSE = "MIT"
+	innerTestFindLicenseOfNpmComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE)
+
+	GROUP = ""
+	NAME = "rgbcolor"
+	VERSION = "0.0.4"
+	EXPECTED_LICENSE = "Public Domain"
 	innerTestFindLicenseOfNpmComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE)
 }

@@ -145,7 +145,8 @@ func extractLicensesFromNpmPackageInfo(packageInfo *PackageInfo, cdxComponent sc
 	// Collect license infos from license/licenses attribute inside matching version info if any or directly from package info otherwise
 	if versionInfo, exists := packageInfo.Versions[cdxComponent.Version]; exists {
 		collectLicenseInfos(versionInfo.LicenseInfo)
-	} else {
+	}
+	if len(licenseInfos) == 0 {
 		collectLicenseInfos(packageInfo.LicenseInfo)
 	}
 	if len(licenseInfos) == 0 {

@@ -181,11 +181,19 @@ func licenseStringsToLicenseChoices(licenseStrings []string) (licenseChoices []s
 				},
 			})
 		} else {
-			licenseChoices = append(licenseChoices, schema.CDXLicenseChoice{
-				License: &schema.CDXLicense{
-					Id: strings.TrimSpace(licenseString),
-				},
-			})
+			if schema.IsValidSpdxId(licenseString) {
+				licenseChoices = append(licenseChoices, schema.CDXLicenseChoice{
+					License: &schema.CDXLicense{
+						Id: strings.TrimSpace(licenseString),
+					},
+				})
+			} else {
+				licenseChoices = append(licenseChoices, schema.CDXLicenseChoice{
+					License: &schema.CDXLicense{
+						Name: strings.TrimSpace(licenseString),
+					},
+				})
+			}
 		}
 	}
 	return
