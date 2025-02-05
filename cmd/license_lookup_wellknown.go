@@ -27,6 +27,26 @@ import (
 
 func LookupLicenseForWellknownComponents(cdxComponent schema.CDXComponent) []schema.CDXLicenseChoice {
 
+	if licenseChoices := lookupLicenseForWellknownMavenComponents(cdxComponent); licenseChoices != nil {
+		return licenseChoices
+	}
+
+	if licenseChoices := lookupLicenseForWellknownP2Components(cdxComponent); licenseChoices != nil {
+		return licenseChoices
+	}
+
+	if licenseChoices := lookupLicenseForWellknownNpmComponents(cdxComponent); licenseChoices != nil {
+		return licenseChoices
+	}
+
+	if licenseChoices := lookupLicenseForWellknownRustComponents(cdxComponent); licenseChoices != nil {
+		return licenseChoices
+	}
+
+	return nil
+}
+
+func lookupLicenseForWellknownMavenComponents(cdxComponent schema.CDXComponent) []schema.CDXLicenseChoice {
 	// JetBrains components
 	if cdxComponent.Group == "com.jetbrains.jdk" {
 		if cdxComponent.Name == "jbr_jcef" {
@@ -74,9 +94,14 @@ func LookupLicenseForWellknownComponents(cdxComponent schema.CDXComponent) []sch
 			return licenseWithId("Apache-2.0")
 		}
 	}
+	if cdxComponent.Group == "com.itemis.solutions" {
+		if cdxComponent.Name == "platform-client-sdk-okhttp" || cdxComponent.Name == "platform-client-sdk-vertx" || cdxComponent.Name == "platform-client-sdk-kotlin-ktor" {
+			return licenseWithId("Apache-2.0")
+		}
+	}
 
 	// Yakindu components
-	if cdxComponent.Group == "p2.eclipse.plugin" || cdxComponent.Group == "p2.eclipse.feature" || cdxComponent.Group == "p2.p2.installable.unit" || strings.HasPrefix(cdxComponent.Group, "com.itemis") || strings.HasPrefix(cdxComponent.Group, "com.yakindu") || strings.HasPrefix(cdxComponent.Group, "org.yakindu") {
+	if strings.HasPrefix(cdxComponent.Group, "com.itemis") || strings.HasPrefix(cdxComponent.Group, "com.yakindu") || strings.HasPrefix(cdxComponent.Group, "org.yakindu") {
 			if strings.HasPrefix(cdxComponent.Name, "com.itemis") || strings.HasPrefix(cdxComponent.Name, "com.yakindu") || strings.HasPrefix(cdxComponent.Name, "org.yakindu") {
 					return licenseWithId("LicenseRef-itemis-Closed-2.0.2")
 			}
@@ -96,6 +121,17 @@ func LookupLicenseForWellknownComponents(cdxComponent schema.CDXComponent) []sch
 				// https://github.com/palantir/trove
 				return licenseWithId("LGPL-2.1")
 			}
+		}
+	}
+
+	return nil
+}
+
+func lookupLicenseForWellknownP2Components(cdxComponent schema.CDXComponent) []schema.CDXLicenseChoice {
+	// Yakindu components
+	if cdxComponent.Group == "p2.eclipse.plugin" || cdxComponent.Group == "p2.eclipse.feature" || cdxComponent.Group == "p2.p2.installable.unit" {
+		if strings.HasPrefix(cdxComponent.Name, "com.itemis") || strings.HasPrefix(cdxComponent.Name, "com.yakindu") || strings.HasPrefix(cdxComponent.Name, "org.yakindu") {
+				return licenseWithId("LicenseRef-itemis-Closed-2.0.2")
 		}
 	}
 
@@ -210,6 +246,21 @@ func LookupLicenseForWellknownComponents(cdxComponent schema.CDXComponent) []sch
 		}
 	}
 
+	return nil
+}
+
+func lookupLicenseForWellknownNpmComponents(cdxComponent schema.CDXComponent) []schema.CDXLicenseChoice {
+	// itemis components
+	if cdxComponent.Group == "@itemis-solutions" {
+		if cdxComponent.Name == "platform-client-sdk" {
+			return licenseWithId("Apache-2.0")
+		}
+	}
+
+	return nil
+}
+
+func lookupLicenseForWellknownRustComponents(cdxComponent schema.CDXComponent) []schema.CDXLicenseChoice {
 	// Third-party Rust components
 	if cdxComponent.Group == "" {
 		if cdxComponent.Name == "ring" {
