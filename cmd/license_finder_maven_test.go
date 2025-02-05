@@ -515,6 +515,13 @@ func TestFindLicenseOfMavenComponent(t *testing.T) {
 	EXPECTED_LICENSE = "MIT License"
 	EXPECTED_LICENSE_URL = "http://www.opensource.org/licenses/mit-license.php"
 	innerTestFindLicenseOfMavenComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE, EXPECTED_LICENSE_URL)
+
+	GROUP = "javax.ws.rs"
+	NAME = "jsr311-api"
+	VERSION = "1.1.1"
+	EXPECTED_LICENSE = "CDDL License"
+	EXPECTED_LICENSE_URL = "http://www.opensource.org/licenses/cddl1.php"
+	innerTestFindLicenseOfMavenComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE, EXPECTED_LICENSE_URL)
 }
 
 func TestFindLicensesOfMavenComponent(t *testing.T) {

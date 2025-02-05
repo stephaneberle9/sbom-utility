@@ -29,6 +29,7 @@ import (
 	"github.com/CycloneDX/sbom-utility/schema"
 	"github.com/vifraa/gopom"
 	"golang.org/x/net/html/charset"
+
 )
 
 const (
@@ -141,10 +142,10 @@ func extractLicensesFromPom(pom *gopom.Project) (licenseChoices []schema.CDXLice
 				License: &schema.CDXLicense{},
 			}
 			if pomLicense.Name != nil {
-				licenseChoice.License.Name = *pomLicense.Name
+				licenseChoice.License.Name = strings.TrimSpace(*pomLicense.Name)
 			}
 			if pomLicense.URL != nil {
-				licenseChoice.License.Url = *pomLicense.URL
+				licenseChoice.License.Url = strings.TrimSpace(*pomLicense.URL)
 			}
 			licenseChoices = append(licenseChoices, licenseChoice)
 		}

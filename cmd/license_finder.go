@@ -26,6 +26,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"regexp"
 
 	"github.com/CycloneDX/sbom-utility/schema"
@@ -176,13 +177,13 @@ func licenseStringsToLicenseChoices(licenseStrings []string) (licenseChoices []s
 		if regex.MatchString(licenseString) {
 			licenseChoices = append(licenseChoices, schema.CDXLicenseChoice{
 				CDXLicenseExpression: schema.CDXLicenseExpression{
-					Expression: licenseString,
+					Expression: strings.TrimSpace(licenseString),
 				},
 			})
 		} else {
 			licenseChoices = append(licenseChoices, schema.CDXLicenseChoice{
 				License: &schema.CDXLicense{
-					Id: licenseString,
+					Id: strings.TrimSpace(licenseString),
 				},
 			})
 		}
