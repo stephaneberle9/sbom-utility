@@ -256,22 +256,52 @@ func lookupLicenseForWellknownP2Components(cdxComponent schema.CDXComponent) []s
 }
 
 func lookupLicenseForWellknownNpmComponents(cdxComponent schema.CDXComponent) []schema.CDXLicenseChoice {
+	// Modelix components
+	if cdxComponent.Group == "@modelix" {
+		return licenseWithId("Apache-2.0")
+	}
+
 	// itemis components
+	if cdxComponent.Group == "@itemis-solutions" {
+		if cdxComponent.Name == "platform-web-components" {
+			return licenseWithId("LicenseRef-itemis-Closed")
+		}
+	}
 	if cdxComponent.Group == "@itemis-solutions" {
 		if cdxComponent.Name == "platform-client-sdk" {
 			return licenseWithId("Apache-2.0")
 		}
 	}
+	if cdxComponent.Group == "@itemis-secure" {
+		if cdxComponent.Name == "calculation" || cdxComponent.Name == "ts-model" {
+			return licenseWithId("LicenseRef-itemis-Closed")
+		}
+	}
+	if cdxComponent.Group == "@itemis-secure" {
+		if cdxComponent.Name == "repository-client-sdk" {
+			return licenseWithId("Apache-2.0")
+		}
+	}
 
 	// Third-party commercial components
-	if cdxComponent.Group == "@clientio" {
+	if cdxComponent.Group == "@clientio" || cdxComponent.Group == ""{
 		if cdxComponent.Name == "rappid" {
+			// https://www.jointjs.com/license
 			return licenseWithId("LicenseRef-client-io-Closed")
 		}
 	}
 	if cdxComponent.Group == "@joint" {
 		if cdxComponent.Name == "plus" {
+			// https://www.jointjs.com/license
 			return licenseWithId("LicenseRef-client-io-Closed")
+		}
+	}
+
+	// Third-party components not advertising any license in npm registry
+	if cdxComponent.Group == "" {
+		if cdxComponent.Name == "browser-assert" {
+			// https://github.com/socialally/browser-assert/blob/master/LICENSE
+			return licenseWithId("MIT")
 		}
 	}
 
