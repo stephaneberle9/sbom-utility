@@ -129,14 +129,44 @@ func extractLicensesFromNpmPackageInfo(packageInfo *PackageInfo, cdxComponent sc
 	
 	collectLicenseInfos := func(licenseInfo LicenseInfo) {
 		if licenseInfo.License != nil {
-			licenseInfos = append(licenseInfos, licenseInfo.License)
+			// Check if license is an array or a single object
+			if licenseInfoArray, exists := licenseInfo.License.([]interface{}); exists {
+				// Collect all licenses from the array, e.g.,
+				//
+				// "license": [
+				//   "MIT",
+				//   "Apache2"
+				// ]
+				//
+				licenseInfos = append(licenseInfos, licenseInfoArray...)
+			} else {
+				// Collect the single license object, e.g.,
+				//
+				// "license": "MIT"
+				//
+				licenseInfos = append(licenseInfos, licenseInfo.License)
+			}
 		} else if licenseInfo.Licenses != nil {
 			// Check if licenses is an array or a single object
 			if licenseInfoArray, exists := licenseInfo.Licenses.([]interface{}); exists {
-				// Collect all licenses from the array
+				// Collect all licenses from the array, e.g.,
+				//
+				// "licenses": [
+				//     {
+				//         "type": "MIT",
+				//         "url": "https://github.com/jonschlinkert/word-wrap/blob/master/LICENSE-MIT"
+				//     }
+				// ]
+				//
 				licenseInfos = append(licenseInfos, licenseInfoArray...)
 			} else {
-				// Collect the single license object
+				// Collect the single license object, e.g.,
+				//
+				// "licenses": {
+				//     "type": "MIT",
+				//     "url": "https://github.com/jonschlinkert/word-wrap/blob/master/LICENSE-MIT"
+				// }
+				//
 				licenseInfos = append(licenseInfos, licenseInfo.Licenses)
 			}
 		}

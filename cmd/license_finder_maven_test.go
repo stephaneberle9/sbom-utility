@@ -79,25 +79,25 @@ func innerTestFindLicensesOfMavenComponent(t *testing.T, group string, name stri
 		return
 	}
 
-	foundLicenses := make([]string, len(licenseChoices))
-	foundLicenseUrls := make([]string, len(licenseChoices))
+	actualLicenses := make([]string, len(licenseChoices))
+	actualLicenseUrls := make([]string, len(licenseChoices))
 	for i, licenseChoice := range licenseChoices {
 		if licenseChoice.License != nil {
-			foundLicenses[i] = licenseChoice.License.Name
-			foundLicenseUrls[i] = licenseChoice.License.Url
+			actualLicenses[i] = licenseChoice.License.Name
+			actualLicenseUrls[i] = licenseChoice.License.Url
 		}
 	}
 
-	slices.Sort(foundLicenses)
-	slices.Sort(foundLicenseUrls)
+	slices.Sort(actualLicenses)
+	slices.Sort(actualLicenseUrls)
 	slices.Sort(expectedLicenses)
 	slices.Sort(expectedLicenseUrls)
-	if !slices.Equal(foundLicenses, expectedLicenses) {
-		t.Errorf("License(s): expected `%s`, actual `%s`\n", strings.Join(expectedLicenses, ","), strings.Join(foundLicenses, ","))
+	if !slices.Equal(actualLicenses, expectedLicenses) {
+		t.Errorf("License(s): expected `%s`, actual `%s`\n", strings.Join(expectedLicenses, ","), strings.Join(actualLicenses, ","))
 		return
 	}
-	if !slices.Equal(foundLicenseUrls, expectedLicenseUrls) {
-		t.Errorf("License URL(s): expected `%s`, actual `%s`\n", strings.Join(expectedLicenseUrls, ","), strings.Join(foundLicenseUrls, ","))
+	if !slices.Equal(actualLicenseUrls, expectedLicenseUrls) {
+		t.Errorf("License URL(s): expected `%s`, actual `%s`\n", strings.Join(expectedLicenseUrls, ","), strings.Join(actualLicenseUrls, ","))
 		return
 	}
 }

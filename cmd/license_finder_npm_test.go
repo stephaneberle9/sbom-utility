@@ -20,6 +20,8 @@ package cmd
 
 import (
 	"testing"
+	"strings"
+	"slices"
 
 	"github.com/CycloneDX/sbom-utility/schema"
 
@@ -51,6 +53,10 @@ func innerTestIsApplicableToNpmComponent(t *testing.T, purl string, expectedResu
 }
 
 func innerTestFindLicenseOfNpmComponent(t *testing.T, group string, name string, version string, expectedLicense string) {
+	innerTestFindLicensesOfNpmComponent(t, group, name, version, []string{expectedLicense})
+}
+
+func innerTestFindLicensesOfNpmComponent(t *testing.T, group string, name string, version string, expectedLicenses []string) {
 	t.Logf("Component under test: `%s:%s:%s`", group, name, version)
 
 	var err error
@@ -69,34 +75,29 @@ func innerTestFindLicenseOfNpmComponent(t *testing.T, group string, name string,
 		t.Errorf("no license found in package info of component `%v`\n", cdxComponent)
 		return
 	}
-	if len(licenseChoices) > 1 {
-		t.Errorf("to many licenses found in POM of component `%v`\n", cdxComponent)
+	if len(licenseChoices) > len(expectedLicenses) {
+		t.Errorf("to many licenses found in package info of component `%v`\n", cdxComponent)
 		return
 	}
 
-	regex, err := getRegexForLicenseExpression()
-	if err != nil {
-		t.Errorf("unable to invoke regex. %v", err)
-		return
-	}
-	if regex.MatchString(expectedLicense) {
-		if licenseChoices[0].Expression != expectedLicense {
-			t.Errorf("License: expected `%s`, actual `%s`\n",
-				expectedLicense, licenseChoices[0].Expression)
-			return
-		}
-	} else {
-		var actualLicense string
-		if schema.IsValidSpdxId(expectedLicense) {
-			actualLicense = licenseChoices[0].License.Id
+	actualLicenses := make([]string, len(licenseChoices))
+	for i, licenseChoice := range licenseChoices {
+		if licenseChoice.License != nil {
+			if licenseChoice.License.Id != "" {
+				actualLicenses[i] = licenseChoice.License.Id
+			} else {
+				actualLicenses[i] = licenseChoice.License.Name
+			}
 		} else {
-			actualLicense = licenseChoices[0].License.Name
+			actualLicenses[i] = licenseChoice.Expression
 		}
-		if actualLicense != expectedLicense {
-			t.Errorf("License: expected `%s`, actual `%s`\n",
-				expectedLicense, actualLicense)
-			return
-		}
+	}
+
+	slices.Sort(actualLicenses)
+	slices.Sort(expectedLicenses)
+	if !slices.Equal(actualLicenses, expectedLicenses) {
+		t.Errorf("License(s): expected `%s`, actual `%s`\n", strings.Join(expectedLicenses, ","), strings.Join(actualLicenses, ","))
+		return
 	}
 }
 
@@ -210,4 +211,12 @@ func TestFindLicenseOfNpmComponent(t *testing.T) {
 	VERSION = "0.0.4"
 	EXPECTED_LICENSE = "Public Domain"
 	innerTestFindLicenseOfNpmComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE)
+}
+
+func TestFindLicensesOfNpmComponent(t *testing.T) {
+	GROUP := ""
+	NAME := "pause-stream"
+	VERSION := "0.0.11"
+	EXPECTED_LICENSES := []string{"MIT", "Apache2"}
+	innerTestFindLicensesOfNpmComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSES)
 }
