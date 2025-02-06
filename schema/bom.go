@@ -64,25 +64,30 @@ const (
 	SERVICE_ID_BOMREF = "bom-ref"
 )
 
-// Note: the SPDX spec. does not provide regex for an SPDX ID, but provides the following in ABNF:
-//
-//	string = 1*(ALPHA / DIGIT / "-" / "." )
-//
-// Currently, the regex below tests composition of of only
-// alphanum, "-", and "." characters and disallows empty strings
-// TODO:
-//   - First and last chars are not "-" or "."
-//   - Enforce reasonable min/max lengths
-//     In theory, we can check overall length with positive lookahead
-//     (e.g., min 3 max 128):  (?=.{3,128}$)
-//     However, this does not appear to be supported in `regexp` package
-//     or perhaps it must be a compiled expression TBD
 const (
+	// Note: the SPDX spec. does not provide regex for an SPDX ID, but provides the following in ABNF:
+	//
+	//	string = 1*(ALPHA / DIGIT / "-" / "." )
+	//
+	// Currently, the regex below tests composition of of only
+	// alphanum, "-", and "." characters and disallows empty strings
+	// TODO:
+	//   - First and last chars are not "-" or "."
+	//   - Enforce reasonable min/max lengths
+	//     In theory, we can check overall length with positive lookahead
+	//     (e.g., min 3 max 128):  (?=.{3,128}$)
+	//     However, this does not appear to be supported in `regexp` package
+	//     or perhaps it must be a compiled expression TBD
 	REGEX_VALID_SPDX_ID = "^[a-zA-Z0-9.-]+$"
+
+	REGEX_LICENSE_EXPRESSION        = `\s+(AND|OR|WITH)\s+`
+	REGEX_LICENSE_REF_EXPRESSION    = `(\s+(AND|OR|WITH)\s+LicenseRef-[\w\.-]+)+`
 )
 
 // compiled regexp. to save time
 var spdxIdRegexp *regexp.Regexp
+var licenseExpressionRegexp *regexp.Regexp
+var licenseRefExpressionRegexp *regexp.Regexp
 
 const (
 	REGEX_LICENSE_VERSION_SUFFIX = `([-,\s]*)?((Version|v)\s*)?\d{1,2}\.\d{1,2}`

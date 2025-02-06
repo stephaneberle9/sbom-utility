@@ -167,14 +167,8 @@ func licenseStringToLicenseChoices(licenseString string) ([]schema.CDXLicenseCho
 }
 
 func licenseStringsToLicenseChoices(licenseStrings []string) (licenseChoices []schema.CDXLicenseChoice, err error) {
-	regex, err := getRegexForLicenseExpression()
-	if err != nil {
-		getLogger().Error(fmt.Errorf("unable to invoke regex. %v", err))
-		return
-	}
-	
 	for _, licenseString := range licenseStrings {
-		if regex.MatchString(licenseString) {
+		if schema.IsLicenseExpression(licenseString) {
 			licenseChoices = append(licenseChoices, schema.CDXLicenseChoice{
 				CDXLicenseExpression: schema.CDXLicenseExpression{
 					Expression: strings.TrimSpace(licenseString),

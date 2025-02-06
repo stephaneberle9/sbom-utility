@@ -42,7 +42,7 @@ const (
 )
 
 const (
-	NAME_NO_ASSERTION   = "NOASSERTION"
+	NAME_NO_ASSERTION = "NOASSERTION"
 )
 
 const (
@@ -467,7 +467,7 @@ func (config *LicensePolicyConfig) FindPolicyByNameOrUrlInFamily(licenseChoice C
 	if licenseName == "" {
 		matchedPolicy.UsagePolicy = POLICY_UNDEFINED
 		return
-	}	
+	}
 
 	// Note: this will cause all policy hashmaps to be initialized (created), if it has not been
 	familyNameMap, _ := config.GetFamilyNameMap()
@@ -489,7 +489,7 @@ func (config *LicensePolicyConfig) FindPolicyByNameOrUrlInFamily(licenseChoice C
 			policy := policyItem.(LicensePolicy)
 			policies = append(policies, policy)
 		}
-		
+
 		matchedPolicy = config.FindPolicyByName(licenseName, policies)
 
 		if matchedPolicy.UsagePolicy == POLICY_UNDEFINED {
@@ -566,8 +566,8 @@ func (config *LicensePolicyConfig) FindPolicyByName(licenseName string, licenseP
 	if licenseName == "" {
 		matchedPolicy.UsagePolicy = POLICY_UNDEFINED
 		return
-	}	
-	
+	}
+
 	func() {
 		for _, policy := range licensePolicies {
 			if policy.Name == licenseName {
@@ -591,7 +591,7 @@ func (config *LicensePolicyConfig) FindPolicyByName(licenseName string, licenseP
 func (config *LicensePolicyConfig) FindPolicyByUrl(licenseUrl string, licensePolicies []LicensePolicy) (matchedPolicy LicensePolicy) {
 	getLogger().Enter("url:", licenseUrl)
 	defer getLogger().Exit()
-	
+
 	if licenseUrl == "" {
 		matchedPolicy.UsagePolicy = POLICY_UNDEFINED
 		return
@@ -733,9 +733,9 @@ func containsFamilyName(licenseName string, familyName string) bool {
 	// NOTE: we do not currently normalize as we assume family names
 	// are proper substring of SPDX IDs which are mixed case and
 	// should match exactly as encoded.
-	
-	// !!!Important!!! Only match whole words in CDX License object "Name" field, 
-	// otherwise familyName = `GPL` for (license) name = `AGPL` would result in a false 
+
+	// !!!Important!!! Only match whole words in CDX License object "Name" field,
+	// otherwise familyName = `GPL` for (license) name = `AGPL` would result in a false
 	// positive.
 	// if strings.Contains(name, familyName) {
 	//  return true
@@ -745,7 +745,7 @@ func containsFamilyName(licenseName string, familyName string) bool {
 			return true
 		}
 	}
-	
+
 	// Check if license name contains family name with spaces instead of dashes
 	// (e.g., 'Bouncy Castle' instead of 'Bouncy-Castle')
 	relaxedFamilyName := strings.ReplaceAll(familyName, "-", " ")
@@ -767,11 +767,7 @@ func containsFamilyName(licenseName string, familyName string) bool {
 	for _, word := range words {
 		initials += string(word[0])
 	}
-	if familyName == initials {
-		return true
-	}
-
-	return false
+	return familyName == initials
 }
 
 // "getter" for compiled regex expression
@@ -880,4 +876,49 @@ func GetRegexForListSeparator() (regex *regexp.Regexp, err error) {
 	}
 	regex = listSeparatorRegexp
 	return
+}
+
+// "getter" for compiled regex expression
+func getRegexForLicenseExpression() (regex *regexp.Regexp, err error) {
+	if licenseExpressionRegexp == nil {
+		licenseExpressionRegexp, err = regexp.Compile(REGEX_LICENSE_EXPRESSION)
+	}
+	regex = licenseExpressionRegexp
+	return
+}
+
+func IsLicenseExpression(expression string) bool {
+	regex, err := getRegexForLicenseExpression()
+	if err != nil {
+		getLogger().Error(fmt.Errorf("unable to invoke regex. %v", err))
+		return false
+	}
+	return regex.MatchString(expression)
+}
+
+// "getter" for compiled regex expression
+func getRegexForLicenseRefExpression() (regex *regexp.Regexp, err error) {
+	if licenseRefExpressionRegexp == nil {
+		licenseRefExpressionRegexp, err = regexp.Compile(REGEX_LICENSE_REF_EXPRESSION)
+	}
+	regex = licenseRefExpressionRegexp
+	return
+}
+
+func IsLicenseRefExpression(expression string) bool {
+	regex, err := getRegexForLicenseRefExpression()
+	if err != nil {
+		getLogger().Error(fmt.Errorf("unable to invoke regex. %v", err))
+		return false
+	}
+	return regex.MatchString(expression)
+}
+
+func StripLicenseRefPrefix(expression string) string {
+	regex, err := getRegexForLicenseRefExpression()
+	if err != nil {
+		getLogger().Error(fmt.Errorf("unable to invoke regex. %v", err))
+		return expression
+	}
+	return regex.ReplaceAllString(expression, "")
 }

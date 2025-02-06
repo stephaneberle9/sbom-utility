@@ -20,7 +20,6 @@ package cmd
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/CycloneDX/sbom-utility/common"
@@ -41,33 +40,6 @@ const (
 	LICENSE_LIST_NOT_APPLICABLE = "N/A"
 	LICENSE_NO_ASSERTION        = "NOASSERTION"
 )
-
-const (
-	REGEX_LICENSE_EXPRESSION        = `\s+(AND|OR|WITH)\s+`
-	REGEX_LICENSE_REF_EXPRESSION    = `(\s+(AND|OR|WITH)\s+LicenseRef-[\w\.-]+)+`
-)
-
-// compiled regexp. to save time
-var licenseExpressionRegexp *regexp.Regexp
-var licenseRefExpressionRegexp *regexp.Regexp
-
-// "getter" for compiled regex expression
-func getRegexForLicenseExpression() (regex *regexp.Regexp, err error) {
-	if licenseExpressionRegexp == nil {
-		licenseExpressionRegexp, err = regexp.Compile(REGEX_LICENSE_EXPRESSION)
-	}
-	regex = licenseExpressionRegexp
-	return
-}
-
-// "getter" for compiled regex expression
-func getRegexForLicenseRefExpression() (regex *regexp.Regexp, err error) {
-	if licenseRefExpressionRegexp == nil {
-		licenseRefExpressionRegexp, err = regexp.Compile(REGEX_LICENSE_REF_EXPRESSION)
-	}
-	regex = licenseRefExpressionRegexp
-	return
-}
 
 func NewCommandLicense() *cobra.Command {
 	var command = new(cobra.Command)

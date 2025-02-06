@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/CycloneDX/sbom-utility/schema"
+
 )
 
 const (
@@ -132,12 +133,7 @@ func extractLicenseFromEclipseLicenseData(licenseData *LicenseData) ([]schema.CD
 	}
 
 	// Ignore proprietary licenses prefixed by LicenseRef- from license expressions if any
-	licenseRefRegex, err := getRegexForLicenseRefExpression()
-	if err != nil {
-		getLogger().Error(fmt.Errorf("unable to invoke regex. %v", err))
-		return nil, err
-	}
-	licenseString = licenseRefRegex.ReplaceAllString(licenseString, "")
+	licenseString = schema.StripLicenseRefPrefix(licenseString)
 
 	// Build license choices
 	licenseChoices, err := licenseStringToLicenseChoices(licenseString)

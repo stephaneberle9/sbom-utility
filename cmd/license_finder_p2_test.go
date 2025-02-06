@@ -74,12 +74,7 @@ func innerTestFindLicenseOfP2Component(t *testing.T, group string, name string, 
 		return
 	}
 
-	regex, err := getRegexForLicenseExpression()
-	if err != nil {
-		t.Errorf("unable to invoke regex. %v", err)
-		return
-	}
-	if regex.MatchString(expectedLicense) {
+	if schema.IsLicenseExpression(expectedLicense) {
 		if licenseChoices[0].Expression != expectedLicense {
 			t.Errorf("License: expected `%s`, actual `%s`\n",
 				expectedLicense, licenseChoices[0].Expression)
