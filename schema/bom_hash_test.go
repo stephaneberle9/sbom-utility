@@ -26,6 +26,7 @@ import (
 	"testing"
 
 	"github.com/CycloneDX/sbom-utility/utils"
+
 )
 
 const (
@@ -308,12 +309,10 @@ func TestHashCDXComponentsSlice(t *testing.T) {
 		return
 	}
 
-	if components != nil {
-		err = document.HashComponents(*components, nil, false)
-		if err != nil {
-			t.Error(err)
-			return
-		}
+	err = document.HashComponents(*components, nil, false)
+	if err != nil {
+		t.Error(err)
+		return
 	}
 }
 
