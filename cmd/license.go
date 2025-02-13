@@ -235,6 +235,11 @@ func hashComponentLicense(bom *schema.BOM, policyConfig *schema.LicensePolicyCon
 	defer getLogger().Exit(err)
 	var licenseInfo schema.LicenseInfo
 
+	if isSelfReference(cdxComponent) {
+		getLogger().Warningf("Ignoring self-reference to component represented by SBOM being processed: %s", cdxComponent.Purl)
+		return
+	}
+
 	normalizeComponentGroupAndName(&cdxComponent)
 	stripUnknownLicenses(&cdxComponent)
 
@@ -435,6 +440,10 @@ func hashLicenseInfoByLicenseType(bom *schema.BOM, policyConfig *schema.LicenseP
 		licenseInfo.ResourceName))
 	err = baseError
 	return
+}
+
+func isSelfReference(cdxComponent schema.CDXComponent) bool {
+	return cdxComponent.Version == "file:"
 }
 
 func normalizeComponentGroupAndName(cdxComponent *schema.CDXComponent) {
