@@ -523,7 +523,7 @@ func TestLicensePolicyMatchByFamilyNameBadExpression(t *testing.T) {
 
 func TestLicensePolicyListWrapFalse(t *testing.T) {
 	lti := NewLicensePolicyTestInfoBasic(FORMAT_TEXT, false)
-	lti.ResultExpectedLineCount = 257 // title and data rows
+	lti.ResultExpectedLineCount = 263 // title and data rows
 	// Verify first data row has expected values
 	// sanity (spot) check row values
 	lti.ResultLineContainsValuesAtLineNum = 2
@@ -536,7 +536,7 @@ func TestLicensePolicyListWrapFalse(t *testing.T) {
 
 func TestLicensePolicyListWrapTrue(t *testing.T) {
 	lti := NewLicensePolicyTestInfoBasic(FORMAT_TEXT, true)
-	lti.ResultExpectedLineCount = 404 // title and data rows
+	lti.ResultExpectedLineCount = 412 // title and data rows
 	// sanity (spot) check row values
 	lti.ResultLineContainsValuesAtLineNum = 2
 	lti.ResultLineContainsValues = []string{"0BSD", schema.POLICY_ALLOW}
@@ -638,7 +638,7 @@ func TestLicensePolicyListWhereUsagePolicyDeny(t *testing.T) {
 func TestLicensePolicyListWhereAnnotationNeedsIPApproval(t *testing.T) {
 	lti := NewLicensePolicyTestInfoBasic(FORMAT_TEXT, false)
 	lti.WhereClause = "annotations=NEEDS-IP"
-	lti.ResultExpectedLineCount = 22
+	lti.ResultExpectedLineCount = 19
 	// sanity (spot) check row values
 	lti.ResultLineContainsValuesAtLineNum = 2
 	lti.ResultLineContainsValues = []string{"BSD-2-Clause", schema.POLICY_NEEDS_REVIEW}

@@ -129,6 +129,23 @@ func lookupLicenseForWellknownMavenComponents(cdxComponent schema.CDXComponent) 
 			return licenseWithId("MIT")
 		}
 	}
+	if cdxComponent.Group == "org.eclipse.emf" {
+		if cdxComponent.Name == "ecore-xmi" {
+			if cdxComponent.Version == "2.2.3" {
+				// https://mvnrepository.com/artifact/org.eclipse.emf/org.eclipse.emf.ecore.xmi/2.38.0
+				return licenseWithId("EPL-2.0")
+			}
+		}
+	}
+	if cdxComponent.Group == "org.antlr" {
+		if cdxComponent.Name == "antlr-runtime" {
+			if cdxComponent.Version == "3.2" {
+				// https://mvnrepository.com/artifact/org.antlr/antlr-runtime/3.5.3
+				return licenseWithId("BSD-3-Clause")
+			}
+		}
+	}
+
 
 	return nil
 }

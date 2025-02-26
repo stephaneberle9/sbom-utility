@@ -377,6 +377,7 @@
             ],
             "aliases": [
                 "Apache2",
+                "Apache 2",
                 "Apache 2.0",
                 "Apache License 2.0",
                 "Apache License, Version 2.0",
@@ -695,7 +696,10 @@
                 "https://www.eclipse.org/org/documents/edl-v10.php",
                 "http://www.debian.org/misc/bsd.license",
                 "http://x-stream.github.io/license.html",
-                "http://www.jcraft.com/jsch/LICENSE.txt"
+                "http://www.jcraft.com/jsch/LICENSE.txt",
+                "http://www.jcraft.com/jzlib/LICENSE.txt",
+                "http://antlr.org/license.html",
+                "https://github.com/locationtech/jts/blob/master/LICENSE_EDLv1.txt"
             ],
             "aliases": [
                 "BSD 3-clause \"New\" License",
@@ -704,7 +708,8 @@
                 "Revised BSD",
                 "BSD License",
                 "The BSD License",
-                "Eclipse Distribution License (New BSD License)"
+                "Eclipse Distribution License (New BSD License)",
+                "Eclipse Distribution License - v 1.0"
             ]
         },
         {
@@ -1686,10 +1691,16 @@
             "urls": [
                 "https://www.eclipse.org/legal/epl-v10.html",
                 "http://www.eclipse.org/legal/epl-v10.html",
-                "https://opensource.org/licenses/EPL-1.0"
+                "http://www.eclipse.org/org/documents/epl-v10.html",
+                "https://opensource.org/licenses/EPL-1.0",
+                "https://opensource.org/licenses/eclipse-1.0.php",
+                "https://github.com/locationtech/jts/blob/master/LICENSE_EPLv1.txt"
             ],
             "aliases": [
-                "The Eclipse Public License Version 1.0"
+                "EPL 1.0",
+                "The Eclipse Public License Version 1.0",
+                "Eclipse Public License - v 1.0",
+                "Eclipse Publish License, Version 1.0"
             ]
         },
         {
@@ -1827,6 +1838,26 @@
                 "http://freetype.fis.uniroma2.it/FTL.TXT",
                 "http://git.savannah.gnu.org/cgit/freetype/freetype2.git/tree/docs/FTL.TXT",
                 "http://gitlab.freedesktop.org/freetype/freetype/-/raw/master/docs/FTL.TXT"
+            ]
+        },
+        {
+            "id": "Universal-FOSS-exception-1.0",
+            "name": "Universal FOSS Exception Version 1.0",
+            "family": "FOSS",
+            "reference": "https://spdx.org/licenses/Universal-FOSS-exception-1.0.html",
+            "osi": false,
+            "fsf": true,
+            "usagePolicy": "allow",
+            "annotationRefs": [
+                "APPROVED"
+            ],
+            "urls": [
+                "https://oss.oracle.com/licenses/universal-foss-exception"
+            ],
+            "aliases": [
+                "Universal FOSS Exception, Version 1.0",
+                "The Universal FOSS Exception, Version 1.0",
+                "Universal FOSS Exception, v1.0"
             ]
         },
         {
@@ -2270,6 +2301,9 @@
                 "https://www.gnu.org/licenses/old-licenses/gpl-2.0-standalone.html",
                 "https://www.gnu.org/licenses/gpl-2.0-standalone.html",
                 "https://opensource.org/licenses/GPL-2.0"
+            ],
+            "aliases": [
+                "The GNU General Public License, v2"
             ]
         },
         {
@@ -2634,6 +2668,7 @@
                 "https://www.gnu.org/licenses/old-licenses/lgpl-2.1",
                 "https://www.gnu.org/licenses/lgpl-2.1-standalone.html",
                 "https://www.gnu.org/licenses/lgpl-2.1.txt",
+                "https://www.opensource.org/licenses/LGPL-2.1",
                 "https://opensource.org/licenses/LGPL-2.1"
             ]
         },
@@ -2657,7 +2692,11 @@
                 "https://www.gnu.org/licenses/old-licenses/lgpl-2.1",
                 "https://www.gnu.org/licenses/lgpl-2.1-standalone.html",
                 "https://www.gnu.org/licenses/lgpl-2.1.txt",
+                "https://www.opensource.org/licenses/LGPL-2.1",
                 "https://opensource.org/licenses/LGPL-2.1"
+            ],
+            "aliases": [
+                "GNU Library General Public License v2.1 only"
             ]
         },
         {
@@ -2680,7 +2719,11 @@
                 "https://www.gnu.org/licenses/old-licenses/lgpl-2.1",
                 "https://www.gnu.org/licenses/lgpl-2.1-standalone.html",
                 "https://www.gnu.org/licenses/lgpl-2.1.txt",
+                "https://www.opensource.org/licenses/LGPL-2.1",
                 "https://opensource.org/licenses/LGPL-2.1"
+            ],
+            "aliases": [
+                "GNU Library General Public License v2.1 or later"
             ]
         },
         {
@@ -2699,8 +2742,9 @@
             "urls": [
                 "https://www.gnu.org/licenses/lgpl-3.0-standalone.html",
                 "https://www.gnu.org/licenses/lgpl+gpl-3.0.txt",
-                "https://opensource.org/licenses/LGPL-3.0",
-                "http://www.gnu.org/licenses/lgpl.html"
+                "https://www.gnu.org/licenses/lgpl-3.0.txt",
+                "http://www.gnu.org/licenses/lgpl.html",
+                "https://opensource.org/licenses/LGPL-3.0"
             ]
         },
         {
@@ -2718,8 +2762,9 @@
             "urls": [
                 "https://www.gnu.org/licenses/lgpl-3.0-standalone.html",
                 "https://www.gnu.org/licenses/lgpl+gpl-3.0.txt",
-                "https://opensource.org/licenses/LGPL-3.0",
-                "http://www.gnu.org/licenses/lgpl.html"
+                "https://www.gnu.org/licenses/lgpl-3.0.txt",
+                "http://www.gnu.org/licenses/lgpl.html",
+                "https://opensource.org/licenses/LGPL-3.0"
             ]
         },
         {
@@ -2737,8 +2782,12 @@
             "urls": [
                 "https://www.gnu.org/licenses/lgpl-3.0-standalone.html",
                 "https://www.gnu.org/licenses/lgpl+gpl-3.0.txt",
-                "https://opensource.org/licenses/LGPL-3.0",
-                "http://www.gnu.org/licenses/lgpl.html"
+                "https://www.gnu.org/licenses/lgpl-3.0.txt",
+                "http://www.gnu.org/licenses/lgpl.html",
+                "https://opensource.org/licenses/LGPL-3.0"
+            ],
+            "aliases": [
+                "GNU Lesser General Public License"
             ]
         },
         {
@@ -2916,7 +2965,11 @@
             ],
             "urls": [
                 "https://www.mozilla.org/MPL/2.0/",
+                "https://www.mozilla.org/en-US/MPL/2.0/",
                 "https://opensource.org/licenses/MPL-2.0"
+            ],
+            "aliases": [
+                "MPL 2.0"
             ]
         },
         {
