@@ -275,6 +275,7 @@ func (licenseChoice *CDXLicenseChoice) FixUp() error {
 				if len(licenseUrls) == 1 {
 					// Move license URL to appropriate field
 					pLicense.Url = licenseUrls[0]
+					pLicense.Name = ""
 				} else {
 					// Flip license choice into license expression using OR operator and license URLs instead of license ids
 					for i, url := range licenseUrls {
@@ -284,15 +285,8 @@ func (licenseChoice *CDXLicenseChoice) FixUp() error {
 							licenseChoice.Expression += " " + OR + " " + url
 						}
 					}
+					licenseChoice.License = nil
 				}
-				pLicense.Name = ""
-			}
-
-			// License name actually being a license expression?
-			if HasLogicalConjunctionOrPreposition(pLicense.Name) {
-				// Flip license choice into license expression
-				licenseChoice.Expression = pLicense.Name
-				pLicense.Name = ""
 			}
 		}
 	}

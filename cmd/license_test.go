@@ -149,6 +149,8 @@ func innerTestLicenseInfoHashing(t *testing.T, licenseName string, licenseUrl st
 			},
 		},
 	}
+	licenseInfo.LicenseChoice.FixUp()
+
 	err := hashLicenseInfoByLicenseType(bom, LicensePolicyConfig, licenseInfo, make([]common.WhereFilter, 0))
 	if err != nil {
 		t.Errorf("unable to hash license info `%v`: `%s`\n", licenseInfo, err.Error())
@@ -156,10 +158,18 @@ func innerTestLicenseInfoHashing(t *testing.T, licenseName string, licenseUrl st
 	}
 
 	var licenseInfoKey string
-	if licenseName != "" {
-		licenseInfoKey = licenseName
+	if licenseInfo.LicenseChoice.License != nil {
+		if licenseInfo.LicenseChoice.License.Id != "" {
+			licenseInfoKey = licenseInfo.LicenseChoice.License.Id
+		} else if licenseInfo.LicenseChoice.License.Name != "" {
+			licenseInfoKey = licenseInfo.LicenseChoice.License.Name
+		} else if licenseInfo.LicenseChoice.License.Url != "" {
+			licenseInfoKey = licenseInfo.LicenseChoice.License.Url
+		}
 	} else {
-		licenseInfoKey = licenseUrl
+		 if licenseInfo.LicenseChoice.Expression != "" {
+			licenseInfoKey = licenseInfo.LicenseChoice.Expression
+		 }
 	}
 	licenseInfos, ok := bom.LicenseMap.Get(licenseInfoKey)
 	if !ok || len(licenseInfos) != 1 {
@@ -346,10 +356,10 @@ func TestLicenseListSummaryTextCdx13WhereUsageUndefined(t *testing.T) {
 	innerTestLicenseList(t, lti)
 }
 
-func TestLicenseListSummaryTextCdx13WhereLicenseTypeName(t *testing.T) {
+func TestLicenseListSummaryTextCdx13WhereLicenseTypeId(t *testing.T) {
 	lti := NewLicenseTestInfo(TEST_LICENSE_LIST_CDX_1_3, FORMAT_TEXT, true)
-	lti.WhereClause = "license-type=name"
-	lti.ResultExpectedLineCount = 4 // title and data rows
+	lti.WhereClause = "license-type=id"
+	lti.ResultExpectedLineCount = 12 // title and data rows
 	innerTestLicenseList(t, lti)
 }
 
@@ -695,13 +705,16 @@ func TestHashCDXLicense(t *testing.T) {
 	CDX_LICENSE_URL = ""
 	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
 
-	// CC-PDDC
-	EXPECTED_LICENSE = "Creative Commons Public Domain Dedication and Certification"
-	EXPECTED_LICENSE_URLS = "https://creativecommons.org/publicdomain"
-	EXPECTED_USAGE_POLICY = schema.POLICY_ALLOW
+	CDX_LICENSE_NAME = "BSD"
+	CDX_LICENSE_URL = "http://www.jcraft.com/jzlib/LICENSE.txt"
+	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
 
-	CDX_LICENSE_NAME = "Public Domain"
-	CDX_LICENSE_URL = ""
+	CDX_LICENSE_NAME = "BSD license"
+	CDX_LICENSE_URL = "http://antlr.org/license.html"
+	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
+
+	CDX_LICENSE_NAME = "Eclipse Distribution License - v 1.0"
+	CDX_LICENSE_URL = "https://github.com/locationtech/jts/blob/master/LICENSE_EDLv1.txt"
 	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
 
 	//
@@ -754,6 +767,18 @@ func TestHashCDXLicense(t *testing.T) {
 	CDX_LICENSE_URL = ""
 	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
 
+	CDX_LICENSE_NAME = "Eclipse Public License - v 1.0"
+	CDX_LICENSE_URL = "http://www.eclipse.org/org/documents/epl-v10.html"
+	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
+
+	CDX_LICENSE_NAME = "Eclipse Publish License, Version 1.0"
+	CDX_LICENSE_URL = "https://github.com/locationtech/jts/blob/master/LICENSE_EPLv1.txt"
+	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
+
+	CDX_LICENSE_NAME = "EPL 1.0"
+	CDX_LICENSE_URL = "https://opensource.org/licenses/eclipse-1.0.php"
+	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
+
 	//
 	// EPL-2.0
 	//
@@ -767,6 +792,28 @@ func TestHashCDXLicense(t *testing.T) {
 
 	CDX_LICENSE_NAME = "Eclipse Public License - v 2.0"
 	CDX_LICENSE_URL = "https://www.eclipse.org/legal/epl-2.0/"
+	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
+
+	//
+	// LGPL-2.1
+	//
+	EXPECTED_LICENSE = "GNU Lesser General Public License v2.1 or later"
+	EXPECTED_LICENSE_URLS = "https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html"
+	EXPECTED_USAGE_POLICY = schema.POLICY_ALLOW
+
+	CDX_LICENSE_NAME = "GNU Library General Public License v2.1 or later"
+	CDX_LICENSE_URL = "https://www.opensource.org/licenses/LGPL-2.1"
+	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
+
+	//
+	// LGPL-3.0
+	//
+	EXPECTED_LICENSE = "GNU Lesser General Public License v3.0 or later"
+	EXPECTED_LICENSE_URLS = "https://www.gnu.org/licenses/lgpl-3.0-standalone.html"
+	EXPECTED_USAGE_POLICY = schema.POLICY_ALLOW
+
+	CDX_LICENSE_NAME = "GNU Lesser General Public License"
+	CDX_LICENSE_URL = "https://www.gnu.org/licenses/lgpl-3.0.txt"
 	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
 
 	//
@@ -808,6 +855,30 @@ func TestHashCDXLicense(t *testing.T) {
 	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
 
 	//
+	// MPL
+	//
+	EXPECTED_LICENSE = "Mozilla Public License 2.0"
+	EXPECTED_LICENSE_URLS = "https://www.mozilla.org/MPL/2.0"
+	EXPECTED_USAGE_POLICY = schema.POLICY_ALLOW
+
+	CDX_LICENSE_NAME = "Mozilla Public License Version 2.0"
+	CDX_LICENSE_URL = "http://www.mozilla.org/MPL/2.0/"
+	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
+
+	CDX_LICENSE_NAME = "MPL 2.0"
+	CDX_LICENSE_URL = "https://www.mozilla.org/en-US/MPL/2.0/"
+	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
+
+	// Unlicense
+	EXPECTED_LICENSE = "The Unlicense"
+	EXPECTED_LICENSE_URLS = "https://unlicense.org"
+	EXPECTED_USAGE_POLICY = schema.POLICY_ALLOW
+
+	CDX_LICENSE_NAME = "Public Domain"
+	CDX_LICENSE_URL = ""
+	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
+
+	//
 	// Multiple licenses
 	//
 	EXPECTED_LICENSE = "GNU General Public License v2.0 only WITH Classpath exception 2.0 WITH OpenJDK Assembly exception 1.0"
@@ -815,6 +886,14 @@ func TestHashCDXLicense(t *testing.T) {
 	EXPECTED_USAGE_POLICY = schema.POLICY_ALLOW
 
 	CDX_LICENSE_NAME = "GPL-2.0-only WITH Classpath-exception-2.0 WITH OpenJDK-assembly-exception-1.0"
+	CDX_LICENSE_URL = ""
+	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
+
+	EXPECTED_LICENSE = "GNU General Public License v2.0 only WITH Universal FOSS Exception Version 1.0"
+	EXPECTED_LICENSE_URLS = "https://www.gnu.org/licenses/old-licenses/gpl-2.0-standalone.html, https://oss.oracle.com/licenses/universal-foss-exception"
+	EXPECTED_USAGE_POLICY = schema.POLICY_ALLOW
+
+	CDX_LICENSE_NAME = "The GNU General Public License, v2 with Universal FOSS Exception, v1.0"
 	CDX_LICENSE_URL = ""
 	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
 
@@ -835,7 +914,7 @@ func TestHashCDXLicense(t *testing.T) {
 	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
 
 	EXPECTED_LICENSE = "Apache License Version 2.0 AND BSD 3-Clause \"New\" or \"Revised\" License AND BSD 2-Clause \"Simplified\" License AND MIT License AND ISC License AND Unicode Terms of Use AND ( GNU Lesser General Public License v2.1 or later OR Creative Commons Attribution 4.0 International )"
-	EXPECTED_LICENSE_URLS = "https://www.apache.org/licenses/LICENSE-2.0, https://opensource.org/licenses/BSD-3-Clause, https://opensource.org/licenses/BSD-2-Clause, https://opensource.org/licenses/MIT, https://www.isc.org/licenses/, http://web.archive.org/web/20140704074106/http://www.unicode.org/copyright.html, https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html, https://creativecommons.org/licenses/by/4.0/legalcode"
+	EXPECTED_LICENSE_URLS = "https://www.apache.org/licenses/LICENSE-2.0, https://opensource.org/licenses/BSD-3-Clause, https://opensource.org/licenses/BSD-2-Clause, https://opensource.org/licenses/MIT, https://www.isc.org/licenses, http://web.archive.org/web/20140704074106/http://www.unicode.org/copyright.html, https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html, https://creativecommons.org/licenses/by/4.0/legalcode"
 	EXPECTED_USAGE_POLICY = schema.POLICY_ALLOW
 
 	CDX_LICENSE_NAME = "Apache-2.0 AND BSD-3-Clause AND BSD-2-Clause AND MIT AND ISC AND Unicode-TOU AND (LGPL-2.1-or-later OR CC-BY-4.0)"

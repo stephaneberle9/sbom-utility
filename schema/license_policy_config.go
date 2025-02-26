@@ -389,28 +389,25 @@ func (config *LicensePolicyConfig) FindPolicy(licenseInfo LicenseInfo) (matchedP
 		if err != nil {
 			return
 		}
+		if matchedPolicy.UsagePolicy == POLICY_UNDEFINED {
+			matchedPolicy = config.FindPolicyByUrl(licenseInfo.LicenseChoice.License.Url, config.PolicyList)
+		}
 	case LC_TYPE_NAME:
 		matchedPolicy, err = config.FindPolicyByNameOrUrlInFamily(licenseInfo.LicenseChoice)
 		if err != nil {
 			return
 		}
-
+		if matchedPolicy.UsagePolicy == POLICY_UNDEFINED {
+			matchedPolicy = config.FindPolicyByName(licenseInfo.LicenseChoice.License.Name, config.PolicyList)
+		}
 		if matchedPolicy.UsagePolicy == POLICY_UNDEFINED {
 			matchedPolicy = config.FindPolicyByUrl(licenseInfo.LicenseChoice.License.Url, config.PolicyList)
 		}
-	case LC_TYPE_EXPRESSION:
-		// Parse expression according to SPDX spec.
-		var expressionTree *CompoundExpression
-		expressionTree, err = ParseExpression(config, licenseInfo.LicenseChoice.Expression)
-		if err != nil {
-			return
+		if matchedPolicy.UsagePolicy == POLICY_UNDEFINED {
+			matchedPolicy, err = config.ResolveLicenseExpression(licenseInfo.LicenseChoice.License.Name)
 		}
-		getLogger().Debugf("Parsed expression:\n%v", expressionTree)
-
-		matchedPolicy.Name = expressionTree.CompoundName
-		matchedPolicy.Notes = append(matchedPolicy.Notes, NOTES_COMPOUND_LICENSE)
-		matchedPolicy.Urls = expressionTree.Urls
-		matchedPolicy.UsagePolicy = expressionTree.CompoundUsagePolicy
+	case LC_TYPE_EXPRESSION:
+		matchedPolicy, err = config.ResolveLicenseExpression(licenseInfo.LicenseChoice.Expression)
 	default:
 		matchedPolicy.UsagePolicy = POLICY_UNDEFINED
 	}
@@ -600,8 +597,11 @@ func (config *LicensePolicyConfig) FindPolicyByUrl(licenseUrl string, licensePol
 	func() {
 		licenseUrl = strings.TrimSuffix(licenseUrl, "/")
 		for _, policy := range licensePolicies {
+			if policy.IsDeprecated {
+				continue
+			}
 			for _, policyUrl := range policy.Urls {
-				if policyUrl == licenseUrl {
+				if strings.TrimSuffix(policyUrl, "/") == licenseUrl {
 					matchedPolicy = policy
 					return
 				}
@@ -610,8 +610,11 @@ func (config *LicensePolicyConfig) FindPolicyByUrl(licenseUrl string, licensePol
 		if IsUnsecureUrl(licenseUrl) {
 			licenseUrl = ToSecureUrl(licenseUrl)
 			for _, policy := range licensePolicies {
+				if policy.IsDeprecated {
+					continue
+				}
 				for _, policyUrl := range policy.Urls {
-					if policyUrl == licenseUrl {
+					if strings.TrimSuffix(policyUrl, "/") == licenseUrl {
 						matchedPolicy = policy
 						return
 					}
@@ -621,6 +624,36 @@ func (config *LicensePolicyConfig) FindPolicyByUrl(licenseUrl string, licensePol
 		getLogger().Tracef("No policy match found for license URL=`%s` ", licenseUrl)
 		matchedPolicy.UsagePolicy = POLICY_UNDEFINED
 	}()
+	return
+}
+
+func (config *LicensePolicyConfig) ResolveLicenseExpression(licenseExpression string) (matchedPolicy LicensePolicy, err error) {
+	getLogger().Enter("expression:", licenseExpression)
+	defer getLogger().Exit()
+
+	if licenseExpression == "" {
+		matchedPolicy.UsagePolicy = POLICY_UNDEFINED
+		return
+	}
+
+	// Parse expression according to SPDX spec.
+	var expressionTree *CompoundExpression
+	expressionTree, err = ParseExpression(config, licenseExpression)
+	if err != nil {
+		return
+	}
+	getLogger().Debugf("Parsed expression:\n%v", expressionTree)
+
+	// e.g., UNDEFINED OR UNDEFINED -> UNDEFINED
+	if expressionTree.LeftUsagePolicy == POLICY_UNDEFINED && expressionTree.RightUsagePolicy == POLICY_UNDEFINED {
+		matchedPolicy.UsagePolicy = POLICY_UNDEFINED
+		return
+	}
+
+	matchedPolicy.Name = expressionTree.CompoundName
+	matchedPolicy.Notes = append(matchedPolicy.Notes, NOTES_COMPOUND_LICENSE)
+	matchedPolicy.Urls = expressionTree.Urls
+	matchedPolicy.UsagePolicy = expressionTree.CompoundUsagePolicy
 	return
 }
 
@@ -786,16 +819,6 @@ const (
 	WITH                  string = "WITH"
 	CONJUNCTION_UNDEFINED string = ""
 )
-
-func HasLogicalConjunctionOrPreposition(value string) bool {
-
-	if strings.Contains(value, AND) ||
-		strings.Contains(value, OR) ||
-		strings.Contains(value, WITH) {
-		return true
-	}
-	return false
-}
 
 func IsUrlish(value string) bool {
 	return strings.HasPrefix(value, "http")

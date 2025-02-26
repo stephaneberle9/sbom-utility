@@ -86,7 +86,26 @@ func tokenizeExpression(expression string) (tokens []string) {
 	expression = strings.ReplaceAll(expression, LEFT_PARENS, LEFT_PARENS_WITH_SEPARATOR)
 	expression = strings.ReplaceAll(expression, RIGHT_PARENS, RIGHT_PARENS_WITH_SEPARATOR)
 	// fields are, by default, separated by whitespace
-	tokens = strings.Fields(expression)
+	identifier := ""
+	for _, field := range strings.Fields(expression) {
+		switch strings.ToUpper(field) {
+		case LEFT_PARENS, RIGHT_PARENS, AND, OR, WITH:
+			if identifier != "" {
+				tokens = append(tokens, identifier)
+				identifier = ""
+			}
+			tokens = append(tokens, strings.ToUpper(field))
+		default:
+			if identifier != "" {
+				identifier += " "
+			}
+			identifier += field
+		}
+	}
+	if identifier != "" {
+		tokens = append(tokens, identifier)
+		identifier = ""
+	}
 	return
 }
 
