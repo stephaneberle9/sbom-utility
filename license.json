@@ -3055,6 +3055,22 @@
             ]
         },
         {
+            "id": "NCSA",
+            "name": "University of Illinois/NCSA Open Source License",
+            "family": "NCSA",
+            "reference": "https://spdx.org/licenses/NCSA.html",
+            "osi": false,
+            "fsf": false,
+            "usagePolicy": "allow",
+            "annotationRefs": [
+                "APPROVED"
+            ],
+            "urls": [
+                "http://otm.illinois.edu/uiuc_openSource",
+                "https://opensource.org/licenses/NCSA"
+            ]
+        },
+        {
             "id": "Net-SNMP",
             "name": "Net-SNMP License",
             "family": "Net",
@@ -3460,6 +3476,22 @@
             ],
             "urls": [
                 "https://www.mongodb.com/licensing/server-side-public-license"
+            ]
+        },
+        {
+            "id": "SunPro",
+            "name": "SunPro License",
+            "family": "SunPro",
+            "reference": "https://spdx.org/licenses/SunPro.html",
+            "osi": false,
+            "fsf": false,
+            "usagePolicy": "allow",
+            "annotationRefs": [
+                "APPROVED"
+            ],
+            "urls": [
+                "https://github.com/freebsd/freebsd-src/blob/main/lib/msun/src/e_acosh.c",
+                "https://github.com/freebsd/freebsd-src/blob/main/lib/msun/src/e_lgammal.c"
             ]
         },
         {
