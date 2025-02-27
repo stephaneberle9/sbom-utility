@@ -25,7 +25,6 @@ import (
 	"github.com/CycloneDX/sbom-utility/common"
 	"github.com/CycloneDX/sbom-utility/schema"
 	"github.com/spf13/cobra"
-
 )
 
 const (
@@ -262,14 +261,6 @@ func hashComponentLicense(bom *schema.BOM, policyConfig *schema.LicensePolicyCon
 	}
 
 	if pLicenses != nil && len(*pLicenses) > 0 {
-		// Fix up licenses with sloppy/really weird names
-		for _, licenseChoice := range *pLicenses {
-			err = licenseChoice.FixUp()
-			if err != nil {
-				return
-			}
-		}
-
 		// Combine multiple licenses into a single license expression
 		licenseInfo.LicenseChoice, err = multipleLicensesToLicenseExpression(pLicenses)
 		if err != nil {
@@ -406,27 +397,32 @@ func hashLicenseInfoByLicenseType(bom *schema.BOM, policyConfig *schema.LicenseP
 		}
 	}()
 
-	pLicense := licenseInfo.LicenseChoice
-	if pLicense.License != nil {
-		if pLicense.License.Id != "" {
+	licenseChoice := licenseInfo.LicenseChoice
+	err = licenseChoice.FixUpUrlishName()
+	if err != nil {
+		return
+	}
+
+	if licenseChoice.License != nil {
+		if licenseChoice.License.Id != "" {
 			licenseInfo.LicenseChoiceTypeValue = schema.LC_TYPE_ID
-			_, err = bom.HashLicenseInfo(policyConfig, pLicense.License.Id, licenseInfo, whereFilters)
+			_, err = bom.HashLicenseInfo(policyConfig, licenseChoice.License.Id, licenseInfo, whereFilters)
 			return
 		}
-		if pLicense.License.Name != "" {
+		if licenseChoice.License.Name != "" {
 			licenseInfo.LicenseChoiceTypeValue = schema.LC_TYPE_NAME
-			_, err = bom.HashLicenseInfo(policyConfig, pLicense.License.Name, licenseInfo, whereFilters)
+			_, err = bom.HashLicenseInfo(policyConfig, licenseChoice.License.Name, licenseInfo, whereFilters)
 			return
 		}
-		if pLicense.License.Url != "" {
+		if licenseChoice.License.Url != "" {
 			licenseInfo.LicenseChoiceTypeValue = schema.LC_TYPE_NAME
-			_, err = bom.HashLicenseInfo(policyConfig, pLicense.License.Url, licenseInfo, whereFilters)
+			_, err = bom.HashLicenseInfo(policyConfig, licenseChoice.License.Url, licenseInfo, whereFilters)
 			return
 		}
 	} else {
-		if pLicense.Expression != "" {
+		if licenseChoice.Expression != "" {
 			licenseInfo.LicenseChoiceTypeValue = schema.LC_TYPE_EXPRESSION
-			_, err = bom.HashLicenseInfo(policyConfig, pLicense.Expression, licenseInfo, whereFilters)
+			_, err = bom.HashLicenseInfo(policyConfig, licenseChoice.Expression, licenseInfo, whereFilters)
 			return
 		}
 	}

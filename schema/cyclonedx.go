@@ -251,46 +251,32 @@ type CDXLicense struct {
 	Properties *[]CDXProperty `json:"properties,omitempty"` // v1.5: added
 }
 
-func (licenseChoice *CDXLicenseChoice) FixUp() error {
+func (licenseChoice *CDXLicenseChoice) FixUpUrlishName() error {
 	if licenseChoice.License != nil {
 		pLicense := licenseChoice.License
-		if pLicense.Id != "" {
-			return nil
-		}
-
-		if pLicense.Name != "" {
-			// License name actually being an SPDX id?
-			if IsValidSpdxId(pLicense.Name) {
-				// Move license id to appropriate field
-				pLicense.Id = pLicense.Name
-				pLicense.Name = ""
+		// License name actually being a single or multiple license URLs?
+		if IsUrlish(pLicense.Name) {
+			licenseUrls, err := SplitUrls(pLicense.Name)
+			if err != nil {
+				return err
 			}
-
-			// License name actually being a single or multiple license URLs?
-			if IsUrlish(pLicense.Name) {
-				licenseUrls, err := SplitUrls(pLicense.Name)
-				if err != nil {
-					return err
-				}
-				if len(licenseUrls) == 1 {
-					// Move license URL to appropriate field
-					pLicense.Url = licenseUrls[0]
-					pLicense.Name = ""
-				} else {
-					// Flip license choice into license expression using OR operator and license URLs instead of license ids
-					for i, url := range licenseUrls {
-						if i == 0 {
-							licenseChoice.Expression = url
-						} else {
-							licenseChoice.Expression += " " + OR + " " + url
-						}
+			if len(licenseUrls) == 1 {
+				// Move license URL to appropriate field
+				pLicense.Url = licenseUrls[0]
+				pLicense.Name = ""
+			} else {
+				// Flip license choice into license expression using OR operator and license URLs instead of license ids
+				for i, url := range licenseUrls {
+					if i == 0 {
+						pLicense.Url = url
+					} else {
+						pLicense.Url += " " + OR + " " + url
 					}
-					licenseChoice.License = nil
 				}
+				pLicense.Name = ""
 			}
 		}
 	}
-
 	return nil
 }
 

@@ -385,28 +385,43 @@ func (config *LicensePolicyConfig) FindPolicy(licenseInfo LicenseInfo) (matchedP
 
 	switch licenseInfo.LicenseChoiceTypeValue {
 	case LC_TYPE_ID:
+		// Regular case
 		matchedPolicy, err = config.FindPolicyBySpdxId(licenseInfo.LicenseChoice.License.Id)
 		if err != nil {
 			return
 		}
+	
+		// If no match found, try to find policy by URL in case there is any such
 		if matchedPolicy.UsagePolicy == POLICY_UNDEFINED {
 			matchedPolicy = config.FindPolicyByUrl(licenseInfo.LicenseChoice.License.Url, config.PolicyList)
 		}
 	case LC_TYPE_NAME:
+		// Regular case, find policy by name within subset of policies that belong to the same license family
 		matchedPolicy, err = config.FindPolicyByNameOrUrlInFamily(licenseInfo.LicenseChoice)
 		if err != nil {
 			return
 		}
+
+		// If no match found, try to find policy by name among all known policies
 		if matchedPolicy.UsagePolicy == POLICY_UNDEFINED {
 			matchedPolicy = config.FindPolicyByName(licenseInfo.LicenseChoice.License.Name, config.PolicyList)
 		}
+
+		// If still no match found, try to find policy by URL in case there is has any such
 		if matchedPolicy.UsagePolicy == POLICY_UNDEFINED {
 			matchedPolicy = config.FindPolicyByUrl(licenseInfo.LicenseChoice.License.Url, config.PolicyList)
 		}
+
+		// If still no match found, see if the license name or URL is actually a license expression
 		if matchedPolicy.UsagePolicy == POLICY_UNDEFINED {
-			matchedPolicy, err = config.ResolveLicenseExpression(licenseInfo.LicenseChoice.License.Name)
+			if licenseInfo.LicenseChoice.License.Name != "" {
+				matchedPolicy, err = config.ResolveLicenseExpression(licenseInfo.LicenseChoice.License.Name)
+			} else if licenseInfo.LicenseChoice.License.Url != "" {
+				matchedPolicy, err = config.ResolveLicenseExpression(licenseInfo.LicenseChoice.License.Url)
+			}
 		}
 	case LC_TYPE_EXPRESSION:
+		// Regular case
 		matchedPolicy, err = config.ResolveLicenseExpression(licenseInfo.LicenseChoice.Expression)
 	default:
 		matchedPolicy.UsagePolicy = POLICY_UNDEFINED
@@ -418,9 +433,11 @@ func (config *LicensePolicyConfig) FindPolicy(licenseInfo LicenseInfo) (matchedP
 func (config *LicensePolicyConfig) FindPolicyBySpdxId(id string) (matchedPolicy LicensePolicy, err error) {
 	getLogger().Enter("id:", id)
 	defer getLogger().Exit()
-
-	var matched bool
-	var arrPolicies []interface{}
+	
+	if !IsValidSpdxId(id) {
+		matchedPolicy.UsagePolicy = POLICY_UNDEFINED
+		return
+	}
 
 	// Note: this will cause all policy hashmaps to be initialized (created), if it has not bee
 	licensePolicyIdMap, err := config.GetLicenseIdMap()
@@ -428,8 +445,8 @@ func (config *LicensePolicyConfig) FindPolicyBySpdxId(id string) (matchedPolicy 
 		err = getLogger().Errorf("license policy map error: `%w`", err)
 		return
 	}
-
-	arrPolicies, matched = licensePolicyIdMap.Get(id)
+	
+	arrPolicies, matched := licensePolicyIdMap.Get(id)
 	getLogger().Tracef("licensePolicyMapById.Get(%s): (%v) matches", id, len(arrPolicies))
 
 	// There MUST be ONLY one policy per (discrete) license ID
