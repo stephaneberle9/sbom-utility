@@ -380,6 +380,7 @@
                 "Apache 2",
                 "Apache 2.0",
                 "Apache License 2.0",
+                "Apache License v2.0",
                 "Apache License, Version 2.0",
                 "Apache License v. 2.0",
                 "Apache License Version 2.0",
@@ -709,7 +710,8 @@
                 "BSD License",
                 "The BSD License",
                 "Eclipse Distribution License (New BSD License)",
-                "Eclipse Distribution License - v 1.0"
+                "Eclipse Distribution License - v 1.0",
+                "Eclipse Distribution License v. 1.0"
             ]
         },
         {
@@ -1733,11 +1735,16 @@
             "urls": [
                 "https://www.eclipse.org/legal/epl-2.0",
                 "https://www.eclipse.org/legal/epl-v20.html",
+                "http://www.eclipse.org/legal/epl-2.0",
+                "https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt",
+                "https://projects.eclipse.org/license/epl-2.0",
                 "https://www.opensource.org/licenses/EPL-2.0"
             ],
             "aliases": [
+                "EPL 2.0",
                 "The Eclipse Public License Version 2.0",
-                "Eclipse Public License - v 2.0"
+                "Eclipse Public License - v 2.0",
+                "Eclipse Public License v. 2.0"
             ]
         },
         {
@@ -2303,7 +2310,10 @@
                 "https://opensource.org/licenses/GPL-2.0"
             ],
             "aliases": [
-                "The GNU General Public License, v2"
+                "GNU General Public License v2.0",
+                "The GNU General Public License, v2",
+                "GNU General Public License, version 2",
+                "GPL2"
             ]
         },
         {
@@ -2340,7 +2350,12 @@
                 "NEEDS-LEGAL-REVIEW-GPL"
             ],
             "urls": [
-                "https://www.gnu.org/software/classpath/license.html"
+                "https://www.gnu.org/software/classpath/license.html",
+                "https://projects.eclipse.org/license/secondary-gpl-2.0-cp"
+            ],
+            "aliases": [
+                "GNU General Public License, version 2 with the GNU Classpath Exception",
+                "GPL2 w/ CPE"
             ]
         },
         {
@@ -2436,6 +2451,10 @@
             "urls": [
                 "https://www.gnu.org/software/classpath/license.html",
                 "https://fedoraproject.org/wiki/Licensing/GPL_Classpath_Exception"
+            ],
+            "aliases": [
+                "the GNU Classpath Exception",
+                "CPE"
             ]
         },
         {
@@ -2670,6 +2689,9 @@
                 "https://www.gnu.org/licenses/lgpl-2.1.txt",
                 "https://www.opensource.org/licenses/LGPL-2.1",
                 "https://opensource.org/licenses/LGPL-2.1"
+            ],
+            "aliases": [
+                "LGPL, version 2.1"
             ]
         },
         {
@@ -2805,7 +2827,6 @@
                 "https://opensource.org/licenses/MIT",
                 "http://www.opensource.org/licenses/mit-license.php",
                 "https://jsoup.org/license",
-                "https://www.bouncycastle.org/licence.html",
                 "https://github.com/mockito/mockito/blob/main/LICENSE"
             ],
             "aliases": [
@@ -3618,6 +3639,24 @@
             ],
             "aliases": [
                 "Public Domain"
+            ]
+        },
+        {
+            "id": "UPL-1.0",
+            "name": "Universal Permissive License v1.0",
+            "family": "UPL",
+            "reference": "https://spdx.org/licenses/UPL-1.0",
+            "osi": false,
+            "fsf": false,
+            "usagePolicy": "allow",
+            "annotationRefs": [
+                "APPROVED"
+            ],
+            "urls": [
+                "https://opensource.org/licenses/UPL"
+            ],
+            "aliases": [
+                "Universal Permissive License, Version 1.0"
             ]
         },
         {

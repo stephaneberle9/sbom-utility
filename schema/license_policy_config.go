@@ -74,15 +74,16 @@ type LicensePolicy struct {
 }
 
 type LicensePolicyConfig struct {
-	PolicyList              []LicensePolicy   `json:"policies"`
-	Annotations             map[string]string `json:"annotations"`
-	defaultPolicyConfigFile string
-	policyConfigFile        string
-	loadOnce                sync.Once
-	hashOnce                sync.Once
-	licenseFamilyNameMap    *slicemultimap.MultiMap
-	licenseIdMap            *slicemultimap.MultiMap
-	filteredFamilyNameMap   *slicemultimap.MultiMap
+	PolicyList                  []LicensePolicy   `json:"policies"`
+	Annotations                 map[string]string `json:"annotations"`
+	defaultPolicyConfigFile     string
+	policyConfigFile            string
+	loadOnce                    sync.Once
+	hashOnce                    sync.Once
+	licenseFamilyNameMap        *slicemultimap.MultiMap
+	licenseIdMap                *slicemultimap.MultiMap
+	filteredFamilyNameMap       *slicemultimap.MultiMap
+	expressionLikePoliciesList  *[]LicensePolicy
 }
 
 func NewLicensePolicyConfig(configFile string) *LicensePolicyConfig {
@@ -120,6 +121,13 @@ func (config *LicensePolicyConfig) GetLicenseIdMap() (hashmap *slicemultimap.Mul
 		err = config.hashLicensePolicies()
 	}
 	return config.licenseIdMap, err
+}
+
+func (config *LicensePolicyConfig) GetExpressionLikePoliciesList() (list *[]LicensePolicy, err error) {
+	if config.expressionLikePoliciesList == nil {
+		err = config.hashLicensePolicies()
+	}
+	return config.expressionLikePoliciesList, err
 }
 
 func LicensePolicyNotesContainValue(licensePolicy LicensePolicy, value string) bool {
@@ -226,6 +234,7 @@ func (config *LicensePolicyConfig) innerHashLicensePolicies() (err error) {
 	// and populated to infer neither has
 	config.licenseFamilyNameMap = slicemultimap.New()
 	config.licenseIdMap = slicemultimap.New()
+	config.expressionLikePoliciesList = &[]LicensePolicy{}
 
 	for i, policy := range config.PolicyList {
 
@@ -270,6 +279,11 @@ func (config *LicensePolicyConfig) hashPolicy(policy LicensePolicy) (err error) 
 	if policy.Id != "" {
 		getLogger().Debugf("ID Hashmap: Adding policy Id=`%s`, Name=`%s`, Family=`%s`", policy.Id, policy.Name, policy.Family)
 		config.licenseIdMap.Put(policy.Id, policy)
+
+		// Record policies including conjuntions used in SPDX expressions in their names
+		if IsExpressionLikePolicy(policy) {
+			*config.expressionLikePoliciesList = append(*config.expressionLikePoliciesList, policy)
+		}
 	} else {
 		getLogger().Debugf("WARNING: Skipping policy with no SPDX ID (empty)...")
 	}
@@ -393,7 +407,7 @@ func (config *LicensePolicyConfig) FindPolicy(licenseInfo LicenseInfo) (matchedP
 	
 		// If no match found, try to find policy by URL in case there is any such
 		if matchedPolicy.UsagePolicy == POLICY_UNDEFINED {
-			matchedPolicy = config.FindPolicyByUrl(licenseInfo.LicenseChoice.License.Url, config.PolicyList)
+			matchedPolicy = config.FindPolicyByUrl(licenseInfo.LicenseChoice.License.Url)
 		}
 	case LC_TYPE_NAME:
 		// Regular case, find policy by name within subset of policies that belong to the same license family
@@ -404,12 +418,12 @@ func (config *LicensePolicyConfig) FindPolicy(licenseInfo LicenseInfo) (matchedP
 
 		// If no match found, try to find policy by name among all known policies
 		if matchedPolicy.UsagePolicy == POLICY_UNDEFINED {
-			matchedPolicy = config.FindPolicyByName(licenseInfo.LicenseChoice.License.Name, config.PolicyList)
+			matchedPolicy = config.FindPolicyByName(licenseInfo.LicenseChoice.License.Name)
 		}
 
 		// If still no match found, try to find policy by URL in case there is has any such
 		if matchedPolicy.UsagePolicy == POLICY_UNDEFINED {
-			matchedPolicy = config.FindPolicyByUrl(licenseInfo.LicenseChoice.License.Url, config.PolicyList)
+			matchedPolicy = config.FindPolicyByUrl(licenseInfo.LicenseChoice.License.Url)
 		}
 
 		// If still no match found, see if the license name or URL is actually a license expression
@@ -504,10 +518,10 @@ func (config *LicensePolicyConfig) FindPolicyByNameOrUrlInFamily(licenseChoice C
 			policies = append(policies, policy)
 		}
 
-		matchedPolicy = config.FindPolicyByName(licenseName, policies)
+		matchedPolicy = config.FindPolicyByNameInPolicySubset(licenseName, policies)
 
 		if matchedPolicy.UsagePolicy == POLICY_UNDEFINED {
-			matchedPolicy = config.FindPolicyByUrl(licenseUrl, policies)
+			matchedPolicy = config.FindPolicyByUrlInPolicySubset(licenseUrl, policies)
 		}
 
 		// if matchedPolicy.UsagePolicy == POLICY_UNDEFINED {
@@ -573,7 +587,11 @@ func (config *LicensePolicyConfig) searchForLicenseFamilyName(licenseName string
 	return
 }
 
-func (config *LicensePolicyConfig) FindPolicyByName(licenseName string, licensePolicies []LicensePolicy) (matchedPolicy LicensePolicy) {
+func (config *LicensePolicyConfig) FindPolicyByName(licenseName string) (matchedPolicy LicensePolicy) {
+	return config.FindPolicyByNameInPolicySubset(licenseName, config.PolicyList)
+}
+
+func (config *LicensePolicyConfig) FindPolicyByNameInPolicySubset(licenseName string, licensePolicies []LicensePolicy) (matchedPolicy LicensePolicy) {
 	getLogger().Enter("name:", licenseName)
 	defer getLogger().Exit()
 
@@ -602,7 +620,11 @@ func (config *LicensePolicyConfig) FindPolicyByName(licenseName string, licenseP
 	return
 }
 
-func (config *LicensePolicyConfig) FindPolicyByUrl(licenseUrl string, licensePolicies []LicensePolicy) (matchedPolicy LicensePolicy) {
+func (config *LicensePolicyConfig) FindPolicyByUrl(licenseUrl string) (matchedPolicy LicensePolicy) {
+	return config.FindPolicyByUrlInPolicySubset(licenseUrl, config.PolicyList)
+}
+
+func (config *LicensePolicyConfig) FindPolicyByUrlInPolicySubset(licenseUrl string, licensePolicies []LicensePolicy) (matchedPolicy LicensePolicy) {
 	getLogger().Enter("url:", licenseUrl)
 	defer getLogger().Exit()
 
@@ -614,9 +636,6 @@ func (config *LicensePolicyConfig) FindPolicyByUrl(licenseUrl string, licensePol
 	func() {
 		licenseUrl = strings.TrimSuffix(licenseUrl, "/")
 		for _, policy := range licensePolicies {
-			if policy.IsDeprecated {
-				continue
-			}
 			for _, policyUrl := range policy.Urls {
 				if strings.TrimSuffix(policyUrl, "/") == licenseUrl {
 					matchedPolicy = policy
@@ -627,9 +646,6 @@ func (config *LicensePolicyConfig) FindPolicyByUrl(licenseUrl string, licensePol
 		if IsUnsecureUrl(licenseUrl) {
 			licenseUrl = ToSecureUrl(licenseUrl)
 			for _, policy := range licensePolicies {
-				if policy.IsDeprecated {
-					continue
-				}
 				for _, policyUrl := range policy.Urls {
 					if strings.TrimSuffix(policyUrl, "/") == licenseUrl {
 						matchedPolicy = policy

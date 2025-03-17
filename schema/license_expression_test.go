@@ -31,7 +31,7 @@ func TestLicenseExpressionTokenizerWhitespaceRemoval(t *testing.T) {
 	EXP := " Apache-2.0 	AND (	MIT OR     GPL-2.0-only ) "
 	VALID := []string{"Apache-2.0", "AND", "(", "MIT", "OR", "GPL-2.0-only", ")"}
 
-	tokens := tokenizeExpression(EXP)
+	tokens := tokenizeExpression(new(LicensePolicyConfig), EXP)
 
 	if !reflect.DeepEqual(tokens, VALID) {
 		t.Errorf("tokenizeExpression(): returned: %v; expected: %v", tokens, VALID)
@@ -44,7 +44,7 @@ func TestLicenseExpressionTokenizerWhitespaceNewlineTabRemoval(t *testing.T) {
 	EXP := "\n\tApache-2.0 	\tAND (\n	MIT OR     GPL-2.0-only )\t\n"
 	VALID := []string{"Apache-2.0", "AND", "(", "MIT", "OR", "GPL-2.0-only", ")"}
 
-	tokens := tokenizeExpression(EXP)
+	tokens := tokenizeExpression(new(LicensePolicyConfig), EXP)
 
 	if !reflect.DeepEqual(tokens, VALID) {
 		t.Errorf("tokenizeExpression(): returned: %v; expected: %v", tokens, VALID)

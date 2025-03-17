@@ -755,6 +755,87 @@ func TestLicensePolicyExpressionWithConjunction(t *testing.T) {
 	EXPECTED_NAME = "GNU General Public License v2.0 only WITH OpenJDK Assembly exception 1.0"
 	EXPECTED_POLICY = schema.POLICY_NEEDS_REVIEW
 	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
+
+	EXP = "GPL-2.0 WITH Classpath-exception-2.0 WITH OpenJDK-assembly-exception-1.0"
+	EXPECTED_NAME = "GNU General Public License v2.0 only WITH Classpath exception 2.0 WITH OpenJDK Assembly exception 1.0"
+	EXPECTED_POLICY = schema.POLICY_ALLOW
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
+
+	EXP = "GPL-2.0 WITH OpenJDK-assembly-exception-1.0 WITH Classpath-exception-2.0"
+	EXPECTED_NAME = "GNU General Public License v2.0 only WITH OpenJDK Assembly exception 1.0 WITH Classpath exception 2.0"
+	EXPECTED_POLICY = schema.POLICY_ALLOW
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
+}
+
+func TestLicensePolicyExpressionWithLikeConjunction(t *testing.T) {
+	EXP := "GPL-2.0 with Classpath-exception-2.0"
+	EXPECTED_NAME := "GNU General Public License v2.0 only WITH Classpath exception 2.0"
+	EXPECTED_POLICY := schema.POLICY_ALLOW
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
+
+	EXP = "GPL-2.0 w/ Classpath-exception-2.0 w/OpenJDK-assembly-exception-1.0"
+	EXPECTED_NAME = "GNU General Public License v2.0 only WITH Classpath exception 2.0 WITH OpenJDK Assembly exception 1.0"
+	EXPECTED_POLICY = schema.POLICY_ALLOW
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
+
+	EXP = "GPL-2.0 W/ Classpath-exception-2.0 W/OpenJDK-assembly-exception-1.0"
+	EXPECTED_NAME = "GNU General Public License v2.0 only WITH Classpath exception 2.0 WITH OpenJDK Assembly exception 1.0"
+	EXPECTED_POLICY = schema.POLICY_ALLOW
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
+}
+
+func TestLicensePolicyExpressionNameTerms(t *testing.T) {
+	EXP := "GNU General Public License v2.0 only WITH Classpath exception 2.0"
+	EXPECTED_NAME := "GNU General Public License v2.0 only WITH Classpath exception 2.0"
+	EXPECTED_POLICY := schema.POLICY_ALLOW
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
+
+	EXP = "GPL2 WITH CPE"
+	EXPECTED_NAME = "GNU General Public License v2.0 only WITH Classpath exception 2.0"
+	EXPECTED_POLICY = schema.POLICY_ALLOW
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
+
+	EXP = "GNU General Public License v2.0 or later OR The MIT License"
+	EXPECTED_NAME = "GNU General Public License v2.0 or later OR MIT License"
+	EXPECTED_POLICY = schema.POLICY_ALLOW
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
+
+	EXP = "Eclipse Public License 2.0 OR GNU General Public License v2.0 w/Classpath exception"
+	EXPECTED_NAME = "Eclipse Public License 2.0 OR GNU General Public License v2.0 w/Classpath exception"
+	EXPECTED_POLICY = schema.POLICY_ALLOW
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
+
+	EXP = "Eclipse Public License - v 2.0 OR GNU General Public License, version 2 with the GNU Classpath Exception"
+	EXPECTED_NAME = "Eclipse Public License 2.0 OR GNU General Public License v2.0 w/Classpath exception"
+	EXPECTED_POLICY = schema.POLICY_ALLOW
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
+}
+
+func TestLicensePolicyExpressionUrlTerms(t *testing.T) {
+	EXP := "https://opensource.org/licenses/GPL-2.0 WITH https://fedoraproject.org/wiki/Licensing/GPL_Classpath_Exception"
+	EXPECTED_NAME := "GNU General Public License v2.0 only WITH Classpath exception 2.0"
+	EXPECTED_POLICY := schema.POLICY_ALLOW
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
+
+	EXP = "https://www.gnu.org/licenses/old-licenses/gpl-2.0-standalone.html OR https://opensource.org/licenses/MIT"
+	EXPECTED_NAME = "GNU General Public License v2.0 only OR MIT License"
+	EXPECTED_POLICY = schema.POLICY_ALLOW
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
+
+	EXP = "https://opensource.org/licenses/GPL-2.0 OR https://github.com/mockito/mockito/blob/main/LICENSE"
+	EXPECTED_NAME = "GNU General Public License v2.0 only OR MIT License"
+	EXPECTED_POLICY = schema.POLICY_ALLOW
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
+
+	EXP = "https://www.eclipse.org/legal/epl-2.0 OR https://www.gnu.org/software/classpath/license.html"
+	EXPECTED_NAME = "Eclipse Public License 2.0 OR GNU General Public License v2.0 w/Classpath exception"
+	EXPECTED_POLICY = schema.POLICY_ALLOW
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
+
+	EXP = "https://projects.eclipse.org/license/epl-2.0 OR https://projects.eclipse.org/license/secondary-gpl-2.0-cp"
+	EXPECTED_NAME = "Eclipse Public License 2.0 OR GNU General Public License v2.0 w/Classpath exception"
+	EXPECTED_POLICY = schema.POLICY_ALLOW
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 }
 
 // NOTE: we need more tests that verify support of multiple conjunctions without

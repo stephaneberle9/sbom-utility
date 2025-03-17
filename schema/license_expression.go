@@ -21,6 +21,8 @@ package schema
 import (
 	"strings"
 
+	"golang.org/x/exp/slices"
+
 )
 
 type CompoundExpression struct {
@@ -47,6 +49,8 @@ const (
 	LEFT_PARENS_WITH_SEPARATOR  string = "( "
 	RIGHT_PARENS_WITH_SEPARATOR string = " )"
 	PLUS_OPERATOR               string = "+"
+	WITH_SHORTHAND              string = "w/"
+	WITH_WITH_SEPARATOR         string = WITH + " "
 )
 
 const (
@@ -81,10 +85,43 @@ func CopyCompoundExpression(expression *CompoundExpression) *CompoundExpression 
 	return ce
 }
 
-func tokenizeExpression(expression string) (tokens []string) {
+func IsExpressionLikePolicy(policy LicensePolicy) bool {
+	licenseName := prepareForTokenization(policy.Name)
+
+	for _, field := range strings.Fields(licenseName) {
+		if slices.Contains([]string{AND, OR, WITH, WITH_SHORTHAND}, strings.ToUpper(field)) {
+			return true
+		}
+	}
+	return false
+}
+
+func prepareForTokenization(expression string) string {
 	// Add spaces to assure proper tokenization with whitespace bw/ tokens
 	expression = strings.ReplaceAll(expression, LEFT_PARENS, LEFT_PARENS_WITH_SEPARATOR)
 	expression = strings.ReplaceAll(expression, RIGHT_PARENS, RIGHT_PARENS_WITH_SEPARATOR)
+
+	// Normalize w/ and W/ shorthand occurrences of WITH conjunction
+	expression = strings.ReplaceAll(expression, WITH_SHORTHAND, WITH_WITH_SEPARATOR)
+	expression = strings.ReplaceAll(expression, strings.ToUpper(WITH_SHORTHAND), WITH_WITH_SEPARATOR)
+
+	return expression
+}
+
+func tokenizeExpression(policyConfig *LicensePolicyConfig, expression string) (tokens []string) {
+	// Replace terms that are license names or aliases containing conjunctions with corresponding SPDX ids so that they 
+	// don't get tokenized excessively
+	expressionLikePolicies, _ := policyConfig.GetExpressionLikePoliciesList()
+	for _, expressionLikePolicy := range *expressionLikePolicies {
+		expression = strings.ReplaceAll(expression, expressionLikePolicy.Name, expressionLikePolicy.Id)
+		for _, expressionLikeAlias := range expressionLikePolicy.Aliases {
+			expression = strings.ReplaceAll(expression, expressionLikeAlias, expressionLikePolicy.Id)
+		}
+	}
+
+	// Make expression tokenizable
+	expression = prepareForTokenization(expression)
+
 	// fields are, by default, separated by whitespace
 	identifier := ""
 	for _, field := range strings.Fields(expression) {
@@ -111,7 +148,7 @@ func tokenizeExpression(expression string) (tokens []string) {
 
 func findPolicy(policyConfig *LicensePolicyConfig, token string) (matchedUsagePolicy string, matchedPolicy LicensePolicy, err error) {
 	if IsUrlish(token) {
-		matchedPolicy = policyConfig.FindPolicyByUrl(token, policyConfig.PolicyList)
+		matchedPolicy = policyConfig.FindPolicyByUrl(token)
 		matchedUsagePolicy = matchedPolicy.UsagePolicy
 		return
 	}
@@ -125,7 +162,7 @@ func findPolicy(policyConfig *LicensePolicyConfig, token string) (matchedUsagePo
 		return
 	}
 	
-	matchedPolicy = policyConfig.FindPolicyByName(token, policyConfig.PolicyList)
+	matchedPolicy = policyConfig.FindPolicyByName(token)
 	matchedUsagePolicy = matchedPolicy.UsagePolicy
 	return
 }
@@ -143,7 +180,7 @@ func ParseExpression(policyConfig *LicensePolicyConfig, rawExpression string) (e
 
 	expression = NewCompoundExpression()
 
-	tokens := tokenizeExpression(rawExpression)
+	tokens := tokenizeExpression(policyConfig, rawExpression)
 	getLogger().Debugf("Tokens: %v", tokens)
 
 	finalIndex, err := expression.Parse(policyConfig, tokens, 0)
