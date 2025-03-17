@@ -110,7 +110,7 @@ func TestIsApplicableToMavenComponent(t *testing.T) {
 	PURL := "pkg:maven/ch.qos.reload4j/reload4j@1.2.22"
 	innerTestIsApplicableToMavenComponent(t, PURL, true)
 
-	PURL = "pkg:maven/org.apache.ant/ant@1.10.6?type=jar"
+	PURL = "pkg:maven/org.apache.commons/commons-text@1.12.+"
 	innerTestIsApplicableToMavenComponent(t, PURL, true)
 
 	PURL = "pkg:maven/org.apache.ant/ant@1.10.6?classifier=lib%2Fant-apache-bcel.jar&type=jar"
@@ -522,6 +522,20 @@ func TestFindLicenseOfMavenComponent(t *testing.T) {
 	EXPECTED_LICENSE = "CDDL License"
 	EXPECTED_LICENSE_URL = "http://www.opensource.org/licenses/cddl1.php"
 	innerTestFindLicenseOfMavenComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE, EXPECTED_LICENSE_URL)
+
+	GROUP = "com.google.guava"
+	NAME = "guava"
+	VERSION = "32.1.1"
+	EXPECTED_LICENSE = "Apache License, Version 2.0"
+	EXPECTED_LICENSE_URL = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+	innerTestFindLicenseOfMavenComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE, EXPECTED_LICENSE_URL)
+
+	GROUP = "org.apache.commons"
+	NAME = "commons-text"
+	VERSION = "1.12.+"
+	EXPECTED_LICENSE = "Apache-2.0"
+	EXPECTED_LICENSE_URL = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+	innerTestFindLicenseOfMavenComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE, EXPECTED_LICENSE_URL)
 }
 
 func TestFindLicensesOfMavenComponent(t *testing.T) {
@@ -530,5 +544,19 @@ func TestFindLicensesOfMavenComponent(t *testing.T) {
 	VERSION := "12.0.12"
 	EXPECTED_LICENSES := []string{"Apache Software License - Version 2.0", "Eclipse Public License - Version 2.0"}
 	EXPECTED_LICENSE_URLS := []string{"https://www.apache.org/licenses/LICENSE-2.0", "https://www.eclipse.org/legal/epl-2.0/"}
+	innerTestFindLicensesOfMavenComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSES, EXPECTED_LICENSE_URLS)
+
+	GROUP = "net.java.dev.jna"
+	NAME = "jna"
+	VERSION = "5.8.0"
+	EXPECTED_LICENSES = []string{"LGPL, version 2.1", "Apache License v2.0"}
+	EXPECTED_LICENSE_URLS = []string{"http://www.gnu.org/licenses/licenses.html", "http://www.apache.org/licenses/LICENSE-2.0.txt"}
+	innerTestFindLicensesOfMavenComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSES, EXPECTED_LICENSE_URLS)
+
+	GROUP = "jakarta.el"
+	NAME = "jakarta.el-api"
+	VERSION = "5.0.1"
+	EXPECTED_LICENSES = []string{"Eclipse Public License v. 2.0", "GNU General Public License, version 2 with the GNU Classpath Exception"}
+	EXPECTED_LICENSE_URLS = []string{"https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt", "https://www.gnu.org/software/classpath/license.html"}
 	innerTestFindLicensesOfMavenComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSES, EXPECTED_LICENSE_URLS)
 }

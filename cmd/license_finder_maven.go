@@ -35,7 +35,7 @@ import (
 const (
 	// Matches component package URLs starting with 'pkg:maven', containing complete group/artifact/version information,
 	// and matching one of the Maven core packaging types
-	REGEX_MAVEN_PURL = `^pkg:maven/[\w\._-]+/[\w\._-]+@[\w\._-]+(\?(classifier=[\w%-\.]+&)?type=(jar|zip|pom))?$`
+	REGEX_MAVEN_PURL = `^pkg:maven/[\w\._-]+/[\w\._-]+@[\w\._+-]+(\?(classifier=[\w%-\.]+&)?type=(jar|zip|pom))?$`
 
 	MAVEN_BASE_URL = "https://repo1.maven.org/maven2"
 )
@@ -69,6 +69,8 @@ func (finder *MavenComponentLicenseFinderData) FindLicenses(cdxComponent schema.
 	// The given component may be nested into parent components, we'll recursively check for licenseChoices until we find any
 	var licenseChoices []schema.CDXLicenseChoice
 	for {
+		version = fixUpVersion(groupId, artifactId, version)
+
 		pom, err := getPomFromMavenRepo(groupId, artifactId, version)
 		if err != nil {
 			return nil, err
@@ -87,6 +89,26 @@ func (finder *MavenComponentLicenseFinderData) FindLicenses(cdxComponent schema.
 	finder.storeInLicenseCache(cdxComponent, licenseChoices)
 
 	return licenseChoices, nil
+}
+
+func fixUpVersion(groupId, artifactId, version string) string {
+	// 1.12.x -> 1.12.0, 1.12.+ -> 1.12.0
+	for _, suffix := range []string{".x", ".+"} {
+		if strings.HasSuffix(version, suffix) {
+			return strings.TrimSuffix(version, suffix) + ".0"
+		}
+	}
+
+	if groupId == "com.google.guava" {
+		if artifactId == "guava" {
+			// 32.1.1 -> 32.1.1-jre
+			if !strings.HasSuffix(version, "-jre") && !strings.HasSuffix(version, "-android") {
+				return fmt.Sprintf("%s-jre", version)
+			}
+		}
+	}
+
+	return version
 }
 
 func getPomFromMavenRepo(groupId, artifactId, version string) (*gopom.Project, error) {
