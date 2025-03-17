@@ -99,6 +99,11 @@ func lookupLicenseForWellknownMavenComponents(cdxComponent schema.CDXComponent) 
 			return licenseWithId("Apache-2.0")
 		}
 	}
+	if cdxComponent.Group == "com.itemis" {
+		if cdxComponent.Name == "com-itemis-secure" || cdxComponent.Name == "com-itemis-secure-jvm" {
+			return licenseWithId("LicenseRef-itemis-Closed-2.0.2")
+		}
+	}
 
 	// Yakindu components
 	if strings.HasPrefix(cdxComponent.Group, "com.itemis") || strings.HasPrefix(cdxComponent.Group, "com.yakindu") || strings.HasPrefix(cdxComponent.Group, "org.yakindu") {
@@ -145,7 +150,6 @@ func lookupLicenseForWellknownMavenComponents(cdxComponent schema.CDXComponent) 
 			}
 		}
 	}
-
 
 	return nil
 }
