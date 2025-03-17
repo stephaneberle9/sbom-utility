@@ -125,18 +125,42 @@ func innerTestLicenseExpressionParsing(t *testing.T, expression string, expected
 		return
 	}
 
-	t.Logf("parsed expression:\n%v", parsedExpression)
 	if parsedExpression.CompoundName != expectedName {
+		t.Logf("parsed expression:\n%v", parsedExpression)
 		t.Errorf("License Expression name: expected `%s`, actual `%s`\n",
 			expectedName, parsedExpression.CompoundName)
 		return
 	}
 	if parsedExpression.CompoundUsagePolicy != expectedPolicy {
+		t.Logf("parsed expression:\n%v", parsedExpression)
 		t.Errorf("License Expression policy: expected `%s`, actual `%s`\n",
 			expectedPolicy, parsedExpression.CompoundUsagePolicy)
 		return
 	}
 	return
+}
+
+func innerTestMultipleLicensesToLicenseExpression(t *testing.T, licenses *[]schema.CDXLicense, expectedLicenseExpression string) {
+	licenseChoices := []schema.CDXLicenseChoice{}
+	for _, license := range *licenses {
+		licenseCopy := license
+		licenseChoice := schema.CDXLicenseChoice{
+			License: &licenseCopy,
+		}
+		licenseChoices = append(licenseChoices, licenseChoice)
+	}
+
+	combinedLicenseChoice, err := multipleLicensesToLicenseExpression(LicensePolicyConfig, &licenseChoices)
+	if err != nil {
+		t.Errorf("unable to convert multiple licenses into a license expression `%v`: `%s`\n", licenseChoices, err.Error())
+		return
+	}
+
+	if combinedLicenseChoice.Expression != expectedLicenseExpression {
+		t.Errorf("License: expected `%s`, actual `%s`\n",
+			expectedLicenseExpression, combinedLicenseChoice.Expression)
+		return
+	}
 }
 
 func innerTestLicenseInfoHashing(t *testing.T, licenseName string, licenseUrl string, expectedLicense string, expectedLicenseUrls string, expectedUsagePolicy string) {
@@ -544,9 +568,136 @@ func TestLicenseListPolicyCdx14CustomPolicy(t *testing.T) {
 	innerTestLicenseList(t, lti)
 }
 
-// ---------------------------------
-// CDX License hashing hashing tests
-// ---------------------------------
+// --------------------------------------------------------
+// Multiple licenses to license expression conversion tests
+// --------------------------------------------------------
+
+func TestMultipleLicensesToLicenseExpression(t *testing.T) {
+	LICENSES := []schema.CDXLicense{
+		{
+			Name: "Eclipse Public License v. 2.0",
+			Url:  "https://www.eclipse.org/org/documents/epl-2.0/EPL-2.0.txt",
+		},
+		{
+			Name: "GNU General Public License, version 2 with the GNU Classpath Exception",
+			Url:  "https://www.gnu.org/software/classpath/license.html",
+		},
+	}
+	EXPECTED_LICENSE_EXPRESSION := "Eclipse Public License v. 2.0 OR GNU General Public License, version 2 with the GNU Classpath Exception"
+	innerTestMultipleLicensesToLicenseExpression(t, &LICENSES, EXPECTED_LICENSE_EXPRESSION)
+
+	LICENSES = []schema.CDXLicense{
+		{
+			Name: "EPL 2.0",
+			Url:  "https://www.eclipse.org/legal/epl-2.0",
+		},
+		{
+			Name: "GPL2 w/ CPE",
+			Url:  "https://www.gnu.org/software/classpath/license.html",
+		},
+	}
+	EXPECTED_LICENSE_EXPRESSION = "EPL 2.0 OR GPL2 w/ CPE"
+	innerTestMultipleLicensesToLicenseExpression(t, &LICENSES, EXPECTED_LICENSE_EXPRESSION)
+
+	LICENSES = []schema.CDXLicense{
+		{
+			Name: "Eclipse Public License v. 2.0",
+			Url:  "http://www.eclipse.org/legal/epl-2.0",
+		},
+		{
+			Name: "Eclipse Distribution License v. 1.0",
+			Url:  "http://www.eclipse.org/org/documents/edl-v10.php",
+		},
+	}
+	EXPECTED_LICENSE_EXPRESSION = "Eclipse Public License v. 2.0 OR Eclipse Distribution License v. 1.0"
+	innerTestMultipleLicensesToLicenseExpression(t, &LICENSES, EXPECTED_LICENSE_EXPRESSION)
+
+	LICENSES = []schema.CDXLicense{
+		{
+			Name: "Eclipse Public License 2.0",
+			Url:  "https://projects.eclipse.org/license/epl-2.0",
+		},
+		{
+			Name: "GNU General Public License, version 2 with the GNU Classpath Exception",
+			Url:  "https://projects.eclipse.org/license/secondary-gpl-2.0-cp",
+		},
+	}
+	EXPECTED_LICENSE_EXPRESSION = "Eclipse Public License 2.0 OR GNU General Public License, version 2 with the GNU Classpath Exception"
+	innerTestMultipleLicensesToLicenseExpression(t, &LICENSES, EXPECTED_LICENSE_EXPRESSION)
+
+	LICENSES = []schema.CDXLicense{
+		{
+			Name: "EPL 2.0",
+			Url:  "http://www.eclipse.org/legal/epl-2.0",
+		},
+		{
+			Name: "GPL2 w/ CPE",
+			Url:  "https://www.gnu.org/software/classpath/license.html",
+		},
+	}
+	EXPECTED_LICENSE_EXPRESSION = "EPL 2.0 OR GPL2 w/ CPE"
+	innerTestMultipleLicensesToLicenseExpression(t, &LICENSES, EXPECTED_LICENSE_EXPRESSION)
+}
+
+func TestMultipleLicensesToLicenseExpressionResolvableNamesAndUrls(t *testing.T) {
+	LICENSES := []schema.CDXLicense{
+		{
+			Name: "Eclipse Public License v. 2.0",
+			Url:  "https://not.in.license.json",
+		},
+		{
+			Name: "GNU General Public License, version 2 with the GNU Classpath Exception",
+			Url:  "https://not.in.license.json",
+		},
+	}
+	EXPECTED_LICENSE_EXPRESSION := "Eclipse Public License v. 2.0 OR GNU General Public License, version 2 with the GNU Classpath Exception"
+	innerTestMultipleLicensesToLicenseExpression(t, &LICENSES, EXPECTED_LICENSE_EXPRESSION)
+
+	LICENSES = []schema.CDXLicense{
+		{
+			Name: "Not in license.json",
+			Url:  "https://www.eclipse.org/legal/epl-2.0",
+		},
+		{
+			Name: "Not in license.json",
+			Url:  "https://www.gnu.org/software/classpath/license.html",
+		},
+	}
+	EXPECTED_LICENSE_EXPRESSION = "https://www.eclipse.org/legal/epl-2.0 OR https://www.gnu.org/software/classpath/license.html"
+	innerTestMultipleLicensesToLicenseExpression(t, &LICENSES, EXPECTED_LICENSE_EXPRESSION)
+}
+
+func TestMultipleLicensesToLicenseExpressionUnknownNamesAndUrls(t *testing.T) {
+	LICENSES := []schema.CDXLicense{
+		{
+			Name: "Not in license.json",
+			Url:  "https://not.in.license.json",
+		},
+		{
+			Name: "Not in license.json",
+			Url:  "https://not.in.license.json",
+		},
+	}
+	EXPECTED_LICENSE_EXPRESSION := "Not in license.json OR Not in license.json"
+	innerTestMultipleLicensesToLicenseExpression(t, &LICENSES, EXPECTED_LICENSE_EXPRESSION)
+
+	LICENSES = []schema.CDXLicense{
+		{
+			Name: "",
+			Url:  "https://not.in.license.json",
+		},
+		{
+			Name: "",
+			Url:  "https://not.in.license.json",
+		},
+	}
+	EXPECTED_LICENSE_EXPRESSION = "https://not.in.license.json OR https://not.in.license.json"
+	innerTestMultipleLicensesToLicenseExpression(t, &LICENSES, EXPECTED_LICENSE_EXPRESSION)
+}
+
+// -------------------------
+// CDX License hashing tests
+// -------------------------
 
 func TestHashCDXLicenseApache(t *testing.T) {
 	EXPECTED_LICENSE := "Apache License Version 2.0"

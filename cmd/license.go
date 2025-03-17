@@ -25,6 +25,7 @@ import (
 	"github.com/CycloneDX/sbom-utility/common"
 	"github.com/CycloneDX/sbom-utility/schema"
 	"github.com/spf13/cobra"
+
 )
 
 const (
@@ -262,7 +263,7 @@ func hashComponentLicense(bom *schema.BOM, policyConfig *schema.LicensePolicyCon
 
 	if pLicenses != nil && len(*pLicenses) > 0 {
 		// Combine multiple licenses into a single license expression
-		licenseInfo.LicenseChoice, err = multipleLicensesToLicenseExpression(pLicenses)
+		licenseInfo.LicenseChoice, err = multipleLicensesToLicenseExpression(policyConfig, pLicenses)
 		if err != nil {
 			return
 		}
@@ -469,21 +470,27 @@ func stripUnknownLicenses(cdxComponent *schema.CDXComponent) {
 	}
 }
 
-func multipleLicensesToLicenseExpression(originalLicenses *[]schema.CDXLicenseChoice) (combinedLicenseChoice schema.CDXLicenseChoice, err error) {
+func multipleLicensesToLicenseExpression(policyConfig *schema.LicensePolicyConfig, originalLicenses *[]schema.CDXLicenseChoice) (combinedLicenseChoice schema.CDXLicenseChoice, err error) {
 	if len(*originalLicenses) > 1 {
 		// Convert multiple licenses into a single license expression using the OR operator
 		// (see https://maven.apache.org/ref/3-LATEST/maven-model/maven.html > licenses/license for justification)
 		var licenseExpressionParts []string
 		for _, licenseChoice := range *originalLicenses {
 			if licenseChoice.License != nil {
-				if licenseChoice.License.Id != "" {
+				if licenseChoice.HasResolvableId(policyConfig) {
 					licenseExpressionParts = append(licenseExpressionParts, licenseChoice.License.Id)
-				} else if licenseChoice.License.Url != "" {
+				} else if licenseChoice.HasResolvableName(policyConfig) {
+					licenseExpressionParts = append(licenseExpressionParts, licenseChoice.License.Name)
+				} else if licenseChoice.HasResolvableUrl(policyConfig) {
 					licenseExpressionParts = append(licenseExpressionParts, licenseChoice.License.Url)
+				} else if licenseChoice.License.Id != "" {
+					licenseExpressionParts = append(licenseExpressionParts, licenseChoice.License.Id)
 				} else if licenseChoice.License.Name != "" {
 					licenseExpressionParts = append(licenseExpressionParts, licenseChoice.License.Name)
+				} else if licenseChoice.License.Url != "" {
+					licenseExpressionParts = append(licenseExpressionParts, licenseChoice.License.Url)
 				} else {
-					getLogger().Warningf("Unable to include license w/o license id and URL in license expression for component with multiple licenses: %v", licenseChoice)
+					getLogger().Warningf("Unable to include license w/o license id, name and URL in license expression for component with multiple licenses: %v", licenseChoice)
 				}
 			} else if licenseChoice.CDXLicenseExpression.Expression != "" {
 				licenseExpressionParts = append(licenseExpressionParts, schema.LEFT_PARENS+" "+licenseChoice.CDXLicenseExpression.Expression+" "+schema.RIGHT_PARENS)

@@ -280,6 +280,28 @@ func (licenseChoice *CDXLicenseChoice) FixUpUrlishName() error {
 	return nil
 }
 
+func (licenseChoice *CDXLicenseChoice) HasResolvableId(policyConfig *LicensePolicyConfig) bool {
+	matchedPolicy, err := policyConfig.FindPolicyBySpdxId(licenseChoice.License.Id)
+	if err != nil {
+		return false
+	}
+	return matchedPolicy.UsagePolicy != POLICY_UNDEFINED
+}
+
+func (licenseChoice *CDXLicenseChoice) HasResolvableName(policyConfig *LicensePolicyConfig) bool {
+	licenseChoice.FixUpUrlishName()
+
+	matchedPolicy := policyConfig.FindPolicyByName(licenseChoice.License.Name)
+	return matchedPolicy.UsagePolicy != POLICY_UNDEFINED
+}
+
+func (licenseChoice *CDXLicenseChoice) HasResolvableUrl(policyConfig *LicensePolicyConfig) bool {
+	licenseChoice.FixUpUrlishName()
+
+	matchedPolicy := policyConfig.FindPolicyByUrl(licenseChoice.License.Url)
+	return matchedPolicy.UsagePolicy != POLICY_UNDEFINED
+}
+
 // v1.5: added
 type CDXLicensing struct {
 	AltIds        *[]string             `json:"altIds,omitempty"`
