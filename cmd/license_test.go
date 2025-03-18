@@ -407,7 +407,7 @@ func TestLicenseListCdx13JsonEmptyAttachment(t *testing.T) {
 		FORMAT_JSON,
 		false)
 	lti.ResultExpectedLineCount = 5
-	lti.ResultLineContainsValues = []string{"\"expression\": \"MIT OR UFL OR ( Apache-2.0 AND (MIT OR BSD-2-Clause) ) OR https://www.apache.org/licenses/LICENSE-2.0-variant.txt OR https://www.apache.org/licenses/LICENSE-2.0-variant-2.txt\""}
+	lti.ResultLineContainsValues = []string{"\"expression\": \"MIT OR UFL OR ( Apache-2.0 AND (MIT OR BSD-2-Clause) ) OR Apache 2 variant OR Apache 2 variant 2\""}
 	lti.ResultLineContainsValuesAtLineNum = 2
 	innerTestLicenseList(t, lti)
 }
