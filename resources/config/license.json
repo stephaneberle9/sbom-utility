@@ -2338,7 +2338,7 @@
         {
             "id": "GPL-2.0-with-classpath-exception",
             "name": "GNU General Public License v2.0 w/Classpath exception",
-            "family": "GPL-3.0",
+            "family": "GPL-2.0",
             "reference": "https://spdx.org/licenses/GPL-2.0-with-classpath-exception.html",
             "osi": true,
             "fsf": false,
@@ -2355,6 +2355,7 @@
             ],
             "aliases": [
                 "GNU General Public License, version 2 with the GNU Classpath Exception",
+                "GPL-2.0-only with Classpath-Exception-2.0",
                 "GPL2 w/ CPE"
             ]
         },
@@ -2400,7 +2401,7 @@
         {
             "id": "GPL-3.0-or-later",
             "name": "GNU General Public License v3.0 or later",
-            "family": "GPL",
+            "family": "GPL-3.0",
             "reference": "https://spdx.org/licenses/GPL-3.0-or-later.html",
             "osi": true,
             "fsf": true,

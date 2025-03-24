@@ -944,6 +944,31 @@ func TestHashCDXLicenseEPL(t *testing.T) {
 	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
 }
 
+func TestHashCDXLicenseGPLwithCPE(t *testing.T) {
+	//
+	// GPL-2.0-with-classpath-exception
+	//
+	EXPECTED_LICENSE := "GNU General Public License v2.0 w/Classpath exception"
+	EXPECTED_LICENSE_URLS := "https://www.gnu.org/software/classpath/license.html"
+	EXPECTED_USAGE_POLICY := schema.POLICY_ALLOW
+
+	CDX_LICENSE_NAME := "GNU General Public License, version 2 with the GNU Classpath Exception"
+	CDX_LICENSE_URL := ""
+	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
+
+	CDX_LICENSE_NAME = "GPL-2.0-only with Classpath-Exception-2.0"
+	CDX_LICENSE_URL = ""
+	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
+
+	CDX_LICENSE_NAME = "GPL2 w/ CPE"
+	CDX_LICENSE_URL = ""
+	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
+
+	CDX_LICENSE_NAME = ""
+	CDX_LICENSE_URL = "https://projects.eclipse.org/license/secondary-gpl-2.0-cp"
+	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
+}
+
 func TestHashCDXLicenseLGPL(t *testing.T) {
 	//
 	// LGPL-2.1
