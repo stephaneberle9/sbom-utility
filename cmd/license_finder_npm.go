@@ -30,7 +30,7 @@ import (
 
 const (
 	// Matches component package URLs starting with 'pkg:npm' and containing complete group/artifact/version information
-	REGEX_NPM_PURL = `^pkg:npm/(@?[\w\._-]+/)?[\w\._-]+@[\w\._-]+$`
+	REGEX_NPM_PURL = `^pkg:npm/((@|%40)?[\w\._-]+/)?[\w\._-]+(@|%40)[\w\._-]+$`
 
 	NPM_BASE_URL = "https://registry.npmjs.org"
 )

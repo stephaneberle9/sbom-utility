@@ -536,7 +536,7 @@ func TestLicensePolicyListWrapFalse(t *testing.T) {
 
 func TestLicensePolicyListWrapTrue(t *testing.T) {
 	lti := NewLicensePolicyTestInfoBasic(FORMAT_TEXT, true)
-	lti.ResultExpectedLineCount = 420 // title and data rows
+	lti.ResultExpectedLineCount = 421 // title and data rows
 	// sanity (spot) check row values
 	lti.ResultLineContainsValuesAtLineNum = 2
 	lti.ResultLineContainsValues = []string{"0BSD", schema.POLICY_ALLOW}

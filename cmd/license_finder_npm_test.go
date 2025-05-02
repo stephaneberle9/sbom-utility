@@ -123,6 +123,9 @@ func TestIsApplicableToNpmComponent(t *testing.T) {
 
 	PURL = "pkg:npm/@babel/highlight@7.24.7"
 	innerTestIsApplicableToNpmComponent(t, PURL, true)
+
+	PURL = "pkg:npm/%40cspotcode/source-map-support@0.8.1"
+	innerTestIsApplicableToNpmComponent(t, PURL, true)
 }
 
 func TestFindLicenseOfNpmComponent(t *testing.T) {
