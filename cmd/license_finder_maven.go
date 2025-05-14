@@ -35,7 +35,7 @@ import (
 const (
 	// Matches component package URLs starting with 'pkg:maven', containing complete group/artifact/version information,
 	// and matching one of the Maven core packaging types
-	REGEX_MAVEN_PURL = `^pkg:maven/[\w\._-]+/[\w\._-]+@[\w\._+-]+(\?(classifier=[\w%-\.]+&)?type=(jar|zip|pom))?$`
+	REGEX_MAVEN_PURL = `^pkg:maven/[\w\._-]+/[\w\._-]+@[\w\.%_+-]+(\?(classifier=[\w%-\.]+&)?type=(jar|zip|pom))?$`
 
 	MAVEN_BASE_URL = "https://repo1.maven.org/maven2"
 )

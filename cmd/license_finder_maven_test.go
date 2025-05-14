@@ -121,6 +121,9 @@ func TestIsApplicableToMavenComponent(t *testing.T) {
 
 	PURL = "pkg:maven/p2.eclipse.plugin/org.apache.ant@1.10.12.v20211102-1452?classifier=lib%2Fant-apache-bcel.jar&type=eclipse-plugin"
 	innerTestIsApplicableToMavenComponent(t, PURL, false)
+
+	PURL = "pkg:maven/org.apache.commons/commons-text@1.12.%2B"
+	innerTestIsApplicableToMavenComponent(t, PURL, true)
 }
 
 func TestFindLicenseOfMavenComponent(t *testing.T) {
