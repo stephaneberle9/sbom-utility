@@ -354,6 +354,21 @@
             ]
         },
         {
+            "id": "Apache-1.1-jdom",
+            "name": "Similar to Apache License Version 1.1 but with the acknowledgment clause removed",
+            "family": "Apache",
+            "reference": "https://spdx.org/licenses/Apache-1.1.html",
+            "osi": true,
+            "fsf": true,
+            "usagePolicy": "allow",
+            "annotationRefs": [
+                "APPROVED"
+            ],
+            "urls": [
+                "https://raw.github.com/hunterhacker/jdom/master/LICENSE.txt"
+            ]
+        },
+        {
             "id": "Apache-2.0",
             "name": "Apache License Version 2.0",
             "family": "Apache",

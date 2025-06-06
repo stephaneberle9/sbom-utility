@@ -112,7 +112,7 @@ func lookupLicenseForWellknownMavenComponents(cdxComponent schema.CDXComponent) 
 			}
 	}
 
-	// Third-party components not advertising any license on Maven Central
+	// Third-party components not advertising any or ambiguous  information on Maven Central
 	if cdxComponent.Group == "org.graphviz" {
 		if cdxComponent.Name == "graphviz" {
 			// https://graphviz.org/license
@@ -130,7 +130,7 @@ func lookupLicenseForWellknownMavenComponents(cdxComponent schema.CDXComponent) 
 	}
 	if cdxComponent.Group == "org.jsweet.ext" {
 		if cdxComponent.Name == "typescript.java-ts.core" {
-			// https://github.com/cincheo/jsweet/blob/develop/typescript.java-ts.core/LICENSE
+			// https://github.com/cincheo/jsweet/blob/develop/typescript.java-ts.core
 			return licenseWithId("MIT")
 		}
 	}
@@ -147,6 +147,14 @@ func lookupLicenseForWellknownMavenComponents(cdxComponent schema.CDXComponent) 
 			if cdxComponent.Version == "3.2" {
 				// https://mvnrepository.com/artifact/org.antlr/antlr-runtime/3.5.3
 				return licenseWithId("BSD-3-Clause")
+			}
+		}
+	}
+	if cdxComponent.Group == "org.mvnpm.at.mvnpm" {
+		if cdxComponent.Name == "codeblock" {
+			if cdxComponent.Version == "1.1.1" {
+				// https://github.com/qomponent/qui-code-block
+				return licenseWithId("Apache-2.0")
 			}
 		}
 	}
