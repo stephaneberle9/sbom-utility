@@ -126,6 +126,21 @@
             ]
         },
         {
+            "id": "Adobe-Glyph",
+            "name": "Adobe Glyph List License",
+            "family": "Adobe",
+            "reference": "https://spdx.org/licenses/Adobe-Glyph.html",
+            "osi": false,
+            "fsf": false,
+            "usagePolicy": "allow",
+            "annotationRefs": [
+                "APPROVED"
+            ],
+            "urls": [
+                "https://fedoraproject.org/wiki/Licensing/MIT#AdobeGlyph"
+            ]
+        },
+        {
             "id": "ADSL",
             "name": "Amazon Digital Services License",
             "family": "ADSL",
