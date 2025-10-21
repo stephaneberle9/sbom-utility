@@ -523,7 +523,7 @@ func TestLicensePolicyMatchByFamilyNameBadExpression(t *testing.T) {
 
 func TestLicensePolicyListWrapFalse(t *testing.T) {
 	lti := NewLicensePolicyTestInfoBasic(FORMAT_TEXT, false)
-	lti.ResultExpectedLineCount = 266 // title and data rows
+	lti.ResultExpectedLineCount = 268 // title and data rows
 	// Verify first data row has expected values
 	// sanity (spot) check row values
 	lti.ResultLineContainsValuesAtLineNum = 2
@@ -536,7 +536,7 @@ func TestLicensePolicyListWrapFalse(t *testing.T) {
 
 func TestLicensePolicyListWrapTrue(t *testing.T) {
 	lti := NewLicensePolicyTestInfoBasic(FORMAT_TEXT, true)
-	lti.ResultExpectedLineCount = 421 // title and data rows
+	lti.ResultExpectedLineCount = 424 // title and data rows
 	// sanity (spot) check row values
 	lti.ResultLineContainsValuesAtLineNum = 2
 	lti.ResultLineContainsValues = []string{"0BSD", schema.POLICY_ALLOW}
@@ -666,7 +666,7 @@ func TestLicensePolicyListWhereAnnotation0BSDNeedsIPApproval(t *testing.T) {
 func TestLicensePolicyListWhereFamilyApache(t *testing.T) {
 	lti := NewLicensePolicyTestInfoBasic(FORMAT_TEXT, false)
 	lti.WhereClause = "family=Apache"
-	lti.ResultExpectedLineCount = 5
+	lti.ResultExpectedLineCount = 6
 	// sanity (spot) check row values
 	lti.ResultLineContainsValuesAtLineNum = 2
 	lti.ResultLineContainsValues = []string{"Apache License Version 1.0", schema.POLICY_ALLOW}
