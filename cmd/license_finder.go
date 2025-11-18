@@ -119,7 +119,7 @@ func performHttpGetRequest(requestURL string) ([]byte, error) {
 		return nil, fmt.Errorf("failed to send HTTP GET request to %s: %w", requestURL, err)
 	}
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("HTTP GET request failed: %w", err)
+		return nil, fmt.Errorf("HTTP GET request to %s returned status code %d", requestURL, response.StatusCode)
 	}
 
 	// Read response body

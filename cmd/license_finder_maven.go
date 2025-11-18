@@ -37,11 +37,38 @@ const (
 	// and matching one of the Maven core packaging types
 	REGEX_MAVEN_PURL = `^pkg:maven/[\w\._-]+/[\w\._-]+@[\w\.%_+-]+(\?(classifier=[\w%-\.]+&)?type=(jar|zip|pom))?$`
 
-	MAVEN_BASE_URL = "https://repo1.maven.org/maven2"
+	MAVEN_CENTRAL_BASE_URL    = "https://repo1.maven.org/maven2"
+	ITEMIS_MAVEN_BASE_URL     = "https://artifacts.itemis.cloud/repository/maven"
+	ITEMIS_MAVEN_MPS_BASE_URL = "https://artifacts.itemis.cloud/repository/maven-mps"
+)
+
+var (
+	// Maven repositories to search in order
+	MAVEN_REPOSITORIES = []string{
+		MAVEN_CENTRAL_BASE_URL,
+		ITEMIS_MAVEN_BASE_URL,
+		ITEMIS_MAVEN_MPS_BASE_URL,
+	}
 )
 
 type MavenComponentLicenseFinderData struct {
 	LicenseFinderData
+}
+
+// MavenMetadata represents the structure of maven-metadata.xml for SNAPSHOT versions
+type MavenMetadata struct {
+	Versioning struct {
+		Snapshot struct {
+			Timestamp   string `xml:"timestamp"`
+			BuildNumber int    `xml:"buildNumber"`
+		} `xml:"snapshot"`
+		SnapshotVersions struct {
+			SnapshotVersion []struct {
+				Extension string `xml:"extension"`
+				Value     string `xml:"value"`
+			} `xml:"snapshotVersion"`
+		} `xml:"snapshotVersions"`
+	} `xml:"versioning"`
 }
 
 var MavenComponentLicenseFinder *MavenComponentLicenseFinderData = &MavenComponentLicenseFinderData{
@@ -112,35 +139,113 @@ func fixUpVersion(groupId, artifactId, version string) string {
 }
 
 func getPomFromMavenRepo(groupId, artifactId, version string) (*gopom.Project, error) {
-	// Compose Maven central URL to be reached out to
-	requestURL, err := formatMavenPomURL(groupId, artifactId, version)
-	if err != nil {
-		return nil, err
-	}
-	getLogger().Tracef("trying to fetch pom from Maven central %s", requestURL)
+	var lastErr error
 
-	// Get pom from Maven central
+	// Try each Maven repository in order until we find the POM
+	for _, baseURL := range MAVEN_REPOSITORIES {
+		pom, err := tryGetPomFromRepo(baseURL, groupId, artifactId, version)
+		if err != nil {
+			getLogger().Tracef("unable to fetch pom from %s: %v", baseURL, err)
+			lastErr = err
+			continue
+		}
+		if pom != nil {
+			getLogger().Tracef("successfully fetched pom from %s", baseURL)
+			return pom, nil
+		}
+	}
+
+	// If we get here, none of the repositories had the POM
+	if lastErr != nil {
+		return nil, fmt.Errorf("unable to fetch pom from any Maven repository: %w", lastErr)
+	}
+	return nil, fmt.Errorf("unable to fetch pom from any Maven repository")
+}
+
+func tryGetPomFromRepo(baseURL, groupId, artifactId, version string) (*gopom.Project, error) {
+	// Resolve SNAPSHOT version if needed
+	// For SNAPSHOT versions, we need both the original version (for directory path) and resolved version (for filename)
+	resolvedVersion := version
+
+	if strings.HasSuffix(version, "-SNAPSHOT") {
+		snapshotVersion, err := resolveSnapshotVersion(baseURL, groupId, artifactId, version)
+		if err != nil {
+			return nil, fmt.Errorf("unable to resolve SNAPSHOT version: %w", err)
+		}
+		resolvedVersion = snapshotVersion
+		getLogger().Tracef("resolved SNAPSHOT version %s to %s from %s", version, resolvedVersion, baseURL)
+	}
+
+	// Compose Maven repository URL to be reached out to
+	requestURL, err := formatMavenPomURL(baseURL, groupId, artifactId, version, resolvedVersion)
+	if err != nil {
+		return nil, fmt.Errorf("could not construct POM URL: %w", err)
+	}
+	getLogger().Tracef("trying to fetch pom from %s: %s", baseURL, requestURL)
+
+	// Get pom from Maven repository
 	responseXml, err := performHttpGetRequest(requestURL)
 	if err != nil {
-		return nil, fmt.Errorf("unable to fetch pom from Maven central: %w", err)
+		return nil, fmt.Errorf("unable to fetch pom: %w", err)
 	}
 
 	// Parse pom XML
 	pom, err := parsePomXml(responseXml)
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse pom obtained from Maven central: %w", err)
+		return nil, fmt.Errorf("unable to parse pom: %w", err)
 	}
+
 	return &pom, nil
 }
 
-func formatMavenPomURL(groupID, artifactID, version string) (string, error) {
+func resolveSnapshotVersion(baseURL, groupId, artifactId, version string) (string, error) {
+	// Construct URL to maven-metadata.xml
+	urlPath := strings.Split(groupId, ".")
+	urlPath = append(urlPath, artifactId, version, "maven-metadata.xml")
+
+	metadataURL, err := url.JoinPath(baseURL, urlPath...)
+	if err != nil {
+		return "", fmt.Errorf("could not construct maven-metadata.xml url: %w", err)
+	}
+
+	// Fetch maven-metadata.xml
+	responseXml, err := performHttpGetRequest(metadataURL)
+	if err != nil {
+		return "", fmt.Errorf("unable to fetch maven-metadata.xml: %w", err)
+	}
+
+	// Parse maven-metadata.xml
+	var metadata MavenMetadata
+	decoder := xml.NewDecoder(bytes.NewReader(responseXml))
+	decoder.CharsetReader = charset.NewReaderLabel
+	if err := decoder.Decode(&metadata); err != nil {
+		return "", fmt.Errorf("unable to unmarshal maven-metadata.xml: %w", err)
+	}
+
+	// Try to get version from snapshotVersions first (preferred method)
+	for _, sv := range metadata.Versioning.SnapshotVersions.SnapshotVersion {
+		if sv.Extension == "pom" {
+			return sv.Value, nil
+		}
+	}
+
+	// Fallback: construct version from timestamp and buildNumber
+	if metadata.Versioning.Snapshot.Timestamp != "" {
+		baseVersion := strings.TrimSuffix(version, "-SNAPSHOT")
+		return fmt.Sprintf("%s-%s-%d", baseVersion, metadata.Versioning.Snapshot.Timestamp, metadata.Versioning.Snapshot.BuildNumber), nil
+	}
+
+	return "", fmt.Errorf("unable to resolve SNAPSHOT version from maven-metadata.xml")
+}
+
+func formatMavenPomURL(baseURL, groupID, artifactID, version, resolvedVersion string) (string, error) {
 	// groupID needs to go from maven.org -> maven/org
 	urlPath := strings.Split(groupID, ".")
-	artifactPom := fmt.Sprintf("%s-%s.pom", artifactID, version)
+	artifactPom := fmt.Sprintf("%s-%s.pom", artifactID, resolvedVersion)
 	urlPath = append(urlPath, artifactID, version, artifactPom)
 
-	// ex:"https://repo1.maven.org/maven2/groupID/artifactID/artifactPom
-	requestURL, err := url.JoinPath(MAVEN_BASE_URL, urlPath...)
+	// ex: "https://repo1.maven.org/maven2/groupID/artifactID/version/artifactID-resolvedVersion.pom
+	requestURL, err := url.JoinPath(baseURL, urlPath...)
 	if err != nil {
 		return requestURL, fmt.Errorf("could not construct maven pom url: %w", err)
 	}
