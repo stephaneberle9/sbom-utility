@@ -45,12 +45,13 @@ const (
 )
 
 // WARNING: some functional logic may assume incremental ordering of levels
+// Log levels follow industry standard order from most verbose (lowest severity) to least verbose (highest severity)
 const (
-	ERROR   Level = iota // 0 - Always output errors (stop execution)
-	WARNING              // 1 - Always output warnings (continue executing)
-	INFO                 // 2 - General processing information (processing milestones)
-	TRACE                // 3 - In addition to INFO, output functional info. (signature, parameter)
-	DEBUG                // 4 - In addition to TRACE, output internal logic and intra-functional data
+	TRACE   Level = iota // 0 - Most verbose: function entry/exit, detailed execution flow
+	DEBUG                // 1 - Verbose: internal logic, variable states, debugging info
+	INFO                 // 2 - Standard: general processing information, milestones
+	WARNING              // 3 - Concerning: warnings that don't stop execution
+	ERROR                // 4 - Critical: errors that stop execution
 )
 
 // Assure default ENTER and EXIT default tags have same fixed-length chars.
@@ -240,9 +241,10 @@ func (log MiniLogger) Errorf(format string, value ...interface{}) error {
 
 // Specialized function entry/exit trace
 // Note: can pass in "args[]" or params as needed to have a single logging line
+// Note: Enter/Exit only appear at TRACE level (most verbose)
 func (log *MiniLogger) Enter(values ...interface{}) {
 
-	if log.logLevel >= TRACE {
+	if log.logLevel <= TRACE {
 		sb := bytes.NewBufferString("")
 		if len(values) > 0 {
 			sb.WriteByte('(')
@@ -266,9 +268,10 @@ func (log *MiniLogger) Enter(values ...interface{}) {
 
 // exit and print returned values (typed)
 // Note: can function "returns" as needed to have a single logging line
+// Note: Enter/Exit only appear at TRACE level (most verbose)
 func (log *MiniLogger) Exit(values ...interface{}) {
 
-	if log.logLevel >= TRACE {
+	if log.logLevel <= TRACE {
 		sb := bytes.NewBufferString("")
 		if len(values) > 0 {
 			sb.WriteByte('(')
@@ -313,9 +316,9 @@ func (log MiniLogger) dumpInterface(lvl Level, tag string, value interface{}, sk
 		sb.WriteString(string(log.indentRunes))
 	}
 
-	// Only (prepare to) output if intended log level is less than
-	// the current globally set log level
-	if lvl <= log.logLevel {
+	// Only output if the message level is greater than or equal to current log level
+	// (higher numeric value = higher severity, should always be shown)
+	if lvl >= log.logLevel {
 		// retrieve all the info we might need
 		pc, fn, line, ok := runtime.Caller(skip)
 

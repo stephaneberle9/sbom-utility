@@ -164,6 +164,9 @@ func policyCmdImpl(cmd *cobra.Command, args []string) (err error) {
 	getLogger().Enter(args)
 	defer getLogger().Exit()
 
+	// Initialize configurations
+	initConfigurations()
+
 	outputFile, writer, err := createOutputFile(utils.GlobalFlags.PersistentFlags.OutputFile)
 
 	// use function closure to assure consistent error output based upon error type

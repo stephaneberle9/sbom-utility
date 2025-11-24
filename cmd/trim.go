@@ -88,6 +88,9 @@ func trimCmdImpl(cmd *cobra.Command, args []string) (err error) {
 	getLogger().Enter(args)
 	defer getLogger().Exit()
 
+	// Initialize configurations
+	initConfigurations()
+
 	// Create output writer
 	outputFilename := utils.GlobalFlags.PersistentFlags.OutputFile
 	outputFile, writer, err := createOutputFile(outputFilename)

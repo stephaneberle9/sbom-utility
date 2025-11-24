@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(go test:*)"
+      "Bash(go test:*)",
+      "Bash(go build:*)",
+      "Bash(./sbom-utility.exe license:*)"
     ],
     "deny": [],
     "ask": []

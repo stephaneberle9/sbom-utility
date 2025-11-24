@@ -90,6 +90,9 @@ func queryCmdImpl(cmd *cobra.Command, args []string) (err error) {
 	getLogger().Enter()
 	defer getLogger().Exit(err)
 
+	// Initialize configurations
+	initConfigurations()
+
 	// Create output writer
 	outputFilename := utils.GlobalFlags.PersistentFlags.OutputFile
 	outputFile, writer, err := createOutputFile(outputFilename)

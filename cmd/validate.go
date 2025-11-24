@@ -107,6 +107,9 @@ func validateCmdImpl(cmd *cobra.Command, args []string) error {
 	getLogger().Enter()
 	defer getLogger().Exit()
 
+	// Initialize configurations
+	initConfigurations()
+
 	// Create output writer
 	outputFilename := utils.GlobalFlags.PersistentFlags.OutputFile
 	outputFile, writer, err := createOutputFile(outputFilename)

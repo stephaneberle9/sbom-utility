@@ -87,11 +87,11 @@ const (
 const (
 	MSG_APP_NAME            = "Bill-of-Materials (BOM) utility."
 	MSG_APP_DESCRIPTION     = "This utility serves as centralized command-line interface for various Bill-of-Materials (BOM) helper utilities."
-	MSG_FLAG_TRACE          = "enable trace logging"
-	MSG_FLAG_DEBUG          = "enable debug logging"
+	MSG_FLAG_TRACE          = "enable trace logging (most verbose: shows function entry/exit, debug, info, warnings, and errors)"
+	MSG_FLAG_DEBUG          = "enable debug logging (verbose: shows internal details, info, warnings, and errors; but not trace)"
 	MSG_FLAG_INPUT          = "input filename (e.g., \"path/sbom.json\")"
 	MSG_FLAG_OUTPUT         = "output filename"
-	MSG_FLAG_LOG_QUIET      = "enable quiet logging mode (removes all informational messages from console output); overrides other logging commands"
+	MSG_FLAG_LOG_QUIET      = "enable quiet mode (suppress all log output including info and warnings; only errors in exit code)"
 	MSG_FLAG_LOG_INDENT     = "enable log indentation of functional callstack"
 	MSG_FLAG_CONFIG_SCHEMA  = "provide custom application schema configuration file (i.e., overrides default `config.json`)"
 	MSG_FLAG_CONFIG_LICENSE = "provide custom application license policy configuration file (i.e., overrides default `license.json`)"
@@ -134,10 +134,17 @@ const (
 var rootCmd = &cobra.Command{
 	Use:           fmt.Sprintf("%s [command] [flags]", utils.GlobalFlags.Project),
 	SilenceErrors: false,
-	SilenceUsage:  false,
+	SilenceUsage:  true,
 	Short:         MSG_APP_NAME,
 	Long:          MSG_APP_DESCRIPTION,
 	RunE:          RootCmdImpl,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		// Initialize configs early to show INFO/WARN logs by default
+		// Only skip initialization if quiet mode is explicitly requested
+		if !utils.GlobalFlags.PersistentFlags.Quiet {
+			initConfigurations()
+		}
+	},
 }
 
 func getLogger() *log.MiniLogger {
@@ -163,8 +170,9 @@ func init() {
 	getLogger().Enter()
 	defer getLogger().Exit()
 
-	// Tell Cobra what our Cobra "init" call back method is
-	cobra.OnInitialize(initConfigurations)
+	// NOTE: We DON'T use cobra.OnInitialize() because it runs before PreRunE validation,
+	// causing noisy log output even for simple argument errors. Instead, each command's
+	// RunE function calls initConfigurations() when actually needed.
 
 	// Declare top-level, persistent flags used for configuration of utility
 	// NOTE: we do not set the "default" config. filenames within Cobra
@@ -217,7 +225,15 @@ func init() {
 // license.json (license policy definitions),
 // custom.json (custom validation settings)
 // Note: This method cannot return values as it is used as a callback by the Cobra framework
+var configurationsInitialized = false
+
 func initConfigurations() {
+	// Prevent multiple initializations
+	if configurationsInitialized {
+		return
+	}
+	configurationsInitialized = true
+
 	getLogger().Enter()
 	defer getLogger().Exit()
 
@@ -282,7 +298,7 @@ func Execute() {
 }
 
 // Command PreRunE helper function to test for input file
-func preRunTestForInputFile(_ *cobra.Command, args []string) error {
+func preRunTestForInputFile(cmd *cobra.Command, args []string) error {
 	getLogger().Enter()
 	defer getLogger().Exit()
 	getLogger().Tracef("args: %v", args)
@@ -290,11 +306,11 @@ func preRunTestForInputFile(_ *cobra.Command, args []string) error {
 	// Make sure the input filename is present and exists
 	inputFilename := utils.GlobalFlags.PersistentFlags.InputFile
 	if inputFilename == "" {
-		return getLogger().Errorf("Missing required argument(s): %s", FLAG_FILENAME_INPUT)
+		return argumentError(cmd, fmt.Sprintf("Missing required argument(s): %s", FLAG_FILENAME_INPUT))
 	} else if inputFilename == INPUT_TYPE_STDIN {
 		return nil
 	} else if _, err := os.Stat(inputFilename); err != nil {
-		return getLogger().Errorf("File not found: `%s`", inputFilename)
+		return argumentError(cmd, fmt.Sprintf("File not found: `%s`", inputFilename))
 	}
 	return nil
 }
@@ -358,4 +374,13 @@ func createOutputFile(outputFilename string) (outputFile *os.File, writer io.Wri
 	}
 
 	return
+}
+
+// Helper function to report argument validation errors and display command usage.
+// Use this for incorrect command-line arguments/flags (e.g., missing required flags,
+// invalid arguments), NOT for runtime errors during command execution.
+// Note: This only returns the error without logging it, since Cobra will display it.
+func argumentError(cmd *cobra.Command, message string) error {
+	_ = cmd.Usage()
+	return fmt.Errorf(message)
 }

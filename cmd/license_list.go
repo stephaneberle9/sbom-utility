@@ -104,7 +104,7 @@ func NewCommandList() *cobra.Command {
 	command.RunE = listCmdImpl
 	command.PreRunE = func(cmd *cobra.Command, args []string) (err error) {
 		if len(args) != 0 {
-			return getLogger().Errorf("Too many arguments provided: %v", args)
+			return argumentError(cmd, fmt.Sprintf("Too many arguments provided: %v", args))
 		}
 
 		// Test for required flags (parameters)
@@ -146,6 +146,11 @@ func checkLicenseListEmptyOrNoAssertionOnly(licenseKeys []interface{}) (empty bo
 func listCmdImpl(cmd *cobra.Command, args []string) (err error) {
 	getLogger().Enter(args)
 	defer getLogger().Exit()
+
+	// Initialize configurations (schema, license policy, etc.)
+	// This is called here (not in OnInitialize) so PreRunE validation can fail fast
+	initConfigurations()
+
 	LicenseFinderService.Startup()
 
 	// Create output writer
@@ -156,8 +161,16 @@ func listCmdImpl(cmd *cobra.Command, args []string) (err error) {
 	defer func() {
 		// always close the output file
 		if outputFile != nil {
-			err = outputFile.Close()
-			getLogger().Infof("Closed output file: `%s`", outputFilename)
+			closeErr := outputFile.Close()
+			if closeErr != nil {
+				getLogger().Errorf("Failed to close output file: %s", closeErr)
+				// Only overwrite err if there wasn't already an error
+				if err == nil {
+					err = closeErr
+				}
+			} else {
+				getLogger().Infof("Closed output file: `%s`", outputFilename)
+			}
 		}
 	}()
 

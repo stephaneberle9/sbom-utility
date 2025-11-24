@@ -52,13 +52,13 @@ func NewCommandLicense() *cobra.Command {
 		// the license command requires at least 1 valid subcommand (argument)
 		getLogger().Tracef("args: %v\n", args)
 		if len(args) == 0 {
-			return getLogger().Errorf("Missing required argument(s).")
+			return argumentError(cmd, "Missing required argument(s).")
 		} else if len(args) > 1 {
-			return getLogger().Errorf("Too many arguments provided: %v", args)
+			return argumentError(cmd, fmt.Sprintf("Too many arguments provided: %v", args))
 		}
 		// Make sure subcommand is known
 		if !preRunTestForSubcommand(command, VALID_SUBCOMMANDS_LICENSE, args[0]) {
-			return getLogger().Errorf("Subcommand provided is not valid: `%v`", args[0])
+			return argumentError(cmd, fmt.Sprintf("Subcommand provided is not valid: `%v`", args[0]))
 		}
 		return
 	}
