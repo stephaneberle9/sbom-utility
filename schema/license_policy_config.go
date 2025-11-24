@@ -743,6 +743,8 @@ func IsValidPolicyEntry(policy LicensePolicy) bool {
 }
 
 // given an array of policies verify their "usage" policy does not represent a conflict
+// Note: Different usage policies within the same family are acceptable and expected
+// (e.g., GPL-2.0-with-classpath-exception may have "allow" while GPL-2.0 has "deny")
 func VerifyPoliciesMatch(testPolicy LicensePolicy, policies []interface{}) bool {
 
 	var currentPolicy LicensePolicy
@@ -753,7 +755,9 @@ func VerifyPoliciesMatch(testPolicy LicensePolicy, policies []interface{}) bool 
 		getLogger().Debugf("Usage Policy=%s", currentPolicy.UsagePolicy)
 
 		if currentPolicy.UsagePolicy != testUsagePolicy {
-			getLogger().Warningf("Policy (Id: %s, Family: %s, Policy: %s) is in conflict with policies (%s) declared in the same family.",
+			// Log as debug instead of warning since policy variations within families
+			// are intentional (e.g., exceptions have different policies than base licenses)
+			getLogger().Debugf("Policy (Id: %s, Family: %s, Policy: %s) differs from other policies (%s) in the same family.",
 				currentPolicy.Id,
 				currentPolicy.Family,
 				currentPolicy.UsagePolicy,
