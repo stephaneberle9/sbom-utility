@@ -83,7 +83,12 @@ func innerTestFindLicensesOfMavenComponent(t *testing.T, group string, name stri
 	actualLicenseUrls := make([]string, len(licenseChoices))
 	for i, licenseChoice := range licenseChoices {
 		if licenseChoice.License != nil {
-			actualLicenses[i] = licenseChoice.License.Name
+			// Check both Id and Name to support SPDX IDs and non-standard names
+			if licenseChoice.License.Id != "" {
+				actualLicenses[i] = licenseChoice.License.Id
+			} else {
+				actualLicenses[i] = licenseChoice.License.Name
+			}
 			actualLicenseUrls[i] = licenseChoice.License.Url
 		}
 	}

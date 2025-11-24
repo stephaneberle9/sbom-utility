@@ -382,5 +382,5 @@ func createOutputFile(outputFilename string) (outputFile *os.File, writer io.Wri
 // Note: This only returns the error without logging it, since Cobra will display it.
 func argumentError(cmd *cobra.Command, message string) error {
 	_ = cmd.Usage()
-	return fmt.Errorf(message)
+	return fmt.Errorf("%s", message)
 }

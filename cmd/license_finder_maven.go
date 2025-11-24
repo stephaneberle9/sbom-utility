@@ -265,16 +265,27 @@ func parsePomXml(pomXml []byte) (pomProject gopom.Project, err error) {
 func extractLicensesFromPom(pom *gopom.Project) (licenseChoices []schema.CDXLicenseChoice) {
 	if pom != nil && pom.Licenses != nil {
 		for _, pomLicense := range *pom.Licenses {
-			licenseChoice := schema.CDXLicenseChoice{
-				License: &schema.CDXLicense{},
-			}
+			// Handle cases where license has name, URL, or both
 			if pomLicense.Name != nil {
-				licenseChoice.License.Name = strings.TrimSpace(*pomLicense.Name)
+				// Create appropriate license structure (expression, ID, or name) based on the license string format
+				licenseChoice := licenseStringToLicenseChoice(*pomLicense.Name)
+
+				// Add URL if available
+				if pomLicense.URL != nil {
+					if licenseChoice.License != nil {
+						licenseChoice.License.Url = strings.TrimSpace(*pomLicense.URL)
+					}
+				}
+				licenseChoices = append(licenseChoices, licenseChoice)
+			} else if pomLicense.URL != nil {
+				// Handle POM files that only have URL without name
+				licenseChoice := schema.CDXLicenseChoice{
+					License: &schema.CDXLicense{
+						Url: strings.TrimSpace(*pomLicense.URL),
+					},
+				}
+				licenseChoices = append(licenseChoices, licenseChoice)
 			}
-			if pomLicense.URL != nil {
-				licenseChoice.License.Url = strings.TrimSpace(*pomLicense.URL)
-			}
-			licenseChoices = append(licenseChoices, licenseChoice)
 		}
 	}
 	return

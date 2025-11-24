@@ -162,33 +162,39 @@ func performHttpPostFormRequest(requestURL, formDataKey string, formData []byte)
 	return responseBody, nil
 }
 
-func licenseStringToLicenseChoices(licenseString string) ([]schema.CDXLicenseChoice, error) {
-	return licenseStringsToLicenseChoices([]string{licenseString})
-}
-
 func licenseStringsToLicenseChoices(licenseStrings []string) (licenseChoices []schema.CDXLicenseChoice, err error) {
 	for _, licenseString := range licenseStrings {
-		if schema.IsLicenseExpression(licenseString) {
-			licenseChoices = append(licenseChoices, schema.CDXLicenseChoice{
-				CDXLicenseExpression: schema.CDXLicenseExpression{
-					Expression: strings.TrimSpace(licenseString),
-				},
-			})
-		} else {
-			if schema.IsValidSpdxId(licenseString) {
-				licenseChoices = append(licenseChoices, schema.CDXLicenseChoice{
-					License: &schema.CDXLicense{
-						Id: strings.TrimSpace(licenseString),
-					},
-				})
-			} else {
-				licenseChoices = append(licenseChoices, schema.CDXLicenseChoice{
-					License: &schema.CDXLicense{
-						Name: strings.TrimSpace(licenseString),
-					},
-				})
-			}
-		}
+		licenseChoices = append(licenseChoices, licenseStringToLicenseChoice(licenseString))
 	}
 	return
+}
+
+// Converts a single license string into a CDXLicenseChoice based on its structure:
+// - If it's a license expression (contains operators like AND, OR), creates a license expression
+// - If it's a valid SPDX ID, creates a license with an ID
+// - Otherwise, creates a license with a name
+func licenseStringToLicenseChoice(licenseString string) schema.CDXLicenseChoice {
+	cleanedLicenseString := strings.TrimSpace(licenseString)
+
+	if schema.IsLicenseExpression(cleanedLicenseString) {
+		return schema.CDXLicenseChoice{
+			CDXLicenseExpression: schema.CDXLicenseExpression{
+				Expression: cleanedLicenseString,
+			},
+		}
+	}
+
+	if schema.IsValidSpdxId(cleanedLicenseString) {
+		return schema.CDXLicenseChoice{
+			License: &schema.CDXLicense{
+				Id: cleanedLicenseString,
+			},
+		}
+	}
+
+	return schema.CDXLicenseChoice{
+		License: &schema.CDXLicense{
+			Name: cleanedLicenseString,
+		},
+	}
 }

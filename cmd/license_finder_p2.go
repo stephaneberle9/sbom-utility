@@ -74,10 +74,7 @@ func (finder *P2ComponentLicenseFinderData) FindLicenses(cdxComponent schema.CDX
 		return nil, err
 	}
 
-	licenseChoices, err := extractLicenseFromEclipseLicenseData(licenseData)
-	if err != nil {
-		return nil, err
-	}
+	licenseChoices := extractLicenseFromEclipseLicenseData(licenseData)
 
 	finder.storeInLicenseCache(cdxComponent, licenseChoices)
 
@@ -125,7 +122,7 @@ func parseLicenseDataJson(licenseDataJson []byte) (licenseData LicenseData, err 
 	return
 }
 
-func extractLicenseFromEclipseLicenseData(licenseData *LicenseData) ([]schema.CDXLicenseChoice, error) {
+func extractLicenseFromEclipseLicenseData(licenseData *LicenseData) (licenseChoices []schema.CDXLicenseChoice) {
 	// Retrieve value of license attribute in license data of first (and only) approved component
 	var licenseString string
 	for _, component := range licenseData.Approved {
@@ -136,9 +133,6 @@ func extractLicenseFromEclipseLicenseData(licenseData *LicenseData) ([]schema.CD
 	licenseString = schema.StripLicenseRefPrefix(licenseString)
 
 	// Build license choices
-	licenseChoices, err := licenseStringToLicenseChoices(licenseString)
-	if err != nil {
-		return nil, err
-	}
-	return licenseChoices, nil
+	licenseChoices = append(licenseChoices, licenseStringToLicenseChoice(licenseString))
+	return
 }
