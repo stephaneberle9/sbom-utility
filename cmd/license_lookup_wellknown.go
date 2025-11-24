@@ -280,6 +280,32 @@ func lookupLicenseForWellknownP2Components(cdxComponent schema.CDXComponent) []s
 			return licenseWithId("Apache-2.0")
 		}
 	}
+	if cdxComponent.Group == "p2.eclipse.plugin" {
+		if strings.HasPrefix(cdxComponent.Name, "org.eclipse.xtend.lib") {
+			// https://mvnrepository.com/artifact/org.eclipse.xtend/org.eclipse.xtend.lib/2.40.0
+			// https://mvnrepository.com/artifact/org.eclipse.xtend/org.eclipse.xtend.lib.macro/2.40.0
+			return licenseWithId("EPL-2.0")
+		}
+	}
+	if cdxComponent.Group == "p2.eclipse.plugin" {
+		if strings.HasPrefix(cdxComponent.Name, "org.eclipse.uml2") {
+			// https://mvnrepository.com/artifact/org.eclipse.uml2/uml/5.0.0-v20140602-0749
+			// https://mvnrepository.com/artifact/org.eclipse.maven/org.eclipse.uml2.uml.resources/3.8.0
+			// https://mvnrepository.com/artifact/org.eclipse.maven/org.eclipse.uml2.uml.edit/3.8.0
+			// https://mvnrepository.com/artifact/org.eclipse.uml2/org.eclipse.uml2.common/1.5.0.v201005031530
+			return licenseWithId("EPL-1.0")
+		}
+	}
+	if cdxComponent.Group == "p2.eclipse.plugin" {
+		if strings.HasPrefix(cdxComponent.Name, "org.eclipse.emf.mwe") || strings.HasPrefix(cdxComponent.Name, "org.eclipse.emf.mwe2") {
+			// https://mvnrepository.com/artifact/org.eclipse.emf/org.eclipse.emf.mwe2.lib/2.23.0
+			// https://mvnrepository.com/artifact/org.eclipse.emf/org.eclipse.emf.mwe.core/1.17.0
+			// https://mvnrepository.com/artifact/org.eclipse.emf/org.eclipse.emf.mwe.utils/1.17.0
+			// https://mvnrepository.com/artifact/org.eclipse.emf/org.eclipse.emf.mwe2.runtime/2.23.0
+			return licenseWithId("EPL-2.0")
+		}
+	}
+
 
 	return nil
 }
