@@ -310,7 +310,8 @@ func preRunTestForInputFile(cmd *cobra.Command, args []string) error {
 	} else if inputFilename == INPUT_TYPE_STDIN {
 		return nil
 	} else if _, err := os.Stat(inputFilename); err != nil {
-		return argumentError(cmd, fmt.Sprintf("File not found: `%s`", inputFilename))
+		// File not found is a runtime error, not an argument syntax error - don't show usage
+		return fmt.Errorf("File not found: `%s`", inputFilename)
 	}
 	return nil
 }

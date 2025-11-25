@@ -69,7 +69,7 @@ func NewCommandDiff() *cobra.Command {
 	return command
 }
 
-func preRunTestForFiles(_ *cobra.Command, args []string) error {
+func preRunTestForFiles(cmd *cobra.Command, args []string) error {
 	getLogger().Enter()
 	defer getLogger().Exit()
 	getLogger().Tracef("args: %v", args)
@@ -77,17 +77,19 @@ func preRunTestForFiles(_ *cobra.Command, args []string) error {
 	// Make sure the base (input) file is present and exists
 	baseFilename := utils.GlobalFlags.PersistentFlags.InputFile
 	if baseFilename == "" {
-		return getLogger().Errorf("Missing required argument(s): %s", FLAG_FILENAME_INPUT)
+		return argumentError(cmd, fmt.Sprintf("Missing required argument(s): %s", FLAG_FILENAME_INPUT))
 	} else if _, err := os.Stat(baseFilename); err != nil {
-		return getLogger().Errorf("File not found: `%s`", baseFilename)
+		// File not found is a runtime error, not an argument syntax error - don't show usage
+		return fmt.Errorf("File not found: `%s`", baseFilename)
 	}
 
 	// Make sure the revision file is present and exists
 	revisedFilename := utils.GlobalFlags.DiffFlags.RevisedFile
 	if revisedFilename == "" {
-		return getLogger().Errorf("Missing required argument(s): %s", FLAG_DIFF_FILENAME_REVISION)
+		return argumentError(cmd, fmt.Sprintf("Missing required argument(s): %s", FLAG_DIFF_FILENAME_REVISION))
 	} else if _, err := os.Stat(revisedFilename); err != nil {
-		return getLogger().Errorf("File not found: `%s`", revisedFilename)
+		// File not found is a runtime error, not an argument syntax error - don't show usage
+		return fmt.Errorf("File not found: `%s`", revisedFilename)
 	}
 
 	return nil
