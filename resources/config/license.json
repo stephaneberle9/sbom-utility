@@ -77,6 +77,29 @@
             ]
         },
         {
+            "id": "LicenseRef-JDOM",
+            "name": "JDOM License",
+            "family": "JDOM",
+            "reference": "https://github.com/hunterhacker/jdom/blob/master/LICENSE.txt",
+            "osi": false,
+            "fsf": false,
+            "usagePolicy": "allow",
+            "annotationRefs": [
+                "APPROVED"
+            ],
+            "aliases": [
+                "JDOM",
+                "LicenseRef-scancode-jdom"
+            ],
+            "urls": [
+                "http://www.jdom.org/docs/faq.html#a0030",
+                "https://github.com/hunterhacker/jdom/blob/master/LICENSE.txt",
+                "https://github.com/JetBrains/intellij-deps-jdom/blob/master/LICENSE.txt",
+                "https://scancode-licensedb.aboutcode.org/jdom.html"
+            ],
+            "notes": "Permissive license based on Apache 1.1. Includes naming restrictions (cannot use 'JDOM' to endorse products or in product names without permission) and optional acknowledgment request."
+        },
+        {
             "id": "0BSD",
             "name": "BSD Zero Clause License",
             "family": "0BSD",
@@ -3304,7 +3327,7 @@
         },
         {
             "id": "Plexus",
-            "name": "Plexus_Classworlds",
+            "name": "Plexus Classworlds License",
             "family": "Plexus",
             "reference": "https://spdx.org/licenses/Plexus.html",
             "osi": false,
@@ -3313,9 +3336,17 @@
             "annotationRefs": [
                 "APPROVED"
             ],
+            "aliases": [
+                "Plexus Classworlds License",
+                "Codehaus Classworlds License"
+            ],
             "urls": [
+                "https://spdx.org/licenses/Plexus.html",
+                "https://github.com/codehaus/classworlds/blob/master/classworlds/LICENSE.txt",
+                "https://github.com/codehaus-plexus/plexus-classworlds/blob/master/LICENSE.txt",
                 "https://fedoraproject.org/wiki/Licensing/Plexus_Classworlds_License"
-            ]
+            ],
+            "notes": "Permissive BSD-style license with 5 conditions. Includes naming/trademark restrictions for 'classworlds'. Also used by dom4j. Note: Modern plexus-classworlds (2.x) is now Apache-2.0 licensed."
         },
         {
             "id": "PostgreSQL",
