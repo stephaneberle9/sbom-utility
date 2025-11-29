@@ -40,6 +40,7 @@ const (
 	MAVEN_CENTRAL_BASE_URL    = "https://repo1.maven.org/maven2"
 	ITEMIS_MAVEN_BASE_URL     = "https://artifacts.itemis.cloud/repository/maven"
 	ITEMIS_MAVEN_MPS_BASE_URL = "https://artifacts.itemis.cloud/repository/maven-mps"
+	ITEMIS_MAVEN_MPS_PRERELEASES_BASE_URL = "https://artifacts.itemis.cloud/repository/maven-mps-prereleases"
 )
 
 var (
@@ -48,6 +49,7 @@ var (
 		MAVEN_CENTRAL_BASE_URL,
 		ITEMIS_MAVEN_BASE_URL,
 		ITEMIS_MAVEN_MPS_BASE_URL,
+		ITEMIS_MAVEN_MPS_PRERELEASES_BASE_URL,
 	}
 )
 
