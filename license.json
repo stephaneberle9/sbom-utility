@@ -2408,7 +2408,8 @@
             "aliases": [
                 "GNU General Public License, version 2 with the GNU Classpath Exception",
                 "GPL-2.0-only with Classpath-Exception-2.0",
-                "GPL2 w/ CPE"
+                "GPL2 w/ CPE",
+                "GNU General Public License, version 2, with the Classpath Exception"
             ]
         },
         {
