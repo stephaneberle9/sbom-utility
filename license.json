@@ -2666,6 +2666,87 @@
             ]
         },
         {
+            "id": "LPPL-1.0",
+            "name": "LaTeX Project Public License v1.0",
+            "family": "LPPL",
+            "reference": "https://spdx.org/licenses/LPPL-1.0.html",
+            "osi": true,
+            "fsf": false,
+            "deprecated": false,
+            "usagePolicy": "allow",
+            "annotationRefs": [
+                "APPROVED"
+            ],
+            "urls": [
+                "http://www.latex-project.org/lppl/lppl-1-0.txt"
+            ]
+        },
+        {
+            "id": "LPPL-1.1",
+            "name": "LaTeX Project Public License v1.1",
+            "family": "LPPL",
+            "reference": "https://spdx.org/licenses/LPPL-1.1.html",
+            "osi": true,
+            "fsf": false,
+            "deprecated": false,
+            "usagePolicy": "allow",
+            "annotationRefs": [
+                "APPROVED"
+            ],
+            "urls": [
+                "http://www.latex-project.org/lppl/lppl-1-1.txt"
+            ]
+        },
+        {
+            "id": "LPPL-1.2",
+            "name": "LaTeX Project Public License v1.2",
+            "family": "LPPL",
+            "reference": "https://spdx.org/licenses/LPPL-1.2.html",
+            "osi": true,
+            "fsf": false,
+            "deprecated": false,
+            "usagePolicy": "allow",
+            "annotationRefs": [
+                "APPROVED"
+            ],
+            "urls": [
+                "http://www.latex-project.org/lppl/lppl-1-2.txt"
+            ]
+        },
+        {
+            "id": "LPPL-1.3a",
+            "name": "LaTeX Project Public License v1.3a",
+            "family": "LPPL",
+            "reference": "https://spdx.org/licenses/LPPL-1.3a.html",
+            "osi": true,
+            "fsf": false,
+            "deprecated": false,
+            "usagePolicy": "allow",
+            "annotationRefs": [
+                "APPROVED"
+            ],
+            "urls": [
+                "http://www.latex-project.org/lppl/lppl-1-3a.txt"
+            ]
+        },
+        {
+            "id": "LPPL-1.3c",
+            "name": "LaTeX Project Public License v1.3c",
+            "family": "LPPL",
+            "reference": "https://spdx.org/licenses/LPPL-1.3c.html",
+            "osi": true,
+            "fsf": false,
+            "deprecated": false,
+            "usagePolicy": "allow",
+            "annotationRefs": [
+                "APPROVED"
+            ],
+            "urls": [
+                "http://www.latex-project.org/lppl/lppl-1-3c.txt",
+                "https://opensource.org/licenses/LPPL-1.3c"
+            ]
+        },
+        {
             "id": "LGPL-2.0",
             "name": "GNU Library General Public License v2 only",
             "family": "LGPL-2.0",
@@ -3659,8 +3740,8 @@
                 "APPROVED"
             ],
             "urls": [
-                "http://web.archive.org/web/20140704074106/http://www.unicode.org/copyright.html",
-                "http://www.unicode.org/copyright.html"
+                "http://www.unicode.org/copyright.html",
+                "http://web.archive.org/web/20140704074106/http://www.unicode.org/copyright.html"
             ]
         },
         {

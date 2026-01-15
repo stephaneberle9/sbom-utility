@@ -1087,7 +1087,7 @@ func TestHashCDXLicenseExpressionsInLicenseNames(t *testing.T) {
 	innerTestLicenseInfoHashing(t, CDX_LICENSE_NAME, CDX_LICENSE_URL, EXPECTED_LICENSE, EXPECTED_LICENSE_URLS, EXPECTED_USAGE_POLICY)
 
 	EXPECTED_LICENSE = "Apache License Version 2.0 AND BSD 3-Clause \"New\" or \"Revised\" License AND BSD 2-Clause \"Simplified\" License AND MIT License AND ISC License AND Unicode Terms of Use AND ( GNU Lesser General Public License v2.1 or later OR Creative Commons Attribution 4.0 International )"
-	EXPECTED_LICENSE_URLS = "https://www.apache.org/licenses/LICENSE-2.0, https://opensource.org/licenses/BSD-3-Clause, https://opensource.org/licenses/BSD-2-Clause, https://opensource.org/licenses/MIT, https://www.isc.org/licenses, http://web.archive.org/web/20140704074106/http://www.unicode.org/copyright.html, https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html, https://creativecommons.org/licenses/by/4.0/legalcode"
+	EXPECTED_LICENSE_URLS = "https://www.apache.org/licenses/LICENSE-2.0, https://opensource.org/licenses/BSD-3-Clause, https://opensource.org/licenses/BSD-2-Clause, https://opensource.org/licenses/MIT, https://www.isc.org/licenses, http://www.unicode.org/copyright.html, https://www.gnu.org/licenses/old-licenses/lgpl-2.1-standalone.html, https://creativecommons.org/licenses/by/4.0/legalcode"
 	EXPECTED_USAGE_POLICY = schema.POLICY_ALLOW
 
 	CDX_LICENSE_NAME = "Apache-2.0 AND BSD-3-Clause AND BSD-2-Clause AND MIT AND ISC AND Unicode-TOU AND (LGPL-2.1-or-later OR CC-BY-4.0)"
