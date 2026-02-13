@@ -765,7 +765,8 @@
                 "The BSD3 License",
                 "Eclipse Distribution License (New BSD License)",
                 "Eclipse Distribution License - v 1.0",
-                "Eclipse Distribution License v. 1.0"
+                "Eclipse Distribution License v. 1.0",
+                "EDL-1.0"
             ]
         },
         {
@@ -2657,9 +2658,9 @@
             "reference": "https://spdx.org/licenses/JSON.html",
             "osi": false,
             "fsf": false,
-            "usagePolicy": "needs-review",
+            "usagePolicy": "allow",
             "annotationRefs": [
-                "NEEDS-APPROVAL"
+                "APPROVED"
             ],
             "urls": [
                 "http://www.json.org/license.html"
