@@ -753,13 +753,15 @@
                 "http://www.jcraft.com/jsch/LICENSE.txt",
                 "http://www.jcraft.com/jzlib/LICENSE.txt",
                 "http://antlr.org/license.html",
-                "https://github.com/locationtech/jts/blob/master/LICENSE_EDLv1.txt"
+                "https://github.com/locationtech/jts/blob/master/LICENSE_EDLv1.txt",
+                "https://raw.github.com/jsonld-java/jsonld-java/master/LICENCE"
             ],
             "aliases": [
                 "BSD 3-clause \"New\" License",
                 "New BSD License",
                 "Modified BSD License",
                 "Revised BSD",
+                "Revised BSD License",
                 "BSD License",
                 "The BSD License",
                 "The BSD3 License",
