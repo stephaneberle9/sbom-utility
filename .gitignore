@@ -18,3 +18,4 @@ sbom*.json
 license-scanning-report*.csv
 __debug_bin*
 *-license-cache.dat
+.claude/settings.local.json
