@@ -1886,6 +1886,21 @@
             ]
         },
         {
+            "id": "FSL-1.1-ALv2",
+            "name": "Functional Source License, Version 1.1, ALv2 Future License",
+            "family": "FSL",
+            "reference": "https://spdx.org/licenses/FSL-1.1-ALv2.html",
+            "osi": false,
+            "fsf": true,
+            "usagePolicy": "allow",
+            "annotationRefs": [
+                "APPROVED"
+            ],
+            "urls": [
+                "https://fsl.software/FSL-1.1-ALv2.template.md"
+            ]
+        },
+        {
             "id": "FTL",
             "name": "Freetype Project License",
             "family": "FTL",
