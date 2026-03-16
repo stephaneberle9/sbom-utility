@@ -351,6 +351,11 @@ func lookupLicenseForWellknownNpmComponents(cdxComponent schema.CDXComponent) []
 			// https://github.com/socialally/browser-assert/blob/master/LICENSE
 			return licenseWithId("MIT")
 		}
+
+		if cdxComponent.Name == "khroma" {
+			// https://github.com/fabiospampinato/khroma/blob/master/license
+			return licenseWithId("MIT")
+		}
 	}
 
 	return nil
