@@ -100,15 +100,15 @@ func lookupLicenseForWellknownMavenComponents(cdxComponent schema.CDXComponent) 
 		}
 	}
 	if cdxComponent.Group == "com.itemis" {
-		if cdxComponent.Name == "com-itemis-secure" || cdxComponent.Name == "com-itemis-secure-jvm" {
-			return licenseWithId("LicenseRef-itemis-Closed-2.0.2")
+		if cdxComponent.Name == "com-itemis-secure" || cdxComponent.Name == "com-itemis-secure-jvm" || "secure-calculation-jvm" {
+			return licenseWithId("LicenseRef-itemis-Closed")
 		}
 	}
 
 	// Yakindu components
 	if strings.HasPrefix(cdxComponent.Group, "com.itemis") || strings.HasPrefix(cdxComponent.Group, "com.yakindu") || strings.HasPrefix(cdxComponent.Group, "org.yakindu") {
 			if strings.HasPrefix(cdxComponent.Name, "com.itemis") || strings.HasPrefix(cdxComponent.Name, "com.yakindu") || strings.HasPrefix(cdxComponent.Name, "org.yakindu") {
-					return licenseWithId("LicenseRef-itemis-Closed-2.0.2")
+					return licenseWithId("LicenseRef-itemis-Closed")
 			}
 	}
 
@@ -166,7 +166,7 @@ func lookupLicenseForWellknownP2Components(cdxComponent schema.CDXComponent) []s
 	// Yakindu components
 	if cdxComponent.Group == "p2.eclipse.plugin" || cdxComponent.Group == "p2.eclipse.feature" || cdxComponent.Group == "p2.p2.installable.unit" {
 		if strings.HasPrefix(cdxComponent.Name, "com.itemis") || strings.HasPrefix(cdxComponent.Name, "com.yakindu") || strings.HasPrefix(cdxComponent.Name, "org.yakindu") {
-				return licenseWithId("LicenseRef-itemis-Closed-2.0.2")
+				return licenseWithId("LicenseRef-itemis-Closed")
 		}
 	}
 
