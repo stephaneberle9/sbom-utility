@@ -100,7 +100,7 @@ func lookupLicenseForWellknownMavenComponents(cdxComponent schema.CDXComponent) 
 		}
 	}
 	if cdxComponent.Group == "com.itemis" {
-		if cdxComponent.Name == "com-itemis-secure" || cdxComponent.Name == "com-itemis-secure-jvm" {
+		if cdxComponent.Name == "com-itemis-secure" || cdxComponent.Name == "com-itemis-secure-jvm" || "secure-calculation-jvm" {
 			return licenseWithId("LicenseRef-itemis-Closed-2.0.2")
 		}
 	}
