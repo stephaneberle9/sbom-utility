@@ -1494,6 +1494,9 @@
             "urls": [
                 "https://opensource.org/licenses/cddl1",
                 "http://www.opensource.org/licenses/cddl1.php"
+            ],
+            "aliases": [
+                "Common Development And Distribution License (CDDL) Version 1.0"
             ]
         },
         {
