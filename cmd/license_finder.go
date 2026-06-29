@@ -21,18 +21,37 @@ package cmd
 import (
 	"bytes"
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
+	"time"
 	"regexp"
 
 	"github.com/CycloneDX/sbom-utility/schema"
 	"github.com/patrickmn/go-cache"
 
 )
+
+const (
+	// Host of the itemis Nexus Repository Manager instance. Requests targeting this
+	// host are sent with Basic Auth credentials (NEXUS_USER / NEXUS_PASS) when set,
+	// so that components in private (non-anonymous) repositories can be resolved.
+	NEXUS_HOST = "artifacts.itemis.cloud"
+
+	NEXUS_USER_ENV_VAR = "NEXUS_USER"
+	NEXUS_PASS_ENV_VAR = "NEXUS_PASS"
+)
+
+// httpClient is the shared client used for all license-lookup requests. It sets
+// a bounded timeout so that a single stalled repository cannot block a lookup
+// indefinitely (the finders sweep several repositories sequentially).
+var httpClient = &http.Client{
+	Timeout: 30 * time.Second,
+}
 
 type LicenseFinder interface {
 	Startup()
@@ -112,22 +131,69 @@ func (finder *LicenseFinderData) storeInLicenseCache(cdxComponent schema.CDXComp
 	}
 }
 
+// HttpStatusError is returned when an HTTP request completes but the server
+// responds with a non-2xx status code. It carries the status code so that
+// callers can distinguish, for example, an authentication failure (401/403)
+// from a missing artifact (404).
+type HttpStatusError struct {
+	URL        string
+	StatusCode int
+}
+
+func (e *HttpStatusError) Error() string {
+	return fmt.Sprintf("HTTP request to %s returned status code %d", e.URL, e.StatusCode)
+}
+
+// isAuthError reports whether err (or any error it wraps) is an HTTP
+// authentication/authorization failure (401 Unauthorized or 403 Forbidden).
+func isAuthError(err error) bool {
+	var statusErr *HttpStatusError
+	if errors.As(err, &statusErr) {
+		return statusErr.StatusCode == http.StatusUnauthorized || statusErr.StatusCode == http.StatusForbidden
+	}
+	return false
+}
+
+// addNexusAuthIfApplicable adds Basic Auth credentials to the request when it
+// targets the itemis Nexus host and the NEXUS_USER / NEXUS_PASS env vars are set.
+// Credentials are never attached to requests to other hosts (e.g. Maven Central,
+// the npm registry, or the Eclipse license check service).
+func addNexusAuthIfApplicable(request *http.Request) {
+	if !strings.EqualFold(request.URL.Hostname(), NEXUS_HOST) {
+		return
+	}
+	user := os.Getenv(NEXUS_USER_ENV_VAR)
+	pass := os.Getenv(NEXUS_PASS_ENV_VAR)
+	if user != "" && pass != "" {
+		request.SetBasicAuth(user, pass)
+	}
+}
+
 func performHttpGetRequest(requestURL string) ([]byte, error) {
+	// Build HTTP GET request
+	request, err := http.NewRequest(http.MethodGet, requestURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create HTTP GET request for %s: %w", requestURL, err)
+	}
+
+	// Authenticate against the itemis Nexus when applicable
+	addNexusAuthIfApplicable(request)
+
 	// Send HTTP GET request
-	response, err := http.Get(requestURL)
+	response, err := httpClient.Do(request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send HTTP GET request to %s: %w", requestURL, err)
 	}
-	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("HTTP GET request to %s returned status code %d", requestURL, response.StatusCode)
-	}
-
-	// Read response body
 	defer func() {
 		if err := response.Body.Close(); err != nil {
 			getLogger().Errorf("unable to close response body: %+v", err)
 		}
 	}()
+	if response.StatusCode != http.StatusOK {
+		return nil, &HttpStatusError{URL: requestURL, StatusCode: response.StatusCode}
+	}
+
+	// Read response body
 	responseBody, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read response body: %w", err)
@@ -140,8 +206,18 @@ func performHttpPostFormRequest(requestURL, formDataKey string, formData []byte)
 	requestForm := url.Values{}
 	requestForm.Add(formDataKey, string(formData))
 
+	// Build HTTP POST request
+	request, err := http.NewRequest(http.MethodPost, requestURL, bytes.NewBufferString(requestForm.Encode()))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create HTTP POST request for %s: %w", requestURL, err)
+	}
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	// Authenticate against the itemis Nexus when applicable
+	addNexusAuthIfApplicable(request)
+
 	// Send HTTP Post request
-	response, err := http.Post(requestURL, "application/x-www-form-urlencoded", bytes.NewBufferString(requestForm.Encode()))
+	response, err := httpClient.Do(request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send HTTP POST request to %s: %w", requestURL, err)
 	}
@@ -151,7 +227,7 @@ func performHttpPostFormRequest(requestURL, formDataKey string, formData []byte)
 		}
 	}()
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("HTTP POST request failed: %w", err)
+		return nil, &HttpStatusError{URL: requestURL, StatusCode: response.StatusCode}
 	}
 
 	// Read response body

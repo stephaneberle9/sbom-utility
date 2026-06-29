@@ -41,6 +41,10 @@ const (
 	ITEMIS_MAVEN_BASE_URL     = "https://artifacts.itemis.cloud/repository/maven"
 	ITEMIS_MAVEN_MPS_BASE_URL = "https://artifacts.itemis.cloud/repository/maven-mps"
 	ITEMIS_MAVEN_MPS_PRERELEASES_BASE_URL = "https://artifacts.itemis.cloud/repository/maven-mps-prereleases"
+	// Private repos. Require authentication (NEXUS_USER / NEXUS_PASS); see addNexusAuthIfApplicable.
+	ITEMIS_MAVEN_PRIVATE_BASE_URL     = "https://artifacts.itemis.cloud/repository/maven-private"
+	// Holds Portalon snapshots and releases.
+	ITEMIS_MAVEN_MPS_PRIVATE_BASE_URL = "https://artifacts.itemis.cloud/repository/maven-mps-private"
 )
 
 var (
@@ -50,6 +54,8 @@ var (
 		ITEMIS_MAVEN_BASE_URL,
 		ITEMIS_MAVEN_MPS_BASE_URL,
 		ITEMIS_MAVEN_MPS_PRERELEASES_BASE_URL,
+		ITEMIS_MAVEN_PRIVATE_BASE_URL,
+		ITEMIS_MAVEN_MPS_PRIVATE_BASE_URL,
 	}
 )
 
@@ -142,6 +148,7 @@ func fixUpVersion(groupId, artifactId, version string) string {
 
 func getPomFromMavenRepo(groupId, artifactId, version string) (*gopom.Project, error) {
 	var lastErr error
+	var authErr error
 
 	// Try each Maven repository in order until we find the POM
 	for _, baseURL := range MAVEN_REPOSITORIES {
@@ -149,6 +156,9 @@ func getPomFromMavenRepo(groupId, artifactId, version string) (*gopom.Project, e
 		if err != nil {
 			getLogger().Tracef("unable to fetch pom from %s: %v", baseURL, err)
 			lastErr = err
+			if isAuthError(err) {
+				authErr = err
+			}
 			continue
 		}
 		if pom != nil {
@@ -157,7 +167,12 @@ func getPomFromMavenRepo(groupId, artifactId, version string) (*gopom.Project, e
 		}
 	}
 
-	// If we get here, none of the repositories had the POM
+	// If we get here, none of the repositories had the POM. Surface an
+	// authentication failure explicitly, as it is actionable (the component may
+	// well exist in a private Nexus repo but NEXUS_USER / NEXUS_PASS are unset or wrong).
+	if authErr != nil {
+		return nil, fmt.Errorf("unable to fetch pom from any Maven repository; authentication against %s failed (check %s / %s): %w", NEXUS_HOST, NEXUS_USER_ENV_VAR, NEXUS_PASS_ENV_VAR, authErr)
+	}
 	if lastErr != nil {
 		return nil, fmt.Errorf("unable to fetch pom from any Maven repository: %w", lastErr)
 	}

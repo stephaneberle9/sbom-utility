@@ -33,6 +33,18 @@ const (
 	REGEX_NPM_PURL = `^pkg:npm/((@|%40)?[\w\._-]+/)?[\w\._-]+(@|%40)[\w\._-]+$`
 
 	NPM_BASE_URL = "https://registry.npmjs.org"
+
+	// Private npm registries hosted in the itemis Nexus. Require authentication
+	// (NEXUS_USER / NEXUS_PASS); see addNexusAuthIfApplicable.
+	ITEMIS_NPM_CLOSED_BASE_URL = "https://artifacts.itemis.cloud/repository/npm-closed"
+)
+
+var (
+	// npm registries to search in order
+	NPM_REGISTRIES = []string{
+		NPM_BASE_URL,
+		ITEMIS_NPM_CLOSED_BASE_URL,
+	}
 )
 
 type PackageInfo struct {
@@ -87,8 +99,41 @@ func (finder *NpmComponentLicenseFinderData) FindLicenses(cdxComponent schema.CD
 }
 
 func getPackageInfoFromNpmRegistry(cdxComponent schema.CDXComponent) (*PackageInfo, error) {
+	var lastErr error
+	var authErr error
+
+	// Try each npm registry in order until we find the package info
+	for _, baseURL := range NPM_REGISTRIES {
+		packageInfo, err := tryGetPackageInfoFromRegistry(baseURL, cdxComponent)
+		if err != nil {
+			getLogger().Tracef("unable to fetch package info from %s: %v", baseURL, err)
+			lastErr = err
+			if isAuthError(err) {
+				authErr = err
+			}
+			continue
+		}
+		if packageInfo != nil {
+			getLogger().Tracef("successfully fetched package info from %s", baseURL)
+			return packageInfo, nil
+		}
+	}
+
+	// If we get here, none of the registries had the package info. Surface an
+	// authentication failure explicitly, as it is actionable (the package may
+	// well exist in a private Nexus registry but NEXUS_USER / NEXUS_PASS are unset or wrong).
+	if authErr != nil {
+		return nil, fmt.Errorf("unable to fetch package info from any npm registry; authentication against %s failed (check %s / %s): %w", NEXUS_HOST, NEXUS_USER_ENV_VAR, NEXUS_PASS_ENV_VAR, authErr)
+	}
+	if lastErr != nil {
+		return nil, fmt.Errorf("unable to fetch package info from any npm registry: %w", lastErr)
+	}
+	return nil, fmt.Errorf("unable to fetch package info from any npm registry")
+}
+
+func tryGetPackageInfoFromRegistry(baseURL string, cdxComponent schema.CDXComponent) (*PackageInfo, error) {
 	// Compose npm registry URL to be reached out to
-	requestURL, err := formatNpmPackageInfoURL(cdxComponent)
+	requestURL, err := formatNpmPackageInfoURL(baseURL, cdxComponent)
 	if err != nil {
 		return nil, err
 	}
@@ -108,9 +153,9 @@ func getPackageInfoFromNpmRegistry(cdxComponent schema.CDXComponent) (*PackageIn
 	return &packageInfo, nil
 }
 
-func formatNpmPackageInfoURL(cdxComponent schema.CDXComponent) (string, error) {
+func formatNpmPackageInfoURL(baseURL string, cdxComponent schema.CDXComponent) (string, error) {
 	// ex:"https://registry.npmjs.org/@babel/code-frame"
-	requestURL, err := url.JoinPath(NPM_BASE_URL, cdxComponent.Group, cdxComponent.Name)
+	requestURL, err := url.JoinPath(baseURL, cdxComponent.Group, cdxComponent.Name)
 	if err != nil {
 		return requestURL, fmt.Errorf("could not construct npm package info url: %w", err)
 	}
