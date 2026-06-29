@@ -45,6 +45,8 @@ const (
 	ITEMIS_MAVEN_PRIVATE_BASE_URL     = "https://artifacts.itemis.cloud/repository/maven-private"
 	// Holds Portalon snapshots and releases.
 	ITEMIS_MAVEN_MPS_PRIVATE_BASE_URL = "https://artifacts.itemis.cloud/repository/maven-mps-private"
+	// Group repo aggregating the SECURE libraries (maven-secure-releases et al.).
+	ITEMIS_MAVEN_SECURE_BASE_URL      = "https://artifacts.itemis.cloud/repository/maven-secure"
 )
 
 var (
@@ -56,6 +58,7 @@ var (
 		ITEMIS_MAVEN_MPS_PRERELEASES_BASE_URL,
 		ITEMIS_MAVEN_PRIVATE_BASE_URL,
 		ITEMIS_MAVEN_MPS_PRIVATE_BASE_URL,
+		ITEMIS_MAVEN_SECURE_BASE_URL,
 	}
 )
 
