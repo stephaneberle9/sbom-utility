@@ -94,12 +94,14 @@ func lookupLicenseForWellknownMavenComponents(cdxComponent schema.CDXComponent) 
 			return licenseWithId("Apache-2.0")
 		}
 	}
-	if cdxComponent.Group == "com.itemis.solutions" {
-		if cdxComponent.Name == "platform-client-sdk-okhttp" || cdxComponent.Name == "platform-client-sdk-vertx" || cdxComponent.Name == "platform-client-sdk-kotlin-ktor" {
-			return licenseWithId("Apache-2.0")
-		}
-	}
+	// com.itemis.solutions:platform-client-sdk-okhttp/-vertx/-kotlin-ktor advertise
+	// Apache-2.0 in their POMs and are resolved by the Maven finder from maven-private
+	// (see TestFindLicenseOfMavenComponentInItemisMavenRepos).
 	if cdxComponent.Group == "com.itemis" {
+		// These live in private repos (maven-secure) but cannot be resolved by the
+		// finder: com-itemis-secure and com-itemis-secure-jvm advertise no license in
+		// their POMs, and secure-calculation-jvm advertises the non-canonical name
+		// "Internal Use Only - Proprietary". The canonical mapping has to stay here.
 		if cdxComponent.Name == "com-itemis-secure" || cdxComponent.Name == "com-itemis-secure-jvm" || cdxComponent.Name == "secure-calculation-jvm" {
 			return licenseWithId("LicenseRef-itemis-Closed")
 		}
@@ -310,24 +312,18 @@ func lookupLicenseForWellknownNpmComponents(cdxComponent schema.CDXComponent) []
 	}
 
 	// itemis components
-	if cdxComponent.Group == "@itemis-solutions" {
-		if cdxComponent.Name == "platform-web-components" {
-			return licenseWithId("LicenseRef-itemis-Closed")
-		}
-	}
-	if cdxComponent.Group == "@itemis-solutions" {
-		if cdxComponent.Name == "platform-client-sdk" {
-			return licenseWithId("Apache-2.0")
-		}
-	}
+	// @itemis-solutions/platform-web-components (LicenseRef-itemis-Closed),
+	// @itemis-solutions/platform-client-sdk (Apache-2.0) and
+	// @itemis-secure/repository-client-sdk (Apache-2.0) advertise their license in
+	// the package metadata and are resolved by the npm finder from npm-closed
+	// (see TestFindLicenseOfNpmComponentInItemisNpmRegistries).
+	//
+	// @itemis-secure/calculation and ts-model cannot be resolved by the finder:
+	// calculation carries no license field and ts-model carries the non-canonical
+	// "UNLICENSED", so the canonical mapping has to stay here.
 	if cdxComponent.Group == "@itemis-secure" {
 		if cdxComponent.Name == "calculation" || cdxComponent.Name == "ts-model" {
 			return licenseWithId("LicenseRef-itemis-Closed")
-		}
-	}
-	if cdxComponent.Group == "@itemis-secure" {
-		if cdxComponent.Name == "repository-client-sdk" {
-			return licenseWithId("Apache-2.0")
 		}
 	}
 

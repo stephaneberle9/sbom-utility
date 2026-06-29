@@ -576,4 +576,35 @@ func TestFindLicenseOfMavenComponentInItemisMavenRepos(t *testing.T) {
 	EXPECTED_LICENSE := "The Apache Software License, Version 2.0"
 	EXPECTED_LICENSE_URL := "https://www.apache.org/licenses/LICENSE-2.0.txt"
 	innerTestFindLicenseOfMavenComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE, EXPECTED_LICENSE_URL)
+
+	GROUP = "com.itemis"
+	NAME = "mps-portalon-2022.3"
+	VERSION = "0.7.2-SNAPSHOT"
+	EXPECTED_LICENSE = "LicenseRef-itemis-Closed"
+	EXPECTED_LICENSE_URL = "https://www.itemis.com"
+	innerTestFindLicenseOfMavenComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE, EXPECTED_LICENSE_URL)
+
+	// Formerly hard-coded in the well-known license list because they live in the
+	// private maven-private repo; now resolved directly from their POMs.
+	GROUP = "com.itemis.solutions"
+	NAME = "platform-client-sdk-okhttp"
+	VERSION = "1.0.0"
+	EXPECTED_LICENSE = "Apache-2.0"
+	EXPECTED_LICENSE_URL = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+	innerTestFindLicenseOfMavenComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE, EXPECTED_LICENSE_URL)
+
+	GROUP = "com.itemis.solutions"
+	NAME = "platform-client-sdk-vertx"
+	VERSION = "1.2.1"
+	EXPECTED_LICENSE = "Apache-2.0"
+	EXPECTED_LICENSE_URL = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+	innerTestFindLicenseOfMavenComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE, EXPECTED_LICENSE_URL)
+
+	// platform-client-sdk-kotlin-ktor only began advertising a license as of 1.3.0
+	GROUP = "com.itemis.solutions"
+	NAME = "platform-client-sdk-kotlin-ktor"
+	VERSION = "1.3.0"
+	EXPECTED_LICENSE = "Apache-2.0"
+	EXPECTED_LICENSE_URL = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+	innerTestFindLicenseOfMavenComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE, EXPECTED_LICENSE_URL)
 }

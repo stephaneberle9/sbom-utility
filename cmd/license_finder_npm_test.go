@@ -223,3 +223,28 @@ func TestFindLicensesOfNpmComponent(t *testing.T) {
 	EXPECTED_LICENSES := []string{"MIT", "Apache2"}
 	innerTestFindLicensesOfNpmComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSES)
 }
+
+func TestFindLicenseOfNpmComponentInItemisNpmRegistries(t *testing.T) {
+	// Formerly hard-coded in the well-known license list because they live in the
+	// private npm-closed registry; now resolved directly from their package metadata
+	// (requires NEXUS_USER / NEXUS_PASS; see license_finder_npm.go).
+	GROUP := "@itemis-secure"
+	NAME := "repository-client-sdk"
+	VERSION := "3.1.0-dev-1b6424b2-1792407730"
+	EXPECTED_LICENSE := "Apache-2.0"
+	innerTestFindLicenseOfNpmComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE)
+
+	// platform-web-components and platform-client-sdk only began advertising a
+	// license as of 0.0.7 and 1.5.0 respectively
+	GROUP = "@itemis-solutions"
+	NAME = "platform-web-components"
+	VERSION = "0.0.7"
+	EXPECTED_LICENSE = "LicenseRef-itemis-Closed"
+	innerTestFindLicenseOfNpmComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE)
+
+	GROUP = "@itemis-solutions"
+	NAME = "platform-client-sdk"
+	VERSION = "1.5.0"
+	EXPECTED_LICENSE = "Apache-2.0"
+	innerTestFindLicenseOfNpmComponent(t, GROUP, NAME, VERSION, EXPECTED_LICENSE)
+}
