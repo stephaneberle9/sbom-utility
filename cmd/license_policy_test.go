@@ -523,7 +523,7 @@ func TestLicensePolicyMatchByFamilyNameBadExpression(t *testing.T) {
 
 func TestLicensePolicyListWrapFalse(t *testing.T) {
 	lti := NewLicensePolicyTestInfoBasic(FORMAT_TEXT, false)
-	lti.ResultExpectedLineCount = 276 // title and data rows
+	lti.ResultExpectedLineCount = 277 // title and data rows
 	// Verify first data row has expected values
 	// sanity (spot) check row values
 	lti.ResultLineContainsValuesAtLineNum = 2
@@ -536,7 +536,7 @@ func TestLicensePolicyListWrapFalse(t *testing.T) {
 
 func TestLicensePolicyListWrapTrue(t *testing.T) {
 	lti := NewLicensePolicyTestInfoBasic(FORMAT_TEXT, true)
-	lti.ResultExpectedLineCount = 436 // title and data rows
+	lti.ResultExpectedLineCount = 437 // title and data rows
 	// sanity (spot) check row values
 	lti.ResultLineContainsValuesAtLineNum = 2
 	lti.ResultLineContainsValues = []string{"0BSD", schema.POLICY_ALLOW}
@@ -723,7 +723,7 @@ func TestLicensePolicyExpressionNoConjunction(t *testing.T) {
 
 func TestLicensePolicyExpressionAndConjunction(t *testing.T) {
 	EXP := "EPL-1.0 AND CDDL-1.0"
-	EXPECTED_POLICY := schema.POLICY_ALLOW
+	EXPECTED_POLICY := schema.POLICY_NEEDS_REVIEW
 	EXPECTED_NAME := "Eclipse Public License 1.0 AND Common Development and Distribution License 1.0"
 	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 }
@@ -737,6 +737,11 @@ func TestLicensePolicyExpressionOrConjunction(t *testing.T) {
 	EXP = "LGPL-2.0-or-later OR MPL-1.1"
 	EXPECTED_NAME = "GNU Library General Public License v2 or later OR Mozilla Public License 1.1"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
+
+	EXP = "CDDL-1.0 OR MPL-1.1"
+	EXPECTED_NAME = "Common Development and Distribution License 1.0 OR Mozilla Public License 1.1"
+	EXPECTED_POLICY = schema.POLICY_NEEDS_REVIEW
 	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 
 	EXP = "Apache-2.0 OR LGPL-2.1-or-later"
@@ -764,6 +769,19 @@ func TestLicensePolicyExpressionWithConjunction(t *testing.T) {
 	EXP = "GPL-2.0 WITH OpenJDK-assembly-exception-1.0 WITH Classpath-exception-2.0"
 	EXPECTED_NAME = "GNU General Public License v2.0 only WITH OpenJDK Assembly exception 1.0 WITH Classpath exception 2.0"
 	EXPECTED_POLICY = schema.POLICY_ALLOW
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
+}
+
+func TestLicensePolicyExpressionWithLLVMException(t *testing.T) {
+	EXP := "Apache-2.0 WITH LLVM-exception"
+	EXPECTED_NAME := "Apache License Version 2.0 WITH LLVM Exception"
+	EXPECTED_POLICY := schema.POLICY_ALLOW
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
+
+	EXP = "Apache License Version 2.0 WITH LLVM-exception"
+	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
+
+	EXP = "Apache-2.0 WITH LLVM Exception"
 	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 }
 
@@ -855,7 +873,7 @@ func TestLicensePolicyExpressionWithMultipleConjunctions(t *testing.T) {
 
 	EXP = "EPL-1.0 AND Apache-2.0 AND CDDL-1.0"
 	EXPECTED_NAME = "Eclipse Public License 1.0 AND Apache License Version 2.0 AND Common Development and Distribution License 1.0"
-	EXPECTED_POLICY = schema.POLICY_ALLOW
+	EXPECTED_POLICY = schema.POLICY_NEEDS_REVIEW
 	innerTestLicenseExpressionParsing(t, EXP, EXPECTED_NAME, EXPECTED_POLICY)
 
 	// a AND b OR c

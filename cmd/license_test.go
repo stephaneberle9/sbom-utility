@@ -432,8 +432,8 @@ func TestLicenseExpressionParsingTestComplex1(t *testing.T) {
 }
 
 func TestLicenseExpressionParsingTestComplex2(t *testing.T) {
-	SPDX_LICENSE_EXPRESSION_TEST1 := "MPL-1.0 AND (MIT AND AGPL-3.0)"
-	EXPECTED_NAME := "Mozilla Public License 1.0 AND ( MIT License AND GNU Affero General Public License v3.0 )"
+	SPDX_LICENSE_EXPRESSION_TEST1 := "MPL-2.0 AND (MIT AND AGPL-3.0)"
+	EXPECTED_NAME := "Mozilla Public License 2.0 AND ( MIT License AND GNU Affero General Public License v3.0 )"
 	EXPECTED_POLICY := schema.POLICY_NEEDS_REVIEW
 	result := innerTestLicenseExpressionParsing(t, SPDX_LICENSE_EXPRESSION_TEST1, EXPECTED_NAME, EXPECTED_POLICY)
 	if result.LeftUsagePolicy != schema.POLICY_ALLOW && result.RightUsagePolicy != schema.POLICY_ALLOW {
@@ -441,7 +441,7 @@ func TestLicenseExpressionParsingTestComplex2(t *testing.T) {
 			schema.POLICY_ALLOW, result.LeftUsagePolicy, schema.POLICY_ALLOW, result.RightUsagePolicy)
 	}
 
-	SPDX_LICENSE_EXPRESSION_TEST1 = "MPL-1.0 and (MIT and AGPL-3.0)"
+	SPDX_LICENSE_EXPRESSION_TEST1 = "MPL-2.0 and (MIT and AGPL-3.0)"
 	result = innerTestLicenseExpressionParsing(t, SPDX_LICENSE_EXPRESSION_TEST1, EXPECTED_NAME, EXPECTED_POLICY)
 	if result.LeftUsagePolicy != schema.POLICY_ALLOW && result.RightUsagePolicy != schema.POLICY_ALLOW {
 		t.Errorf("License Expression: expectedLeft `%s`, actualLeft `%s`, expectedRight `%s`, actualRight `%s`\n",
@@ -869,7 +869,7 @@ func TestHashCDXLicenseBSD(t *testing.T) {
 func TestHashCDXLicenseCDDL(t *testing.T) {
 	EXPECTED_LICENSE := "Common Development and Distribution License 1.1"
 	EXPECTED_LICENSE_URLS := "https://javaee.github.io/glassfish/LICENSE"
-	EXPECTED_USAGE_POLICY := schema.POLICY_ALLOW
+	EXPECTED_USAGE_POLICY := schema.POLICY_NEEDS_REVIEW
 
 	CDX_LICENSE_NAME := "https://glassfish.java.net/public/CDDL+GPL_1_1.html, https://glassfish.java.net/public/CDDL+GPL_1_1.html"
 	CDX_LICENSE_URL := ""
@@ -902,7 +902,7 @@ func TestHashCDXLicenseEPL(t *testing.T) {
 	//
 	EXPECTED_LICENSE := "Eclipse Public License 1.0"
 	EXPECTED_LICENSE_URLS := "https://www.eclipse.org/legal/epl-v10.html"
-	EXPECTED_USAGE_POLICY := schema.POLICY_ALLOW
+	EXPECTED_USAGE_POLICY := schema.POLICY_NEEDS_REVIEW
 
 	CDX_LICENSE_NAME := "Eclipse Public License 1.0"
 	CDX_LICENSE_URL := "http://www.eclipse.org/legal/epl-v10.html"

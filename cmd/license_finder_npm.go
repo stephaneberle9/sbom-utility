@@ -107,7 +107,7 @@ func getPackageInfoFromNpmRegistry(cdxComponent schema.CDXComponent) (*PackageIn
 		packageInfo, err := tryGetPackageInfoFromRegistry(baseURL, cdxComponent)
 		if err != nil {
 			getLogger().Tracef("unable to fetch package info from %s: %v", baseURL, err)
-			lastErr = err
+			lastErr = preferTransientError(lastErr, err)
 			if isAuthError(err) {
 				authErr = err
 			}

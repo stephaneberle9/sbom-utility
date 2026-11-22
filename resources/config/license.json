@@ -1487,9 +1487,9 @@
             "reference": "https://spdx.org/licenses/CDDL-1.0.html",
             "osi": true,
             "fsf": true,
-            "usagePolicy": "allow",
+            "usagePolicy": "needs-review",
             "annotationRefs": [
-                "APPROVED"
+                "NEEDS-APPROVAL"
             ],
             "urls": [
                 "https://opensource.org/licenses/cddl1",
@@ -1506,9 +1506,9 @@
             "reference": "https://spdx.org/licenses/CDDL-1.1.html",
             "osi": false,
             "fsf": false,
-            "usagePolicy": "allow",
+            "usagePolicy": "needs-review",
             "annotationRefs": [
-                "APPROVED"
+                "NEEDS-APPROVAL"
             ],
             "urls": [
                 "https://javaee.github.io/glassfish/LICENSE",
@@ -1595,9 +1595,9 @@
             "reference": "",
             "osi": false,
             "fsf": false,
-            "usagePolicy": "allow",
+            "usagePolicy": "needs-review",
             "annotationRefs": [
-                "APPROVED",
+                "NEEDS-APPROVAL",
                 "NO-SPDX-ID"
             ],
             "urls": [
@@ -1614,9 +1614,9 @@
             "reference": "https://spdx.org/licenses/CPL-1.0.html",
             "osi": true,
             "fsf": true,
-            "usagePolicy": "allow",
+            "usagePolicy": "needs-review",
             "annotationRefs": [
-                "APPROVED"
+                "NEEDS-APPROVAL"
             ],
             "urls": [
                 "https://opensource.org/license/cpl1-0-txt",
@@ -1740,13 +1740,13 @@
         {
             "id": "EPL-1.0",
             "name": "Eclipse Public License 1.0",
-            "family": "EPL",
+            "family": "EPL-1.0",
             "reference": "https://spdx.org/licenses/EPL-1.0.html",
             "osi": true,
             "fsf": true,
-            "usagePolicy": "allow",
+            "usagePolicy": "needs-review",
             "annotationRefs": [
-                "APPROVED"
+                "NEEDS-APPROVAL"
             ],
             "urls": [
                 "https://www.eclipse.org/legal/epl-v10.html",
@@ -1770,9 +1770,9 @@
             "reference": "",
             "osi": false,
             "fsf": false,
-            "usagePolicy": "allow",
+            "usagePolicy": "needs-review",
             "annotationRefs": [
-                "APPROVED",
+                "NEEDS-APPROVAL",
                 "NO-SPDX-ID"
             ],
             "notes": [
@@ -1782,7 +1782,7 @@
         {
             "id": "EPL-2.0",
             "name": "Eclipse Public License 2.0",
-            "family": "EPL",
+            "family": "EPL-2.0",
             "reference": "https://spdx.org/licenses/EPL-2.0.html",
             "osi": true,
             "fsf": true,
@@ -1812,9 +1812,9 @@
             "reference": "https://spdx.org/licenses/ErlPL-1.1.html",
             "osi": false,
             "fsf": false,
-            "usagePolicy": "allow",
+            "usagePolicy": "needs-review",
             "annotationRefs": [
-                "APPROVED"
+                "NEEDS-APPROVAL"
             ],
             "urls": [
                 "http://www.erlang.org/EPLICENSE"
@@ -2533,6 +2533,25 @@
             ]
         },
         {
+            "id": "LLVM-exception",
+            "name": "LLVM Exception",
+            "family": "LLVM",
+            "reference": "https://spdx.org/licenses/LLVM-exception.html",
+            "osi": false,
+            "fsf": false,
+            "usagePolicy": "allow",
+            "annotationRefs": [
+                "APPROVED"
+            ],
+            "urls": [
+                "https://spdx.org/licenses/LLVM-exception.html",
+                "https://llvm.org/LICENSE.txt"
+            ],
+            "aliases": [
+                "LLVM Exception"
+            ]
+        },
+        {
             "id": "OpenJDK-assembly-exception-1.0",
             "name": "OpenJDK Assembly exception 1.0",
             "family": "GPL-2.0",
@@ -3102,13 +3121,13 @@
         {
             "id": "MPL-1.0",
             "name": "Mozilla Public License 1.0",
-            "family": "MPL",
+            "family": "MPL-1.0",
             "reference": "https://spdx.org/licenses/MPL-1.0.html",
             "osi": true,
             "fsf": false,
-            "usagePolicy": "allow",
+            "usagePolicy": "needs-review",
             "annotationRefs": [
-                "APPROVED"
+                "NEEDS-APPROVAL"
             ],
             "urls": [
                 "http://www.mozilla.org/MPL/MPL-1.0.html",
@@ -3118,13 +3137,13 @@
         {
             "id": "MPL-1.1",
             "name": "Mozilla Public License 1.1",
-            "family": "MPL",
+            "family": "MPL-1.1",
             "reference": "https://spdx.org/licenses/MPL-1.1.html",
             "osi": true,
             "fsf": true,
-            "usagePolicy": "allow",
+            "usagePolicy": "needs-review",
             "annotationRefs": [
-                "APPROVED"
+                "NEEDS-APPROVAL"
             ],
             "urls": [
                 "http://www.mozilla.org/MPL/MPL-1.1.html",
@@ -3134,7 +3153,7 @@
         {
             "id": "MPL-2.0",
             "name": "Mozilla Public License 2.0",
-            "family": "MPL",
+            "family": "MPL-2.0",
             "reference": "https://spdx.org/licenses/MPL-2.0.html",
             "osi": true,
             "fsf": true,

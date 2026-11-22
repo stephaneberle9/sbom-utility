@@ -158,7 +158,7 @@ func getPomFromMavenRepo(groupId, artifactId, version string) (*gopom.Project, e
 		pom, err := tryGetPomFromRepo(baseURL, groupId, artifactId, version)
 		if err != nil {
 			getLogger().Tracef("unable to fetch pom from %s: %v", baseURL, err)
-			lastErr = err
+			lastErr = preferTransientError(lastErr, err)
 			if isAuthError(err) {
 				authErr = err
 			}

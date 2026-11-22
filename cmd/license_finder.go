@@ -24,9 +24,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 	"regexp"
@@ -44,6 +46,11 @@ const (
 
 	NEXUS_USER_ENV_VAR = "NEXUS_USER"
 	NEXUS_PASS_ENV_VAR = "NEXUS_PASS"
+
+	// Maven Central throttles the default Go user agent ("Go-http-client/1.1") per IP address with
+	// 429 and a Retry-After of about 25 minutes, so a shared CI runner sees it at random. A
+	// dedicated user agent is not part of that bucket.
+	HTTP_USER_AGENT = "sbom-utility-itemis (+https://github.com/stephaneberle9/sbom-utility)"
 )
 
 // httpClient is the shared client used for all license-lookup requests. It sets
@@ -52,6 +59,17 @@ const (
 var httpClient = &http.Client{
 	Timeout: 30 * time.Second,
 }
+
+// License lookups hit public services (Maven Central, the npm registry, the Eclipse license
+// check service) that now and then answer with 429/5xx or drop a connection. A single failed
+// request used to leave a component without a license, so the license check failed
+// intermittently. Transient failures are retried with exponential backoff before giving up.
+var (
+	httpMaxAttempts    = 4
+	httpRetryBaseDelay = 500 * time.Millisecond
+	httpRetryMaxDelay  = 30 * time.Second
+	httpSleep          = time.Sleep
+)
 
 type LicenseFinder interface {
 	Startup()
@@ -169,21 +187,82 @@ func addNexusAuthIfApplicable(request *http.Request) {
 	}
 }
 
-func performHttpGetRequest(requestURL string) ([]byte, error) {
-	// Build HTTP GET request
-	request, err := http.NewRequest(http.MethodGet, requestURL, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create HTTP GET request for %s: %w", requestURL, err)
+func isTransientStatus(statusCode int) bool {
+	switch statusCode {
+	case http.StatusRequestTimeout, http.StatusTooManyRequests, http.StatusInternalServerError,
+		http.StatusBadGateway, http.StatusServiceUnavailable, http.StatusGatewayTimeout:
+		return true
 	}
+	return false
+}
 
-	// Authenticate against the itemis Nexus when applicable
-	addNexusAuthIfApplicable(request)
-
-	// Send HTTP GET request
-	response, err := httpClient.Do(request)
-	if err != nil {
-		return nil, fmt.Errorf("failed to send HTTP GET request to %s: %w", requestURL, err)
+// isTransientError reports whether err (or any error it wraps) is a failure that may go
+// away on its own: a connection or timeout error, or a 408/429/5xx response.
+func isTransientError(err error) bool {
+	var statusErr *HttpStatusError
+	if errors.As(err, &statusErr) {
+		return isTransientStatus(statusErr.StatusCode)
 	}
+	var netErr net.Error
+	return errors.As(err, &netErr)
+}
+
+// retryDelay returns how long to wait before the next attempt: the Retry-After header of the
+// response if it holds a number of seconds, else the base delay doubled for every attempt.
+// It reports false when the server asks for a longer pause than httpRetryMaxDelay (Maven
+// Central answers a throttled client with Retry-After of about 25 minutes); retrying
+// within seconds cannot succeed then.
+func retryDelay(attempt int, retryAfter string) (time.Duration, bool) {
+	delay := httpRetryBaseDelay << (attempt - 1)
+	if seconds, err := strconv.Atoi(retryAfter); err == nil && seconds >= 0 {
+		delay = time.Duration(seconds) * time.Second
+	}
+	return delay, delay <= httpRetryMaxDelay
+}
+
+// performHttpRequest sends the request built by newRequest and returns the body of a 200
+// response. Connection errors, timeouts and 408/429/5xx responses are retried up to
+// httpMaxAttempts times; every other status (404, 401, 403, ...) is returned at once.
+func performHttpRequest(newRequest func() (*http.Request, error)) ([]byte, error) {
+	var lastErr error
+	for attempt := 1; attempt <= httpMaxAttempts; attempt++ {
+		request, err := newRequest()
+		if err != nil {
+			return nil, err
+		}
+
+		request.Header.Set("User-Agent", HTTP_USER_AGENT)
+
+		// Authenticate against the itemis Nexus when applicable
+		addNexusAuthIfApplicable(request)
+
+		var retryAfter string
+		response, err := httpClient.Do(request)
+		if err != nil {
+			lastErr = fmt.Errorf("failed to send HTTP %s request to %s: %w", request.Method, request.URL, err)
+		} else {
+			retryAfter = response.Header.Get("Retry-After")
+			var responseBody []byte
+			responseBody, lastErr = readResponse(request.URL.String(), response)
+			if lastErr == nil {
+				return responseBody, nil
+			}
+		}
+
+		if attempt == httpMaxAttempts || !isTransientError(lastErr) {
+			break
+		}
+		delay, worthWaiting := retryDelay(attempt, retryAfter)
+		if !worthWaiting {
+			break
+		}
+		getLogger().Warningf("%v; retrying in %s (attempt %d of %d)", lastErr, delay, attempt+1, httpMaxAttempts)
+		httpSleep(delay)
+	}
+	return nil, lastErr
+}
+
+func readResponse(requestURL string, response *http.Response) ([]byte, error) {
 	defer func() {
 		if err := response.Body.Close(); err != nil {
 			getLogger().Errorf("unable to close response body: %+v", err)
@@ -201,41 +280,30 @@ func performHttpGetRequest(requestURL string) ([]byte, error) {
 	return responseBody, nil
 }
 
+func performHttpGetRequest(requestURL string) ([]byte, error) {
+	return performHttpRequest(func() (*http.Request, error) {
+		request, err := http.NewRequest(http.MethodGet, requestURL, nil)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create HTTP GET request for %s: %w", requestURL, err)
+		}
+		return request, nil
+	})
+}
+
 func performHttpPostFormRequest(requestURL, formDataKey string, formData []byte) ([]byte, error) {
 	// Convert JSON body to URL-encoded form
 	requestForm := url.Values{}
 	requestForm.Add(formDataKey, string(formData))
+	encodedForm := requestForm.Encode()
 
-	// Build HTTP POST request
-	request, err := http.NewRequest(http.MethodPost, requestURL, bytes.NewBufferString(requestForm.Encode()))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create HTTP POST request for %s: %w", requestURL, err)
-	}
-	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	// Authenticate against the itemis Nexus when applicable
-	addNexusAuthIfApplicable(request)
-
-	// Send HTTP Post request
-	response, err := httpClient.Do(request)
-	if err != nil {
-		return nil, fmt.Errorf("failed to send HTTP POST request to %s: %w", requestURL, err)
-	}
-	defer func() {
-		if err := response.Body.Close(); err != nil {
-			getLogger().Errorf("unable to close response body: %+v", err)
+	return performHttpRequest(func() (*http.Request, error) {
+		request, err := http.NewRequest(http.MethodPost, requestURL, bytes.NewBufferString(encodedForm))
+		if err != nil {
+			return nil, fmt.Errorf("failed to create HTTP POST request for %s: %w", requestURL, err)
 		}
-	}()
-	if response.StatusCode != http.StatusOK {
-		return nil, &HttpStatusError{URL: requestURL, StatusCode: response.StatusCode}
-	}
-
-	// Read response body
-	responseBody, err := io.ReadAll(response.Body)
-	if err != nil {
-		return nil, fmt.Errorf("unable to read response body: %w", err)
-	}
-	return responseBody, nil
+		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		return request, nil
+	})
 }
 
 func licenseStringsToLicenseChoices(licenseStrings []string) (licenseChoices []schema.CDXLicenseChoice, err error) {
@@ -273,4 +341,14 @@ func licenseStringToLicenseChoice(licenseString string) schema.CDXLicenseChoice 
 			Name: cleanedLicenseString,
 		},
 	}
+}
+
+// preferTransientError keeps an earlier transient failure (e.g. Maven Central answered 503) over
+// a later non-transient one (a 404 from a private repository that never had the artifact), so the
+// reported error says that the lookup was interrupted and not that the artifact does not exist.
+func preferTransientError(previous, current error) error {
+	if previous != nil && isTransientError(previous) && !isTransientError(current) {
+		return previous
+	}
+	return current
 }
